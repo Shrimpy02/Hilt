@@ -9,6 +9,7 @@
 #include "Player/GrapplingHook/GrapplingComponent.h"
 #include "Player/TerrainGun/TerrainGunComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Player/GrapplingHook/RopeComponent.h"
 
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(
@@ -31,6 +32,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	Camera = CreateDefaultSubobject<UPlayerCameraComponent>(TEXT("Camera"));
 	TerrainGunComponent = CreateDefaultSubobject<UTerrainGunComponent>(TEXT("TerrainGunComponent"));
 	GrapplingComponent = CreateDefaultSubobject<UGrapplingComponent>(TEXT("GrapplingComponent"));
+	RopeComponent = CreateDefaultSubobject<URopeComponent>(TEXT("RopeComponent"));
 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());

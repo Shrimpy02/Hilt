@@ -34,6 +34,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UGrapplingComponent* GrapplingComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class URopeComponent* RopeComponent;
+
 	//input data asset
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UInputDataAsset* InputDataAsset;
