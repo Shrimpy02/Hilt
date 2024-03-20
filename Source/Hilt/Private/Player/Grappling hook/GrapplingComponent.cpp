@@ -185,7 +185,7 @@ void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float Max
 	GetWorld()->SweepSingleByChannel(GrappleHit, CameraLocation, End, FQuat::Identity, CanGrappleTraceChannel, CollisionShape, GrappleCollisionParams);
 }
 
-void UGrapplingComponent::ApplyPullForce(float DeltaTime)
+void UGrapplingComponent::ApplyPullForce(float DeltaTime) const
 {
 	//storage for the velocity that will be applied from the grapple
 	FVector GrappleVelocity;
@@ -198,7 +198,7 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			//add the grapple vector to the character's velocity
 			GrappleVelocity = GetGrappleDirection() * GetPullSpeed() * DeltaTime;
 
-			//check if we have a valid grapple velocity curve
+			//check if we have valid curves
 			if (GrappleAngleVelocityCurve && GrappleDistanceVelocityCurve)
 			{
 				//get the grapple angle velocity curve value
