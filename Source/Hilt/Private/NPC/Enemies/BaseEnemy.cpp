@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Characters/Enemies/BaseEnemy.h"
+#include "NPC/Enemies/BaseEnemy.h"
 
 // Sets default values
 ABaseEnemy::ABaseEnemy()
