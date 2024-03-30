@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "CollisionQueryParams.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GrapplingHook/GrapplingComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "PlayerMovementComponent.generated.h"
 
@@ -14,7 +13,7 @@ class UPlayerCameraComponent;
 class AGrapplingHookHead;
 
 /**
- * Movement component for the player character that adds grappling
+ * Movement component for the player character that extends the default character movement component
  */
 UCLASS(Blueprintable)
 class UPlayerMovementComponent : public UPawnMovementComponent
@@ -35,7 +34,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
 	bool bUseTerminalVelocity = true;
 
-	//the float curve to use for setting the max speed when falling and grappling
+	//the float curve to use for setting the max speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
 	UCurveFloat* MaxSpeedCurve = nullptr;
 
@@ -58,6 +57,11 @@ public:
 	//the float curve to use when applying the collision launch speed based on the speed of the player (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
+
+	//the movement force to use for wasd movement
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float WasdMovementForce = 1000.f;
+
 
 	//constructor
 	UPlayerMovementComponent();

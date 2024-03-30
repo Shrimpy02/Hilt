@@ -106,10 +106,6 @@ public:
 	//timer handle for the crouch lerping
 	FTimerHandle CrouchLerpTimerHandle;
 
-	//reference to the character owner of this component
-	UPROPERTY()
-	ACharacter* CharacterOwner = nullptr;
-
 	//overrides
 	virtual void BeginPlay() override;
 	virtual void UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime) override;

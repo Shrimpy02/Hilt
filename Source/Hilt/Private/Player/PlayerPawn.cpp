@@ -72,17 +72,11 @@ APlayerPawn::APlayerPawn()
 	//set the mesh's collision profile to be no collision
 	SkeletalMeshComponent->SetCollisionProfileName(FName("NoCollision"));
 
-	//set the camera arm's target offset to be above the character and a little behind
-	CameraArm->TargetOffset = FVector(0.f, 10.f, 90.f);
+	////set the camera arm's target offset to be above the character and a little behind
+	//CameraArm->TargetOffset = FVector(0.f, 10.f, 90.f);
 
 	//make the camera follow the controller's rotation (so it uses the rotation input from the mouse)
 	CameraArm->bUsePawnControlRotation = true;
-
-	//disable busepawncontrolrotation on the camera
-	Camera->bUsePawnControlRotation = false;
-
-	//default to automatically possessing the player
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	//add the player tag
 	Tags.Add(FName("Player"));
@@ -121,13 +115,6 @@ UPawnMovementComponent* APlayerPawn::GetMovementComponent() const
 
 void APlayerPawn::WasdMovement(const FInputActionValue& Value)
 {
-	////check if the value is zero
-	//if (Value.IsNonZero())
-	//{
-	//	//if it is, return
-	//	return;
-	//}
-
 	//get the vector direction from the input value
 	FVector2D VectorDirection = Value.Get<FVector2D>();
 
@@ -174,16 +161,12 @@ void APlayerPawn::WasdMovement(const FInputActionValue& Value)
 
 void APlayerPawn::MouseMovement(const FInputActionValue& Value)
 {
-	//check if we can use the input
-	if (Value.IsNonZero())
-	{
-		//get the look axis input
-		const FVector2D LookAxisInput = Value.Get<FVector2D>();
+	//get the look axis input
+	const FVector2D LookAxisInput = Value.Get<FVector2D>();
 
-		//add controller yaw and pitch input
-		AddControllerYawInput(LookAxisInput.X);
-		AddControllerPitchInput(-LookAxisInput.Y);
-	}
+	//add controller yaw and pitch input
+	AddControllerYawInput(LookAxisInput.X);
+	AddControllerPitchInput(-LookAxisInput.Y);
 }
 
 void APlayerPawn::PauseGame()

@@ -28,8 +28,11 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 	//Store the input vector
 	const FVector ReturnVec = Super::ConsumeInputVector();
 
-	//print that we're consuming the input vector
-	UE_LOG(LogTemp, Log, TEXT("Consume Input Vector Called"));
+	////add the input vector as a force to the player pawn
+	//PlayerPawn->SphereComponent->AddForce(ReturnVec * WasdMovementForce, NAME_None, true);
+	
+	//print that we're consuming the input vector and the return vector
+	UE_LOG(LogTemp, Log, TEXT("Consuming input vector: %s"), *ReturnVec.ToString());
 
 	//check if the input vector is zero
 	if (ReturnVec.IsNearlyZero())
