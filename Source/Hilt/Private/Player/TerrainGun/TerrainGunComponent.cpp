@@ -5,44 +5,29 @@ UTerrainGunComponent::UTerrainGunComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UTerrainGunComponent::Fire(const FVector Direction)
+AActor* UTerrainGunComponent::FireProjectile(FVector Direction)
 {
-	//check if the projectile class is invalid
-	if (!ProjectileClass->IsValidLowLevel())
+	//store the spawned projectile
+	AActor* SpawnedProjectile =  Super::FireProjectile(Direction);
+
+	//check if the spawned projectile is invalid
+	if (!SpawnedProjectile)
 	{
-		//print an error message
-		UE_LOG(LogTemp, Error, TEXT("ProjectileClass is not set in TerrainGunComponent"));
-
-		//print a message to the screen
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("ProjectileClass is not set in TerrainGunComponent"));
-
-		//prevent further execution of this function
-		return;
+		//don't log anything since the parent function already logs an error
+		return nullptr;
 	}
-
-	//get the location to spawn the projectile
-	const FVector SpawnLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * FVector::Dist(GetComponentLocation(), GetOwner()->GetActorLocation());
-
-	//spawn the projectile
-	AActor* Projectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, GetOwner()->GetActorRotation());
-
-	//set the projectile's velocity
-	Projectile->GetRootComponent()->ComponentVelocity = Direction * ProjectileSpeed;
-	
-	//bind the projectile's hit event
-	Projectile->OnActorHit.AddDynamic(this, &UTerrainGunComponent::OnProjectileHit);
 
 	//timer delegate to turn the projectile into terrain
 	FTimerDelegate TimerDelegate;
 
 	//bind the function to the delegate
-	TimerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UTerrainGunComponent, OnProjectileExpired), Projectile);
+	TimerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UTerrainGunComponent, OnProjectileExpired), SpawnedProjectile);
 
 	//bind the timer delegate to the timer handle
 	GetWorld()->GetTimerManager().SetTimer(TerrainTimerHandle, TimerDelegate, ProjectileLifeTime, false);
 
-	//call the OnTerrainFired delegate
-	OnTerrainFired.Broadcast(Projectile, GetOwner());
+	//return the spawned projectile
+	return SpawnedProjectile;
 }
 
 void UTerrainGunComponent::OnProjectileHit(AActor* Projectile, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
@@ -63,8 +48,8 @@ void UTerrainGunComponent::OnProjectileHit(AActor* Projectile, AActor* OtherActo
 		return;
 	}
 
-	//call the OnTerrainCollision delegate
-	OnTerrainCollision.Broadcast(Projectile, OtherActor, Hit);
+	//call the parent implementation
+	Super::OnProjectileHit(Projectile, OtherActor, NormalImpulse, Hit);
 
 	//get the location of the hit
 	const FVector TerrainLocation = Hit.ImpactPoint;
