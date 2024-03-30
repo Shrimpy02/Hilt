@@ -9,6 +9,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "PlayerMovementComponent.generated.h"
 
+class APlayerPawn;
 class UPlayerCameraComponent;
 class AGrapplingHookHead;
 
@@ -16,15 +17,15 @@ class AGrapplingHookHead;
  * Movement component for the player character that adds grappling
  */
 UCLASS(Blueprintable)
-class UPlayerMovementComponent : public UCharacterMovementComponent
+class UPlayerMovementComponent : public UPawnMovementComponent
 {
 	GENERATED_BODY()
 
 public:
 
-	//the grappling component of the player
-	UPROPERTY(BlueprintReadOnly, Category = "Grappling")
-	UGrapplingComponent* GrappleComponent = nullptr;
+	//reference to the player as a playerpawn
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	APlayerPawn* PlayerPawn = nullptr;
 
 	//the max movement speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
@@ -46,10 +47,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Falling")
 	float MaxSpeedDifferenceTime = 0.f;
 
-	//the max acceleration to use when grappling
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
-	float GrappleMaxAcceleration = 2000.f;
-
 	//the minimum speed to launch the character off of a collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	float MinCollisionLaunchSpeed = 1000.f;
@@ -67,18 +64,16 @@ public:
 
 	//override functions
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
-	virtual void Launch(FVector const& LaunchVel) override;
+	//virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
+	//virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
-	virtual bool ShouldRemainVertical() const override;
-	virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
+	//virtual bool ShouldRemainVertical() const override;
+	//virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
 	virtual float GetGravityZ() const override;
 
 	virtual float GetMaxSpeed() const override;
-	virtual float GetMaxAcceleration() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
-	virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
+	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
 
 	//function called when the player starts grappling
 	UFUNCTION()

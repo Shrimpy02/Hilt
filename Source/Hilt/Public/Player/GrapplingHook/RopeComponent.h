@@ -106,9 +106,11 @@ public:
 	void RenderRope();
 
 	//function to deactivate the rope
+	UFUNCTION()
 	void DeactivateRope();
 
 	//function to activate the rope
+	UFUNCTION()
 	void ActivateRope(AActor* OtherActor, const FHitResult& HitResult);
 public:
 	/**

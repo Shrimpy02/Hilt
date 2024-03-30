@@ -155,9 +155,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartGrappleCheck();
 
+	//function to process the grapple input
+	UFUNCTION(BlueprintCallable)
+	FVector ProcessGrappleInput(FVector MovementInput);
+
 private:
 
 	//function to handle an impact and maybe stop grappling
+	UFUNCTION()
 	void HandleImpact(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
 
 	//function to handle the interpolation modes of the grapple

@@ -8,7 +8,7 @@
 #include "InputAction.h"
 #include "InputDataAsset.generated.h"
 
-class APlayerCharacter;
+class APlayerPawn;
 /**
  * This class is used to store the input data for the player character
  */
@@ -41,11 +41,11 @@ public:
 	UInputAction* IA_StopGrapple = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
-	UInputAction* IA_RespawnButton = nullptr;
+	UInputAction* IA_PauseButton = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
+	UInputAction* IA_FireGun = nullptr;
 
 	//constructor(s)
 	UInputDataAsset();
-
-	//function to setup the input data for the player character
-	void SetupInputData(APlayerCharacter* PlayerCharacter, UEnhancedInputComponent* EnhancedInputComponent);
 };
