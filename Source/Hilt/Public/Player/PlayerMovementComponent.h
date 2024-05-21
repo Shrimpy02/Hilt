@@ -8,7 +8,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "PlayerMovementComponent.generated.h"
 
-class APlayerPawn;
+class APlayerCharacter;
 class UPlayerCameraComponent;
 class AGrapplingHookHead;
 
@@ -16,7 +16,7 @@ class AGrapplingHookHead;
  * Movement component for the player character that extends the default character movement component
  */
 UCLASS(Blueprintable)
-class UPlayerMovementComponent : public UPawnMovementComponent
+class UPlayerMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 
@@ -24,7 +24,7 @@ public:
 
 	//reference to the player as a playerpawn
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
-	APlayerPawn* PlayerPawn = nullptr;
+	APlayerCharacter* PlayerPawn = nullptr;
 
 	//the max movement speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")

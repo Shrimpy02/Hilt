@@ -71,7 +71,7 @@ public:
 	FName JitterParameterName = "DoJitter";
 
 	//the tick behaviour to use for the niagara components
-	TEnumAsByte<ENiagaraTickBehavior> TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
+	ENiagaraTickBehavior TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
 
 	//the tick group to use for the niagara components
 	TEnumAsByte<ETickingGroup> TickGroup = TG_LastDemotable;
