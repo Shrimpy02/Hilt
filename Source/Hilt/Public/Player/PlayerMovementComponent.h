@@ -5,15 +5,15 @@
 #include "CoreMinimal.h"
 #include "CollisionQueryParams.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GrapplingHook/GrapplingComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "PlayerMovementComponent.generated.h"
 
+class APlayerCharacter;
 class UPlayerCameraComponent;
 class AGrapplingHookHead;
 
 /**
- * Movement component for the player character that adds grappling
+ * Movement component for the player character that extends the default character movement component
  */
 UCLASS(Blueprintable)
 class UPlayerMovementComponent : public UCharacterMovementComponent
@@ -22,9 +22,9 @@ class UPlayerMovementComponent : public UCharacterMovementComponent
 
 public:
 
-	//the grappling component of the player
-	UPROPERTY(BlueprintReadOnly, Category = "Grappling")
-	UGrapplingComponent* GrappleComponent = nullptr;
+	//reference to the player as a playerpawn
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	APlayerCharacter* PlayerPawn = nullptr;
 
 	//the max movement speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
@@ -34,7 +34,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
 	bool bUseTerminalVelocity = true;
 
-	//the float curve to use for setting the max speed when falling and grappling
+	//the float curve to use for setting the max speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
 	UCurveFloat* MaxSpeedCurve = nullptr;
 
@@ -45,10 +45,6 @@ public:
 	//the current time the player has been in the max speed difference range
 	UPROPERTY(BlueprintReadOnly, Category = "Falling")
 	float MaxSpeedDifferenceTime = 0.f;
-
-	//the max acceleration to use when grappling
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
-	float GrappleMaxAcceleration = 2000.f;
 
 	//the minimum speed to launch the character off of a collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
@@ -62,23 +58,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
 
+	//the movement force to use for wasd movement
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float WasdMovementForce = 1000.f;
+
+
 	//constructor
 	UPlayerMovementComponent();
 
 	//override functions
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
-	virtual void Launch(FVector const& LaunchVel) override;
+	//virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
+	//virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
-	virtual bool ShouldRemainVertical() const override;
-	virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
+	//virtual bool ShouldRemainVertical() const override;
+	//virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
 	virtual float GetGravityZ() const override;
 
 	virtual float GetMaxSpeed() const override;
-	virtual float GetMaxAcceleration() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
-	virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
+	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
 
 	//function called when the player starts grappling
 	UFUNCTION()

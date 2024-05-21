@@ -1,5 +1,5 @@
 #include "Player/Camera/CameraArmComponent.h"
-#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UCameraArmComponent::UCameraArmComponent(const FObjectInitializer& ObjectInitializer)
@@ -12,18 +12,6 @@ void UCameraArmComponent::BeginPlay()
 {
 	//call the parent implementation
 	Super::BeginPlay();
-
-	//check if the owner is a character
-	if (GetOwner()->IsA(ACharacter::StaticClass()))
-	{
-		//cast the owner to a character
-		CharacterOwner = Cast<ACharacter>(GetOwner());
-	}
-	else
-	{
-		//print an error message
-		UE_LOG(LogTemp, Error, TEXT("The owner of the CameraArmComponent is not a character!"));
-	}
 
 	//set default target offset
 	DefaultTargetOffset = TargetOffset;
@@ -55,21 +43,23 @@ void UCameraArmComponent::BeginPlay()
 
 void UCameraArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime)
 {
-	//check if we should apply camera offset and if the character owner is valid
-	if (bApplyCameraOffset && CharacterOwner)
-	{
-		//get the controller rotation
-		FRotator ControllerRotation = CharacterOwner->GetControlRotation();
+	////check if we should apply camera offset and if the character owner is valid
+	//if (bApplyCameraOffset)
+	//{
+	//	//get the controller rotation
+	//	FRotator ControllerRotation = UGameplayStatics::GetPlayerController(this, 0)->GetControlRotation();
 
-		//remove the pitch from the controller rotation
-		ControllerRotation.Pitch = 0;
+	//	//remove the pitch from the controller rotation
+	//	ControllerRotation.Pitch = 0;
 
-		//get the camera offset
-		const FVector CamSocketOffset = UKismetMathLibrary::GetRightVector(ControllerRotation);
+	//	//get the camera offset
+	//	const FVector CamSocketOffset = UKismetMathLibrary::GetRightVector(ControllerRotation);
 
-		//set the socket offset
-		SocketOffset = CamSocketOffset * CameraOffsetAmount;
-	}
+	//	//set the socket offset
+	//	SocketOffset = CamSocketOffset * CameraOffsetAmount;
+	//}
+
+	Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
 }
 
 void UCameraArmComponent::InterpCameraZoom()

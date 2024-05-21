@@ -71,7 +71,7 @@ public:
 	FName JitterParameterName = "DoJitter";
 
 	//the tick behaviour to use for the niagara components
-	TEnumAsByte<ENiagaraTickBehavior> TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
+	ENiagaraTickBehavior TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
 
 	//the tick group to use for the niagara components
 	TEnumAsByte<ETickingGroup> TickGroup = TG_LastDemotable;
@@ -106,9 +106,11 @@ public:
 	void RenderRope();
 
 	//function to deactivate the rope
+	UFUNCTION()
 	void DeactivateRope();
 
 	//function to activate the rope
+	UFUNCTION()
 	void ActivateRope(AActor* OtherActor, const FHitResult& HitResult);
 public:
 	/**
