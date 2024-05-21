@@ -1,7 +1,5 @@
-#include "Player/PlayerPawn.h"
+#include "Player/PlayerCharacter.h"
 
-//Components
-#include "Components/CapsuleComponent.h"
 #include "Player/PlayerMovementComponent.h"
 #include "Player/Camera/CameraArmComponent.h"
 #include "Player/Camera/PlayerCameraComponent.h"
@@ -9,11 +7,10 @@
 #include "Player/TerrainGun/TerrainGunComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Components/SphereComponent.h"
+//#include "Components/SphereComponent.h"
 #include "Player/GrapplingHook/RopeComponent.h"
 
-
-APlayerPawn::APlayerPawn()
+APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UPlayerMovementComponent>(CharacterMovementComponentName))
 {
 	//Enable ticking
 	PrimaryActorTick.bCanEverTick = true;
@@ -22,44 +19,43 @@ APlayerPawn::APlayerPawn()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
-
+	
 	////set rotation to follow movement
 	//GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...
 	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	//initialize our components
-	PlayerMovementComponent = CreateDefaultSubobject<UPlayerMovementComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, PlayerMovementComponent));
-	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, SkeletalMeshComponent));
-	SphereComponent = CreateDefaultSubobject<USphereComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, SphereComponent));
-	Camera = CreateDefaultSubobject<UPlayerCameraComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, Camera));
-	CameraArm = CreateDefaultSubobject<UCameraArmComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, CameraArm));
-	TerrainGunComponent = CreateDefaultSubobject<UTerrainGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, TerrainGunComponent));
-	RocketLauncherComponent = CreateDefaultSubobject<UProjectileGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, RocketLauncherComponent));
-	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, GrappleComponent));
-	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerPawn, RopeComponent));
+	PlayerMovementComponent = Cast<UPlayerMovementComponent>(GetCharacterMovement());
+	//PlayerMovementComponent = CreateDefaultSubobject<UPlayerMovementComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, PlayerMovementComponent));
+	Camera = CreateDefaultSubobject<UPlayerCameraComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, Camera));
+	CameraArm = CreateDefaultSubobject<UCameraArmComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, CameraArm));
+	TerrainGunComponent = CreateDefaultSubobject<UTerrainGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, TerrainGunComponent));
+	RocketLauncherComponent = CreateDefaultSubobject<UProjectileGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
+	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
+	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
 
-	//set the root component to be the collison shape component
-	SetRootComponent(SphereComponent);
+	////set the root component to be the collison shape component
+	//SetRootComponent(SphereComponent);
 
-	//enable collision (query and physics) on the collision shape component
-	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	////enable collision (query and physics) on the collision shape component
+	//SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	//set the collision profile to be pawn
-	SphereComponent->SetCollisionProfileName(FName("Pawn"));
+	////set the collision profile to be pawn
+	//SphereComponent->SetCollisionProfileName(FName("Pawn"));
 
-	//set the collision response to be block all
-	SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
+	////set the collision response to be block all
+	//SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
 
-	//set the collision response to be overlap for the camera channel
-	SphereComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Overlap);
+	////set the collision response to be overlap for the camera channel
+	//SphereComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Overlap);
 
-	//enable physics simulation on the collison shape component
-	SphereComponent->SetSimulatePhysics(true);
+	////enable physics simulation on the collison shape component
+	//SphereComponent->SetSimulatePhysics(true);
 
-	//prevent the physics simulation from rotating the collision shape
-	SphereComponent->BodyInstance.bLockXRotation = true;
-	SphereComponent->BodyInstance.bLockYRotation = true;
-	SphereComponent->BodyInstance.bLockZRotation = true;
+	////prevent the physics simulation from rotating the collision shape
+	//SphereComponent->BodyInstance.bLockXRotation = true;
+	//SphereComponent->BodyInstance.bLockYRotation = true;
+	//SphereComponent->BodyInstance.bLockZRotation = true;
 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());
@@ -69,8 +65,8 @@ APlayerPawn::APlayerPawn()
 	//SkeletalMeshComponent->SetRelativeLocation(FVector(0.f, 0.f, -60.f));
 	//SkeletalMeshComponent->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
 
-	//set the mesh's collision profile to be no collision
-	SkeletalMeshComponent->SetCollisionProfileName(FName("NoCollision"));
+	////set the mesh's collision profile to be no collision
+	//SkeletalMeshComponent->SetCollisionProfileName(FName("NoCollision"));
 
 	////set the camera arm's target offset to be above the character and a little behind
 	//CameraArm->TargetOffset = FVector(0.f, 10.f, 90.f);
@@ -82,7 +78,7 @@ APlayerPawn::APlayerPawn()
 	Tags.Add(FName("Player"));
 }
 
-void APlayerPawn::SetupPlayerInputComponent(UInputComponent* InInputComponent)
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputComponent)
 {
 	//call the parent implementation
 	Super::SetupPlayerInputComponent(InInputComponent);
@@ -90,14 +86,14 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* InInputComponent)
 	//check if we have a valid input data asset and enhanced input component
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InInputComponent); EnhancedInputComponent->IsValidLowLevel() && InputDataAsset->IsValidLowLevel())
 	{
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Triggered, this, &APlayerPawn::WasdMovement);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_MouseMovement, ETriggerEvent::Triggered, this, &APlayerPawn::MouseMovement);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_DoJump, ETriggerEvent::Triggered, this, &APlayerPawn::Jump);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerPawn::StopJumping);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_ShootGrapple, ETriggerEvent::Triggered, this, &APlayerPawn::ShootGrapple);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerPawn::StopGrapple);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerPawn::PauseGame);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerPawn::FireTerrainGun);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::WasdMovement);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_MouseMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::MouseMovement);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_DoJump, ETriggerEvent::Triggered, this, &APlayerCharacter::DoJump);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerCharacter::StopTheJumping);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_ShootGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireTerrainGun);
 	}
 
 	//check if we have a valid input subsystem
@@ -108,12 +104,7 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* InInputComponent)
 	}
 }
 
-UPawnMovementComponent* APlayerPawn::GetMovementComponent() const
-{
-	return PlayerMovementComponent;
-}
-
-void APlayerPawn::WasdMovement(const FInputActionValue& Value)
+void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 {
 	//get the vector direction from the input value
 	FVector2D VectorDirection = Value.Get<FVector2D>();
@@ -159,7 +150,7 @@ void APlayerPawn::WasdMovement(const FInputActionValue& Value)
 	AddMovementInput(PlayerDirectionYaw_Left_Right, VectorDirection.X);
 }
 
-void APlayerPawn::MouseMovement(const FInputActionValue& Value)
+void APlayerCharacter::MouseMovement(const FInputActionValue& Value)
 {
 	//get the look axis input
 	const FVector2D LookAxisInput = Value.Get<FVector2D>();
@@ -169,7 +160,7 @@ void APlayerPawn::MouseMovement(const FInputActionValue& Value)
 	AddControllerPitchInput(-LookAxisInput.Y);
 }
 
-void APlayerPawn::PauseGame()
+void APlayerCharacter::PauseGame()
 {
 	//get the player controller
 	APlayerController* PC = GetLocalViewingPlayerController();
@@ -178,20 +169,20 @@ void APlayerPawn::PauseGame()
 	PC->SetPause(!PC->IsPaused());
 }
 
-void APlayerPawn::FireTerrainGun()
+void APlayerCharacter::FireTerrainGun()
 {
 	//fire the terrain gun
 	TerrainGunComponent->FireProjectile(Camera->GetForwardVector());
 }
 
-//void APlayerPawn::DoJump(const FInputActionValue& Value)
+//void APlayerCharacter::DoJump(const FInputActionValue& Value)
 //{
 //
 //	//call the jump function
 //	Jump();
 //}
 //
-//void APlayerPawn::StopJumpInput(const FInputActionValue& Value)
+//void APlayerCharacter::StopJumpInput(const FInputActionValue& Value)
 //{
 //	//check if we can use the input
 //	if (CharacterState == ECharacterState::ECS_Dead)
@@ -203,21 +194,21 @@ void APlayerPawn::FireTerrainGun()
 //	StopJumping();
 //}
 
-void APlayerPawn::ShootGrapple(const FInputActionValue& Value)
+void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
 {
 	GrappleComponent->StartGrappleCheck();
 }
 
-void APlayerPawn::StopGrapple(const FInputActionValue& Value)
+void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 {
 	//stop grappling
 	GrappleComponent->StopGrapple();
 }
 
-void APlayerPawn::Jump(const FInputActionValue& Value)
+void APlayerCharacter::DoJump(const FInputActionValue& Value)
 {
 }
 
-void APlayerPawn::StopJumping(const FInputActionValue& Value)
+void APlayerCharacter::StopTheJumping(const FInputActionValue& Value)
 {
 }

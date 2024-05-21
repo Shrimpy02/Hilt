@@ -8,7 +8,7 @@
 #include "InputAction.h"
 #include "InputDataAsset.generated.h"
 
-class APlayerPawn;
+class APlayerCharacter;
 /**
  * This class is used to store the input data for the player character
  */
