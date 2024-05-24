@@ -12,6 +12,13 @@ URopeComponent::URopeComponent()
 
 	//add the no grapple tag
 	ComponentTags.Add(HiltTags::NoGrappleTag);
+
+	//set the tick group and behavior
+	TickGroup = TG_PostUpdateWork;
+
+	PrimaryComponentTick.bCanEverTick = true;
+	bAutoActivate = true;
+	UActorComponent::SetComponentTickEnabled(true);
 }
 
 void URopeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -64,12 +71,19 @@ void URopeComponent::CheckCollisionPoints()
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetOwner());
 
-	//check if we're using the attached actor as the rope end
-	if (GrappleableComponent->IsValidLowLevelFast())
-	{
-		//add the attached actor to the ignored actors
-		CollisionParams.AddIgnoredActor(GrappleableComponent->GetOwner());
-	}
+	////check if we have an attached actor
+	//if (StartHit.IsValidBlockingHit())
+	//{
+	//	//add the attached actor to the ignored actors
+	//	CollisionParams.AddIgnoredActor(StartHit.GetActor());
+	//}
+
+	////check if we're using the attached actor as the rope end
+	//if (GrappleableComponent->IsValidLowLevelFast())
+	//{
+	//	//add the attached actor to the ignored actors
+	//	CollisionParams.AddIgnoredActor(GrappleableComponent->GetOwner());
+	//}
 
 	//iterate through all the rope points
 	for (int Index = 0; Index < RopePoints.Num() - 1; Index++)
@@ -108,7 +122,9 @@ void URopeComponent::CheckCollisionPoints()
 			}
 		}
 
+		//hit result to check for new rope points
 		FHitResult Next;
+
 		//sweep from the current rope point to the next rope point
 		GetWorld()->SweepSingleByChannel(Next, RopePoints[Index], RopePoints[Index + 1], FQuat(), ECC_Visibility, FCollisionShape::MakeSphere(RopeRadius), CollisionParams);
 
@@ -116,7 +132,7 @@ void URopeComponent::CheckCollisionPoints()
 		if (Next.IsValidBlockingHit())
 		{
 			//if we hit something, add a new rope point at the hit location if we're not too close to the last rope point
-			if (FVector::Dist(RopePoints[Index], Next.Location) > MinCollisionPointSpacing)
+			if (FVector::Dist(RopePoints[Index], Next.Location) > MinCollisionPointSpacing && !Next.bStartPenetrating)
 			{
 				//insert the new rope point at the hit location
 				RopePoints.Insert(Next.Location + Next.ImpactNormal, Index + 1);
@@ -279,16 +295,8 @@ FVector URopeComponent::GetRopeEnd() const
 		return GrappleableComponent->GetComponentLocation();
 	}
 
-	//check if we have a valid start hit
-	if (StartHit.bBlockingHit)
-	{
-		//return the location of the start hit
-		return StartHit.ImpactPoint;
-	}
-
-	//return zero vector
-	return FVector();
-	
+	//return the location of the start hit
+	return StartHit.ImpactPoint;
 }
 
 FVector URopeComponent::GetSecondRopePoint() const

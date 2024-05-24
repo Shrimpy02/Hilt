@@ -34,6 +34,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
 
+
 	////set the root component to be the collison shape component
 	//SetRootComponent(SphereComponent);
 
@@ -60,6 +61,9 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());
 	Camera->SetupAttachment(CameraArm);
+	RopeComponent->SetupAttachment(GetRootComponent());
+	TerrainGunComponent->SetupAttachment(GetRootComponent());
+	RocketLauncherComponent->SetupAttachment(GetRootComponent());
 
 	////set relative location and rotation for the mesh
 	//SkeletalMeshComponent->SetRelativeLocation(FVector(0.f, 0.f, -60.f));

@@ -11,6 +11,8 @@ FGrappleInterpStruct::FGrappleInterpStruct(const float InPullSpeed, const float 
 
 UGrapplingComponent::UGrapplingComponent()
 {
+	PrimaryComponentTick.bCanEverTick = true;
+	bAutoActivate = true;
 }
 
 void UGrapplingComponent::BeginPlay()
@@ -45,6 +47,7 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	{
 		//call the WhileGrappled event
 		WhileGrappled.Broadcast(DeltaTime);
+		ApplyPullForce(DeltaTime);
 	}
 }
 
@@ -62,6 +65,13 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 
 	//update bIsGrappling
 	bIsGrappling = true;
+
+	//check if the rope component is valid
+	if (RopeComponent->IsValidLowLevelFast())
+	{
+		//activate the rope component
+		RopeComponent->ActivateRope(OtherActor, HitResult);
+	}
 
 	//check if the other actor has a grappleable component
 	if (GrappleableComponent = OtherActor->GetComponentByClass<UGrappleableComponent>(); GrappleableComponent->IsValidLowLevelFast())
@@ -89,6 +99,13 @@ void UGrapplingComponent::StopGrapple()
 	//update bIsGrappling
 	bIsGrappling = false;
 
+	//check if the rope component is valid
+	if (RopeComponent->IsValidLowLevelFast())
+	{
+		//deactivate the rope component
+		RopeComponent->DeactivateRope();
+	}
+
 	//call the OnStopGrapple event
 	OnStopGrapple.Broadcast();
 
@@ -107,13 +124,13 @@ void UGrapplingComponent::StopGrapple()
 
 void UGrapplingComponent::StartGrappleCheck()
 {
-	//check if we can grapple
-	if (CanGrapple())
+	//check if we can grapple and we're not already grappling
+	if (CanGrapple() && !bIsGrappling)
 	{
 		//do a line trace to see if the player is aiming at something within grapple range
 		FHitResult GrappleHit;
 
-		DoGrappleTrace(GrappleHit, MaxGrappleDistance);
+		DoGrappleTrace(GrappleHit, MaxGrappleCheckDistance);
 
 		//check if the line trace hit something
 		if (GrappleHit.bBlockingHit)
