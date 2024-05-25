@@ -78,12 +78,4 @@ public:
 	virtual float GetMaxSpeed() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
 	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
-
-	//function called when the player starts grappling
-	UFUNCTION()
-	void OnStartGrapple(AActor* OtherActor, const FHitResult& HitResult);
-
-	//function called when the player stops grappling
-	UFUNCTION()
-	void OnStopGrapple();
 };
