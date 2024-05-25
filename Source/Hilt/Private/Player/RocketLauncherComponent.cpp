@@ -14,7 +14,7 @@ void URocketLauncherComponent::OnProjectileHit(AActor* Projectile, AActor* Other
 	if (bIgnoreOwnerCollisions && OtherActor == GetOwner())
 	{
 		//print a message to the screen
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Projectile hit owner"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Projectile hit owner"));
 
 		//prevent further execution of this function
 		return;
