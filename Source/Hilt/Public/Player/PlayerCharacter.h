@@ -83,4 +83,8 @@ public:
 	//function to fire the terrain gun
 	UFUNCTION()
 	void FireTerrainGun();
+
+	//function to fire the rocket launcher
+	UFUNCTION()
+	void FireRocketLauncher();
 };

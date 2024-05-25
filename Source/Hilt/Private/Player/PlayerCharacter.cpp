@@ -97,7 +97,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_ShootGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireTerrainGun);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireRocketLauncher);
 	}
 
 	//check if we have a valid input subsystem
@@ -177,6 +177,12 @@ void APlayerCharacter::FireTerrainGun()
 {
 	//fire the terrain gun
 	TerrainGunComponent->FireProjectile(Camera->GetForwardVector());
+}
+
+void APlayerCharacter::FireRocketLauncher()
+{
+	//fire the rocket launcher
+	RocketLauncherComponent->FireProjectile(Camera->GetForwardVector());
 }
 
 //void APlayerCharacter::DoJump(const FInputActionValue& Value)
