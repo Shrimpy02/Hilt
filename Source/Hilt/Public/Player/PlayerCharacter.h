@@ -34,7 +34,7 @@ public:
 
 	//the rocket launcher component that handles the shooting of the rocket projectile
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UProjectileGunComponent* RocketLauncherComponent;
+	class URocketLauncherComponent* RocketLauncherComponent;
 
 	//the grappling component that handles the player's grappling hook
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

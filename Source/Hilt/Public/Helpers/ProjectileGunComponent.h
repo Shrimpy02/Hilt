@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "ProjectileGunComponent.generated.h"
 
 /** 
@@ -33,8 +34,19 @@ class UProjectileGunComponent : public USceneComponent
 	UPROPERTY(BlueprintAssignable)
 	FOnProjectileCollision OnProjectileCollision;
 
+	//whether or not to add the owner's velocity to the projectile's velocity when firing the projectile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bAddOwnerVelocity = true;
+
+	//whether or not to ignore the owner when checking for collisions
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIgnoreOwnerCollisions = true;
+
 	//constructor
 	UProjectileGunComponent();
+
+	UFUNCTION()
+	virtual void SetInitialProjectileSpeed(FVector Direction, UProjectileMovementComponent* ProjectileMovementComponent);
 
 	//function to fire the projectile
 	UFUNCTION(BlueprintCallable)

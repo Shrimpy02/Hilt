@@ -19,11 +19,11 @@ class AProjectileActor : public AActor
 public:
 
 	//the projectile movement component to use
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileComponent = nullptr;
 
 	//the mesh component to use
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UMeshComponent* MeshComponent = nullptr;
 
 	//constructor

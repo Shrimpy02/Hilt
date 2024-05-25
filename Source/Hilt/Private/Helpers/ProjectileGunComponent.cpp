@@ -1,8 +1,25 @@
 #include "Helpers/ProjectileGunComponent.h"
 
+#include "GameFramework/ProjectileMovementComponent.h"
+
 UProjectileGunComponent::UProjectileGunComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+}
+
+void UProjectileGunComponent::SetInitialProjectileSpeed(const FVector Direction, UProjectileMovementComponent* ProjectileMovementComponent)
+{
+	//check if we should add the owner's velocity to the projectile's velocity
+	if (bAddOwnerVelocity)
+	{
+		//set the projectile's velocity
+		ProjectileMovementComponent->Velocity = Direction * (ProjectileMovementComponent->InitialSpeed + GetOwner()->GetVelocity().Size());
+	}
+	else
+	{
+		//set the projectile's velocity
+		ProjectileMovementComponent->Velocity = Direction * ProjectileMovementComponent->InitialSpeed;
+	}
 }
 
 AActor* UProjectileGunComponent::FireProjectile(const FVector Direction)
@@ -29,6 +46,13 @@ AActor* UProjectileGunComponent::FireProjectile(const FVector Direction)
 	//bind the projectile's hit event
 	Projectile->OnActorHit.AddDynamic(this, &UProjectileGunComponent::OnProjectileHit);
 
+	//check if the projectile has a projectile movement component
+	if (UProjectileMovementComponent* ProjectileMovementComponent = Projectile->FindComponentByClass<UProjectileMovementComponent>())
+	{
+		//set the initial projectile speed
+		SetInitialProjectileSpeed(Direction, ProjectileMovementComponent);
+	}
+
 	//call the OnProjectileFired delegate
 	OnProjectileFired.Broadcast(Projectile, GetOwner(), Direction);
 
@@ -38,6 +62,13 @@ AActor* UProjectileGunComponent::FireProjectile(const FVector Direction)
 
 void UProjectileGunComponent::OnProjectileHit(AActor* Projectile, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
+	//check if we should ignore the owner when checking for collisions
+	if (bIgnoreOwnerCollisions && OtherActor == GetOwner())
+	{
+		//prevent further execution of this function
+		return;
+	}
+
 	//call the OnProjectileCollision delegate
 	OnProjectileCollision.Broadcast(Projectile, OtherActor, Hit);
 }
