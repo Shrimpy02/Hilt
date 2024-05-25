@@ -132,7 +132,7 @@ void URopeComponent::CheckCollisionPoints()
 		if (Next.IsValidBlockingHit())
 		{
 			//if we hit something, add a new rope point at the hit location if we're not too close to the last rope point
-			if (FVector::Dist(RopePoints[Index], Next.Location) > MinCollisionPointSpacing && !Next.bStartPenetrating)
+			if (FVector::Dist(RopePoints[Index], Next.Location) > MinCollisionPointSpacing && FVector::Dist(RopePoints[Index + 1], Next.Location) > MinCollisionPointSpacing && !Next.bStartPenetrating)
 			{
 				//insert the new rope point at the hit location
 				RopePoints.Insert(Next.Location + Next.ImpactNormal, Index + 1);
