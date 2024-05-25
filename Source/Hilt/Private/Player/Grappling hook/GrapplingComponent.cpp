@@ -28,13 +28,6 @@ void UGrapplingComponent::BeginPlay()
 	//setup start and stop grapple events for the rope component
 	OnStartGrapple.AddDynamic(RopeComponent, &URopeComponent::ActivateRope);
 	OnStopGrapple.AddDynamic(RopeComponent, &URopeComponent::DeactivateRope);
-
-	//setup start and stop grapple events for the player movement component
-	OnStartGrapple.AddDynamic(PlayerMovementComponent, &UPlayerMovementComponent::OnStartGrapple);
-	OnStopGrapple.AddDynamic(PlayerMovementComponent, &UPlayerMovementComponent::OnStopGrapple);
-
-	//setup the impact event for the rope component
-	GetOwner()->OnActorHit.AddDynamic(this, &UGrapplingComponent::HandleImpact);
 }
 
 void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -50,9 +43,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		ApplyPullForce(DeltaTime);
 	}
 }
-
-
-
 
 void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& HitResult)
 {
@@ -82,6 +72,12 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 		WhileGrappled.AddDynamic(GrappleableComponent, &UGrappleableComponent::WhileGrappled);
 	}
 
+	//check if we should disable gravity when grappling
+	if (bDisableGravityWhenGrappling)
+	{
+		//disable gravity
+		GetOwner()->FindComponentByClass<UPrimitiveComponent>()->SetEnableGravity(false);
+	}
 
 	//call the OnStartGrapple event
 	OnStartGrapple.Broadcast(OtherActor, HitResult);
@@ -120,6 +116,13 @@ void UGrapplingComponent::StopGrapple()
 
 	//reset the owner's rotation
 	GetOwner()->SetActorRotation(FRotator::ZeroRotator);
+
+	//check if we should disable gravity when grappling
+	if (bDisableGravityWhenGrappling)
+	{
+		//enable gravity
+		GetOwner()->FindComponentByClass<UPrimitiveComponent>()->SetEnableGravity(true);
+	}
 }
 
 void UGrapplingComponent::StartGrappleCheck()
@@ -164,17 +167,6 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 
 	//default to the movement input
 	return MovementInput;
-}
-
-
-void UGrapplingComponent::HandleImpact(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
-{
-	//check if we're grappling
-	if (bIsGrappling && FVector::Dist(GetOwner()->GetActorLocation(), RopeComponent->GetRopeEnd()) <= MaxCollisionDistance)
-	{
-		//stop grappling
-		StopGrapple();
-	}
 }
 
 void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct) const
@@ -261,7 +253,6 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime) const
 		case InterpVelocity:
 			//do the interpolation
 			DoInterpGrapple(DeltaTime, PlayerMovementComponent->Velocity, GetGrappleInterpStruct());
-
 		break;
 	}
 }
