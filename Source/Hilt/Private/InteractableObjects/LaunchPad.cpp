@@ -4,7 +4,7 @@
 // Other Includes
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "Characters/Player/PlayerCharacter.h"
+#include "Player/PlayerCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
