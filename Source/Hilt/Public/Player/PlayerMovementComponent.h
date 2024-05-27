@@ -5,19 +5,18 @@
 #include "CoreMinimal.h"
 #include "CollisionQueryParams.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GrapplingHook/GrapplingComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "PlayerMovementComponent.generated.h"
 
-class APlayerPawn;
+class APlayerCharacter;
 class UPlayerCameraComponent;
 class AGrapplingHookHead;
 
 /**
- * Movement component for the player character that adds grappling
+ * Movement component for the player character that extends the default character movement component
  */
 UCLASS(Blueprintable)
-class UPlayerMovementComponent : public UPawnMovementComponent
+class UPlayerMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 
@@ -25,7 +24,7 @@ public:
 
 	//reference to the player as a playerpawn
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
-	APlayerPawn* PlayerPawn = nullptr;
+	APlayerCharacter* PlayerPawn = nullptr;
 
 	//the max movement speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
@@ -35,7 +34,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
 	bool bUseTerminalVelocity = true;
 
-	//the float curve to use for setting the max speed when falling and grappling
+	//the float curve to use for setting the max speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
 	UCurveFloat* MaxSpeedCurve = nullptr;
 
@@ -59,6 +58,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
 
+	//the movement force to use for wasd movement
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float WasdMovementForce = 1000.f;
+
+
 	//constructor
 	UPlayerMovementComponent();
 
@@ -74,12 +78,4 @@ public:
 	virtual float GetMaxSpeed() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
 	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
-
-	//function called when the player starts grappling
-	UFUNCTION()
-	void OnStartGrapple(AActor* OtherActor, const FHitResult& HitResult);
-
-	//function called when the player stops grappling
-	UFUNCTION()
-	void OnStopGrapple();
 };

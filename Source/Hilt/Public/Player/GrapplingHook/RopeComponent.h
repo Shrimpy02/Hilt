@@ -51,7 +51,7 @@ public:
 	float RibbonWidth = 10.f;
 
 	//array of niagara components used to render the rope
-	UPROPERTY(BlueprintReadOnly, Category = "Rope|Rendering")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope|Rendering")
 	TArray<UNiagaraComponent*> NiagaraComponents;
 
 	//the minimum spacing between new and old rope points in the infinite length rope mode
@@ -59,7 +59,7 @@ public:
 	float MinCollisionPointSpacing = 20.f;
 
 	//array of rope points used when the rope is infinite length
-	UPROPERTY(BlueprintReadOnly, Category = "Rope|InfiniteLength")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope", meta = (ShowOnlyInnerProperties))
 	TArray<FVector> RopePoints;
 
 	//whether or not to use the jitter on the niagara ribbons
@@ -71,7 +71,7 @@ public:
 	FName JitterParameterName = "DoJitter";
 
 	//the tick behaviour to use for the niagara components
-	TEnumAsByte<ENiagaraTickBehavior> TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
+	ENiagaraTickBehavior TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
 
 	//the tick group to use for the niagara components
 	TEnumAsByte<ETickingGroup> TickGroup = TG_LastDemotable;

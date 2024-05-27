@@ -1,7 +1,10 @@
 #include "Player/PlayerMovementComponent.h"
+
+#include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "NPC/Components/GrappleableComponent.h"
-#include "Player/PlayerPawn.h"
+#include "Player/PlayerCharacter.h"
+#include "Player/GrapplingHook/RopeComponent.h"
 
 
 UPlayerMovementComponent::UPlayerMovementComponent()
@@ -14,7 +17,7 @@ void UPlayerMovementComponent::BeginPlay()
 	Super::BeginPlay();
 
 	//get our owner as a player pawn
-	PlayerPawn = Cast<APlayerPawn>(GetOwner());
+	PlayerPawn = Cast<APlayerCharacter>(GetOwner());
 }
 
 FVector UPlayerMovementComponent::ConsumeInputVector()
@@ -27,9 +30,6 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 
 	//Store the input vector
 	const FVector ReturnVec = Super::ConsumeInputVector();
-
-	//print that we're consuming the input vector
-	UE_LOG(LogTemp, Log, TEXT("Consume Input Vector Called"));
 
 	//check if the input vector is zero
 	if (ReturnVec.IsNearlyZero())
@@ -90,8 +90,11 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 
 void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta)
 {
-	//check if we're not falling
-	if (!IsFalling() || !PlayerPawn)
+	//get our hitbox
+	const UCapsuleComponent* Hitbox = GetCharacterOwner()->GetCapsuleComponent();
+
+	//check if we don't have a physics material or if we have invalid curves or if we're not grappling
+	if (!Hitbox->BodyInstance.GetSimplePhysicalMaterial() || !CollisionLaunchSpeedCurve->IsValidLowLevelFast() || !PlayerPawn->GrappleComponent->bIsGrappling)
 	{
 		//delegate to the parent implementation
 		Super::HandleImpact(Hit, TimeSlice, MoveDelta);
@@ -99,17 +102,17 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 		return;
 	}
 
-	//check if we don't have a physics material or if we have invalid curves
-	if (!PlayerPawn->SphereComponent->BodyInstance.GetSimplePhysicalMaterial() || !CollisionLaunchSpeedCurve->IsValidLowLevelFast())
-	{
-		//delegate to the parent implementation
-		Super::HandleImpact(Hit, TimeSlice, MoveDelta);
+	////check if we're outside the distance to the grapple point to stop grappling
+	//if (FVector::Dist(GetOwner()->GetActorLocation(), PlayerPawn->GrappleComponent->RopeComponent->GetRopeEnd()) > PlayerPawn->GrappleComponent->GrappleHitDistance)
+	//{
+	//	//delegate to the parent implementation
+	//	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
 
-		return;
-	}
+	//	return;
+	//}
 
 	//get the bounciness of the physics material
-	const float Bounciness = PlayerPawn->SphereComponent->BodyInstance.GetSimplePhysicalMaterial()->Restitution;
+	const float Bounciness = Hitbox->BodyInstance.GetSimplePhysicalMaterial()->Restitution;
 
 	//check if the bounciness is less than or equal to 0
 	if (Bounciness <= 0)
@@ -123,16 +126,11 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 	//calculate the launch velocity
 	const FVector UnclampedLaunchVelocity = Hit.ImpactNormal * Bounciness * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 
+	//stop grappling
+	PlayerPawn->GrappleComponent->StopGrapple();
+
 	//clamp the launch velocity and launch the character
-	PlayerPawn->SphereComponent->AddForce(UnclampedLaunchVelocity.GetClampedToSize(MinCollisionLaunchSpeed, MaxCollisionLaunchSpeed));
-}
+	GetCharacterOwner()->LaunchCharacter(UnclampedLaunchVelocity.GetClampedToSize(MinCollisionLaunchSpeed, MaxCollisionLaunchSpeed), true, true);
 
-void UPlayerMovementComponent::OnStartGrapple(AActor* OtherActor, const FHitResult& HitResult)
-{
-	//empty
-}
-
-void UPlayerMovementComponent::OnStopGrapple()
-{
-	//empty
+	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
 }
