@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
-#include "Player/GrapplingHook/GrapplingComponent.h"
+#include "Components/GrapplingHook/GrapplingComponent.h"
 #include "GrappleableComponent.generated.h"
 
 
