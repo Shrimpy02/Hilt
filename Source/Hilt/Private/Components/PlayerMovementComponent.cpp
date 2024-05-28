@@ -1,14 +1,19 @@
 #include "Components/PlayerMovementComponent.h"
 
 #include "Components/CapsuleComponent.h"
-#include "Components/SphereComponent.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
-#include "Components/GrapplingHook/RopeComponent.h"
 
 
 UPlayerMovementComponent::UPlayerMovementComponent()
 {
+	bApplyGravityWhileJumping = false;
+	MaxWalkSpeed = 1200.f;
+	BrakingFrictionFactor = 0.1f;
+	JumpZVelocity = 800.f;
+	AirControl = 2.f;
+	GravityScale = 4.f;
+	FallingLateralFriction = 4.f;
 }
 
 void UPlayerMovementComponent::BeginPlay()
