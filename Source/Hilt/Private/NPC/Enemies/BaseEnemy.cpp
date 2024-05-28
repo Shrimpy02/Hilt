@@ -1,12 +1,13 @@
 // Class Includes
-#include "Characters/Enemies/BaseEnemy.h"
+#include "NPC/Enemies/BaseEnemy.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+
 
 // Other Includes
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
-#include "Characters/Player/PlayerCharacter.h"
+#include "Player/PlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
 // ---------------------- Constructor`s -----------------------------
