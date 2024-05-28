@@ -1,15 +1,15 @@
 #include "Player/PlayerCharacter.h"
 
-#include "Player/PlayerMovementComponent.h"
-#include "Player/Camera/CameraArmComponent.h"
-#include "Player/Camera/PlayerCameraComponent.h"
-#include "Player/GrapplingHook/GrapplingComponent.h"
-#include "Player/TerrainGun/TerrainGunComponent.h"
+#include "Components/PlayerMovementComponent.h"
+#include "Components/Camera/CameraArmComponent.h"
+#include "Components/Camera/PlayerCameraComponent.h"
+#include "Components/GrapplingHook/GrapplingComponent.h"
+#include "Components/TerrainGun/TerrainGunComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 //#include "Components/SphereComponent.h"
-#include "Player/RocketLauncherComponent.h"
-#include "Player/GrapplingHook/RopeComponent.h"
+#include "Components/RocketLauncherComponent.h"
+#include "Components/GrapplingHook/RopeComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UPlayerMovementComponent>(CharacterMovementComponentName))
 {
@@ -69,7 +69,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::WasdMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_MouseMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::MouseMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_DoJump, ETriggerEvent::Triggered, this, &APlayerCharacter::DoJump);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerCharacter::StopTheJumping);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerCharacter::StopJumping);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_ShootGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
@@ -161,25 +161,6 @@ void APlayerCharacter::FireRocketLauncher()
 	RocketLauncherComponent->FireProjectile(Camera->GetForwardVector());
 }
 
-//void APlayerCharacter::DoJump(const FInputActionValue& Value)
-//{
-//
-//	//call the jump function
-//	Jump();
-//}
-//
-//void APlayerCharacter::StopJumpInput(const FInputActionValue& Value)
-//{
-//	//check if we can use the input
-//	if (CharacterState == ECharacterState::ECS_Dead)
-//	{
-//		return;
-//	}
-//
-//	//call the stop jump function
-//	StopJumping();
-//}
-
 void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
 {
 	GrappleComponent->StartGrappleCheck();
@@ -193,8 +174,12 @@ void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 
 void APlayerCharacter::DoJump(const FInputActionValue& Value)
 {
+	//call the jump function
+	Jump();
 }
 
 void APlayerCharacter::StopTheJumping(const FInputActionValue& Value)
 {
+	//call the stop jump function
+	StopJumping();
 }
