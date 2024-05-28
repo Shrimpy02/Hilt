@@ -189,6 +189,9 @@ void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVeloc
 			GrappleVelocity = FMath::VInterpConstantTo(GetOwner()->GetVelocity(),  GrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel);
 			break;
 	}
+
+	//set the rotation of the character to the grapple direction
+	GetOwner()->SetActorRotation(GrappleDirection.Rotation());
 }
 
 void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float MaxDistance) const

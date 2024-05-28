@@ -47,7 +47,6 @@ public:
 	//input data asset to use for setting up input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UInputDataAsset* InputDataAsset;
-	
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
