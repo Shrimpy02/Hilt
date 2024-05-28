@@ -7,13 +7,14 @@
 
 UPlayerMovementComponent::UPlayerMovementComponent()
 {
-	bApplyGravityWhileJumping = false;
-	MaxWalkSpeed = 1200.f;
-	BrakingFrictionFactor = 0.1f;
-	JumpZVelocity = 800.f;
-	AirControl = 2.f;
-	GravityScale = 4.f;
-	FallingLateralFriction = 4.f;
+	//bOrientRotationToMovement = true;
+	//bApplyGravityWhileJumping = false;
+	//MaxWalkSpeed = 1200.f;
+	//BrakingFrictionFactor = 0.1f;
+	//JumpZVelocity = 800.f;
+	//AirControl = 2.f;
+	//GravityScale = 4.f;
+	//FallingLateralFriction = 4.f;
 }
 
 void UPlayerMovementComponent::BeginPlay()
