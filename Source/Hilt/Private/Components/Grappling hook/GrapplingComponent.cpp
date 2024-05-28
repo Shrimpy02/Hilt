@@ -41,6 +41,21 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		//call the WhileGrappled event
 		WhileGrappled.Broadcast(DeltaTime);
 		ApplyPullForce(DeltaTime);
+
+		//check that we're not grounded
+		if (!PlayerMovementComponent->IsMovingOnGround())
+		{
+			//set borientrotationtoMovement to false
+			PlayerMovementComponent->bOrientRotationToMovement = false;
+
+			//set the rotation of the character to the grapple direction
+			GetOwner()->SetActorRotation(GetGrappleDirection().Rotation());
+		}
+		else
+		{
+			//set borientrotationtoMovement to true
+			PlayerMovementComponent->bOrientRotationToMovement = true;
+		}
 	}
 }
 
@@ -123,6 +138,9 @@ void UGrapplingComponent::StopGrapple()
 		//enable gravity
 		GetOwner()->FindComponentByClass<UPrimitiveComponent>()->SetEnableGravity(true);
 	}
+
+	//set borientrotationtoMovement to true
+	PlayerMovementComponent->bOrientRotationToMovement = true;
 }
 
 void UGrapplingComponent::StartGrappleCheck()
@@ -189,9 +207,6 @@ void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVeloc
 			GrappleVelocity = FMath::VInterpConstantTo(GetOwner()->GetVelocity(),  GrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel);
 			break;
 	}
-
-	//set the rotation of the character to the grapple direction
-	GetOwner()->SetActorRotation(GrappleDirection.Rotation());
 }
 
 void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float MaxDistance) const
