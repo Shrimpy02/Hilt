@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 //#include "Components/SphereComponent.h"
+#include "Player/RocketLauncherComponent.h"
 #include "Player/GrapplingHook/RopeComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UPlayerMovementComponent>(CharacterMovementComponentName))
@@ -26,40 +27,19 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 
 	//initialize our components
 	PlayerMovementComponent = Cast<UPlayerMovementComponent>(GetCharacterMovement());
-	//PlayerMovementComponent = CreateDefaultSubobject<UPlayerMovementComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, PlayerMovementComponent));
 	Camera = CreateDefaultSubobject<UPlayerCameraComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, Camera));
 	CameraArm = CreateDefaultSubobject<UCameraArmComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, CameraArm));
 	TerrainGunComponent = CreateDefaultSubobject<UTerrainGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, TerrainGunComponent));
-	RocketLauncherComponent = CreateDefaultSubobject<UProjectileGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
+	RocketLauncherComponent = CreateDefaultSubobject<URocketLauncherComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
 	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
-
-	////set the root component to be the collison shape component
-	//SetRootComponent(SphereComponent);
-
-	////enable collision (query and physics) on the collision shape component
-	//SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	////set the collision profile to be pawn
-	//SphereComponent->SetCollisionProfileName(FName("Pawn"));
-
-	////set the collision response to be block all
-	//SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
-
-	////set the collision response to be overlap for the camera channel
-	//SphereComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Overlap);
-
-	////enable physics simulation on the collison shape component
-	//SphereComponent->SetSimulatePhysics(true);
-
-	////prevent the physics simulation from rotating the collision shape
-	//SphereComponent->BodyInstance.bLockXRotation = true;
-	//SphereComponent->BodyInstance.bLockYRotation = true;
-	//SphereComponent->BodyInstance.bLockZRotation = true;
 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());
 	Camera->SetupAttachment(CameraArm);
+	RopeComponent->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
+	TerrainGunComponent->SetupAttachment(GetRootComponent());
+	RocketLauncherComponent->SetupAttachment(GetRootComponent());
 
 	////set relative location and rotation for the mesh
 	//SkeletalMeshComponent->SetRelativeLocation(FVector(0.f, 0.f, -60.f));
@@ -93,7 +73,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_ShootGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireTerrainGun);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireRocketLauncher);
 	}
 
 	//check if we have a valid input subsystem
@@ -173,6 +153,12 @@ void APlayerCharacter::FireTerrainGun()
 {
 	//fire the terrain gun
 	TerrainGunComponent->FireProjectile(Camera->GetForwardVector());
+}
+
+void APlayerCharacter::FireRocketLauncher()
+{
+	//fire the rocket launcher
+	RocketLauncherComponent->FireProjectile(Camera->GetForwardVector());
 }
 
 //void APlayerCharacter::DoJump(const FInputActionValue& Value)

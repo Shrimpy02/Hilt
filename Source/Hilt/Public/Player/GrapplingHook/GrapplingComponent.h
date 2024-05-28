@@ -86,9 +86,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
 	FGrappleInterpStruct NoWasdGrappleInterpStruct = FGrappleInterpStruct(10000.0f, 5.f, InterpTo);
 
-	//the min distance we must be away from the grapple point when colliding before we call StopGrapple (requires player movement component)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collisions")
-	float MaxCollisionDistance = 100.f;
+	//whether or not to disable gravity when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
+	bool bDisableGravityWhenGrappling = true;
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collisions")
 	ECollisionShape::Type CanGrappleCollisionShape = ECollisionShape::Sphere;
@@ -160,10 +160,6 @@ public:
 	FVector ProcessGrappleInput(FVector MovementInput);
 
 private:
-
-	//function to handle an impact and maybe stop grappling
-	UFUNCTION()
-	void HandleImpact(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
 
 	//function to handle the interpolation modes of the grapple
 	void DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct) const;
