@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -6,21 +5,219 @@
 #include "GameFramework/Actor.h"
 #include "BaseInteractableObject.generated.h"
 
+// Forward Declaration`s
+class UStaticMeshComponent;
+class UBoxComponent;
+struct FTimerHandle;
+class UNiagaraSystem;
+class UNiagaraComponent;
+class USoundBase;
+
 UCLASS()
-class HILT_API ABaseInteractableObject : public AActor
+class ABaseInteractableObject : public AActor
 {
 	GENERATED_BODY()
+public:
+	//  ---------------------- Public Variable`s ----------------------
+
+	// ------------- Class components ------------
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* VisibleMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	UBoxComponent* BlockerCollisionBox;
+
+	// ------------- Timer Handlers ------------
+	FTimerHandle MainTimerHandler;
+
+	// ------------- VFX ------------
+	UPROPERTY(EditAnywhere)
+	UNiagaraComponent* NiagaraComp;
+
+private:
+	//  ---------------------- Private Variable`s ---------------------
+
 	
-public:	
-	// Sets default values for this actor's properties
+
+public:
+	//  ---------------------- Public Function`s ----------------------
+	// Constructor`s -------
+
 	ABaseInteractableObject();
 
-protected:
-	// Called when the game starts or when spawned
+	// Function`s ----------
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
+	// VFX ------------------------------
+	// Updates all Niagara components to play at the enemies location
+	UFUNCTION()
+	virtual void UpdateVFXLocationRotation();
+
+	// Plays the input Niagara VFX at location
+	UFUNCTION(BlueprintCallable)
+	virtual void PlayVFX(UNiagaraSystem* _niagaraVFX, FVector _location, FRotator _rotation = FRotator::ZeroRotator);
+
+	// Audio ------------------------------
+	// Plays input audio at location 
+	UFUNCTION(BlueprintCallable)
+	virtual void PlayAudio(USoundBase* _soundBase, FVector _location);
+
+private:
+	//  --------------------- Private Function`s ----------------------
+
+
+public:
+	//  --------------- Getter`s / Setter`s / Adder`s -----------------
+
+	// Getter`s -------
+
+	// Setter`s --------
+
+	// Adder`s --------
+
 };
+
+
+
+
+
+
+
+
+//#pragma once
+//// Class Includes
+//#include "CoreMinimal.h"
+//#include "GameFramework/Actor.h"
+//#include "LaunchPad.generated.h"
+//
+//// Forward Declaration`s
+//class USkeletalMeshComponent;
+//class UBoxComponent;
+//class USphereComponent;
+//struct FTimerHandle;
+//class UNiagaraSystem;
+//class UNiagaraComponent;
+//class USoundBase;
+//
+///**
+// * @class ALaunchPad.
+// * @brief An interactable object that launches actors that enter the launch zone.
+// *
+// * ALaunchPad takes in the collided actor and launches it in the specified direction.
+// */
+//UCLASS()
+//class ALaunchPad : public AActor
+//{
+//	GENERATED_BODY()
+//public:
+//	//  ---------------------- Public Variable`s ----------------------
+//
+//	UPROPERTY(EditAnywhere, Category = "Variable")
+//	float LaunchPadCoolDownTime = 3.0f;
+//
+//	UPROPERTY(EditAnywhere, Category = "Variable")
+//	FVector DefaultThrowDirection = GetActorUpVector();
+//
+//	UPROPERTY(EditAnywhere, Category = "Variable")
+//	float DefaultThrowStrength = 400000.0f;
+//
+//private:
+//	//  ---------------------- Private Variable`s ---------------------
+//	UPROPERTY(VisibleDefaultsOnly, Category = "Variable")
+//	bool CoolingDown = false;
+//
+//	// ------------- Class components ------------
+//	UPROPERTY(VisibleAnywhere)
+//	UStaticMeshComponent* VisibleMesh;
+//
+//	UPROPERTY(VisibleAnywhere)
+//	UBoxComponent* BlockerCollisionBox;
+//
+//	UPROPERTY(VisibleAnywhere)
+//	USphereComponent* LauncherCollisionSphere;
+//
+//	// ------------- class Refs ------------
+//
+//
+//	// ------------- Timer Handlers ------------
+//	FTimerHandle JumpResetTimerHandeler;
+//
+//	// VFX ------------------------------
+//	UPROPERTY(EditAnywhere)
+//	UNiagaraComponent* NiagaraComp;
+//
+//	UPROPERTY(EditAnywhere, Category = "VFX")
+//	UNiagaraSystem* VFXIdle;
+//
+//	UPROPERTY(EditAnywhere, Category = "VFX")
+//	UNiagaraSystem* VFXLaunch;
+//
+//	// Audio ------------------------------
+//	UPROPERTY(EditAnywhere, Category = "Audio")
+//	USoundBase* IdleSound;
+//
+//	UPROPERTY(EditAnywhere, Category = "Audio")
+//	USoundBase* LaunchSound;
+//
+//public:
+//	//  ---------------------- Public Function`s ----------------------
+//	// Constructor`s -------
+//
+//	ALaunchPad();
+//
+//	// Function`s ----------
+//	virtual void BeginPlay() override;
+//	virtual void Tick(float DeltaTime) override;
+//
+//	void ThrowActor(AActor* _actor);
+//	void CooldownComplete();
+//
+//	// VFX ------------------------------
+//	// Updates all Niagara components to play at the enemies location
+//	UFUNCTION()
+//	virtual void UpdateVFXLocationRotation();
+//
+//	// Plays the input Niagara VFX at location
+//	UFUNCTION(BlueprintCallable)
+//	virtual void PlayVFX(UNiagaraSystem* _niagaraVFX, FVector _location, FRotator _rotation = FRotator::ZeroRotator);
+//
+//	// Audio ------------------------------
+//	// Plays input audio at location 
+//	UFUNCTION(BlueprintCallable)
+//	virtual void PlayAudio(USoundBase* _soundBase, FVector _location);
+//
+//	// Manages all start-overlap logic
+//	UFUNCTION(BlueprintCallable)
+//	virtual void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+//		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+//		bool bFromSweep, const FHitResult& SweepResult);
+//
+//	// Manages all end-overlap logic
+//	UFUNCTION(BlueprintCallable)
+//	virtual void EndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+//		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+//
+//	UFUNCTION(BlueprintImplementableEvent, Category = "Patrol")
+//	void ThrewAnActor();
+//
+//	UFUNCTION(BlueprintImplementableEvent, Category = "Patrol")
+//	void ThrowCoolDownComplete();
+//
+//private:
+//	//  --------------------- Private Function`s ----------------------
+//
+//
+//
+//public:
+//	//  --------------- Getter`s / Setter`s / Adder`s -----------------
+//
+//	// Getter`s -------
+//
+//	// Setter`s --------
+//
+//	// Adder`s --------
+//
+//
+//};
