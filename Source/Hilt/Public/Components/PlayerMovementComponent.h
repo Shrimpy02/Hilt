@@ -30,22 +30,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
 	float MaxFallSpeed = 2000.f;
 
-	//whether or not we're using terminal velocity
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
-	bool bUseTerminalVelocity = true;
-
-	//the float curve to use for setting the max speed when falling
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
-	UCurveFloat* MaxSpeedCurve = nullptr;
-
-	//the maximum difference between the current speed and the max speed where the max speed will be increasing
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
-	float MaxSpeedDifference = 1000.f;
-
-	//the current time the player has been in the max speed difference range
-	UPROPERTY(BlueprintReadOnly, Category = "Falling")
-	float MaxSpeedDifferenceTime = 0.f;
-
 	//the minimum speed to launch the character off of a collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	float MinCollisionLaunchSpeed = 2000.f;
@@ -58,18 +42,43 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
 
-	//the movement force to use for wasd movement
+	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WasdMovementForce = 1000.f;
+	float SpeedLimit = 4000.f;
 
+	//the minimum speed before the character will be able to do a super jump
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float MinSpeedForBoostedJump = 2000.f;
+
+	//whether or not the player is currently forced to be under the speed limit
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	bool bIsSpeedLimited = true;
+
+	//the amount of force to apply in the direction the player is looking when jumping
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SuperJump")
+	float DirectionalJumpForce = 3000.f;
+
+	//the amount of boost to give to the character while a directional jump is providing force
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SuperJump")
+	float DirectionalJumpGlideForce = 500.f;
+
+	//the amount of boost to apply when boosting a jump
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SuperJump")
+	float JumpBoostAmount = 500.f;
+
+	//whether or not last jump was a directional jump
+	bool bLastJumpWasDirectional = false;
+
+	//the direction of the last directional jump
+	FVector LastDirectionalJumpDirection = FVector::UpVector;
 
 	//constructor
 	UPlayerMovementComponent();
 
 	//override functions
 	virtual void BeginPlay() override;
-	//virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
-	//virtual void Launch(FVector const& LaunchVel) override;
+	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
+	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
 	//virtual bool ShouldRemainVertical() const override;
 	//virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
@@ -78,4 +87,5 @@ public:
 	virtual float GetMaxSpeed() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
 	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
+	virtual bool DoJump(bool bReplayingMoves) override;
 };
