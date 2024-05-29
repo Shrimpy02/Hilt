@@ -141,6 +141,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	float AbsoluteGrappleDotProduct = 0.f;
 
+	//the grapple direction we're using
+	UPROPERTY(BlueprintReadOnly)
+	FVector GrappleDirection = FVector::ZeroVector;
+
 	//reference to the player movement component
 	UPROPERTY()
 	class UPlayerMovementComponent* PlayerMovementComponent = nullptr;
