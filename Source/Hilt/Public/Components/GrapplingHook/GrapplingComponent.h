@@ -133,10 +133,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementDistanceInputCurve = nullptr;
 
+	//the grapple dot product to based of the grapple velocity and the player's velocity
+	UPROPERTY(BlueprintReadOnly)
+	float GrappleDotProduct = 0.f;
+
+	//the grapple dot product to based of the grapple velocity and (0, 0, 1)
+	UPROPERTY(BlueprintReadOnly)
+	float AbsoluteGrappleDotProduct = 0.f;
+
+	//reference to the player movement component
 	UPROPERTY()
 	class UPlayerMovementComponent* PlayerMovementComponent = nullptr;
 
-public:
 	//constructor
 	UGrapplingComponent();
 
@@ -162,13 +170,13 @@ public:
 private:
 
 	//function to handle the interpolation modes of the grapple
-	void DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct) const;
+	void DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct);
 
 	//function to do the grapple trace with a given max distance
 	void DoGrappleTrace(FHitResult& GrappleHit, float MaxDistance) const;
 
 	//function to apply the pull force to the player
-	void ApplyPullForce(float DeltaTime) const;
+	void ApplyPullForce(float DeltaTime);
 
 public:
 	/**
@@ -192,8 +200,12 @@ public:
 	TEnumAsByte<EGrapplingMode> GetGrappleMode() const;
 
 	//function to get the dot product of the grapple direction and the player's velocity
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	float GetGrappleDotProduct(FVector GrappleVelocity) const;
+
+	//function to get the dot product of the grapple direction and (0, 0, 1)
+	UFUNCTION()
+	static float GetAbsoluteGrappleDotProduct(FVector GrappleVelocity);
 
 	//function to get whether or not we can grapple in the given direction
 	UFUNCTION(BlueprintCallable)
