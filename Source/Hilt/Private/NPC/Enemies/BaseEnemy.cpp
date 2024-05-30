@@ -2,7 +2,7 @@
 #include "NPC/Enemies/BaseEnemy.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Core/HiltTags.h"
 
 // Other Includes
 #include "NiagaraFunctionLibrary.h"
@@ -15,32 +15,28 @@ ABaseEnemy::ABaseEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Niagara Comp -----------
+	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	SetRootComponent(NiagaraComp);
 
-	// Collision Mesh
+	// Visible Mesh -----
+	VisibleMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VisibleMesh"));
+	VisibleMesh->SetupAttachment(GetRootComponent());
+		// Collision Settings
+	VisibleMesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
+	VisibleMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	VisibleMesh->SetGenerateOverlapEvents(true);
+	VisibleMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	VisibleMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
+	VisibleMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+
+	// Collision Mesh ------
 	CollisionMesh = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionMesh"));
-	SetRootComponent(CollisionMesh);
-
+	CollisionMesh->SetupAttachment(GetRootComponent());
 		// Collision Settings
 	CollisionMesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
 	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CollisionMesh->SetGenerateOverlapEvents(true);
-	CollisionMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-
-	// Visible Mesh
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	Mesh->SetupAttachment(GetRootComponent());
-
-		// Collision Settings
-	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
-	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Mesh->SetGenerateOverlapEvents(true);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-
-	// Niagara
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
-	NiagaraComp->SetupAttachment(GetRootComponent());
 }
 
 // ---------------------- Public Function`s -------------------------
@@ -55,11 +51,15 @@ void ABaseEnemy::BeginPlay()
 			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
 				SetCombatTarget(PlayerCharacter);
 			else
-				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, TEXT("No player class vound as CombatTarget"));
+				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, TEXT("No player class found as CombatTarget"));
 
 	// Enable overlap events for begin and end on collision capsule. 
 	CollisionMesh->OnComponentBeginOverlap.AddDynamic(this, &ABaseEnemy::OnOverlap);
 	CollisionMesh->OnComponentEndOverlap.AddDynamic(this, &ABaseEnemy::EndOverlap);
+
+	// AddTags
+	Tags.Add(HiltTags::EnemyTag);
+	Tags.Add(HiltTags::EnemyAliveTag);
 }
 
 void ABaseEnemy::Tick(float DeltaTime)
@@ -68,20 +68,32 @@ void ABaseEnemy::Tick(float DeltaTime)
 	UpdateVFXLocationRotation();
 }
 
+void ABaseEnemy::RemoveLevelPresence()
+{
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	ToggleActiveOrInactiveTag();
+}
+
+void ABaseEnemy::AddLevelPresence()
+{
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+	ToggleActiveOrInactiveTag();
+}
+
+bool ABaseEnemy::IsAlive()
+{
+	return Tags.Contains(HiltTags::EnemyAliveTag) ? true : false;
+}
+
 float ABaseEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Health -= DamageAmount;
 	if (Health <= 0 && CanDie)
-		Die();
+		RemoveLevelPresence();
 	
 	return 0.0f;
-}
-
-void ABaseEnemy::Die()
-{
-	SetActorHiddenInGame(true);
-	SetActorEnableCollision(false);
-	this->Destroy();
 }
 
 bool ABaseEnemy::IsTargetPosWithinRange(const FVector& _targetLocation, const float _radiusFromSelfToCheck)
@@ -142,7 +154,23 @@ void ABaseEnemy::PlayAudio(USoundBase* _soundBase, FVector _location)
 
 // --------------------- Private Function`s -------------------------
 
-
+void ABaseEnemy::ToggleActiveOrInactiveTag()
+{
+	if (Tags.Contains(HiltTags::EnemyAliveTag) && !Tags.Contains(HiltTags::EnemyDeadTag))
+	{
+		Tags.Remove(HiltTags::EnemyAliveTag);
+		Tags.Add(HiltTags::EnemyDeadTag);
+	}
+	else if (!Tags.Contains(HiltTags::EnemyAliveTag) && Tags.Contains(HiltTags::EnemyDeadTag))
+	{
+		Tags.Add(HiltTags::EnemyAliveTag);
+		Tags.Remove(HiltTags::EnemyDeadTag);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Error: Duplicate active/inactive tags detected on enemy"));
+	}
+}
 
 // ---------------- Getter`s / Setter`s / Adder`s --------------------
 
