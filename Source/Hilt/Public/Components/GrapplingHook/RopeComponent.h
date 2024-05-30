@@ -62,14 +62,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope", meta = (ShowOnlyInnerProperties))
 	TArray<FVector> RopePoints;
 
-	//whether or not to use the jitter on the niagara ribbons
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope|Rendering|Jitter")
-	bool bUseJitter = true;
-
-	//the name of the user parameter for the jitter on the niagara ribbons
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope|Rendering|Jitter", meta = (EditCondition = "bUseJitter == true", EditConditionHides))
-	FName JitterParameterName = "DoJitter";
-
 	//the tick behaviour to use for the niagara components
 	ENiagaraTickBehavior TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
 

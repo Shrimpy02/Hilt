@@ -40,7 +40,12 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	{
 		//call the WhileGrappled event
 		WhileGrappled.Broadcast(DeltaTime);
+
+		//apply the pull force
 		ApplyPullForce(DeltaTime);
+
+		//assign the grapple direction
+		GrappleDirection = GetGrappleDirection();
 
 		//check that we're not grounded
 		if (!PlayerMovementComponent->IsMovingOnGround() && RopeComponent->StartHit.Normal.Z < PlayerMovementComponent->GetWalkableFloorZ())
@@ -57,6 +62,11 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			PlayerMovementComponent->bOrientRotationToMovement = true;
 		}
 	}
+
+	//set all grappling variables to their default values
+	GrappleDirection = FVector::ZeroVector;
+	GrappleDotProduct = 0.f;
+	AbsoluteGrappleDotProduct = 0.f;
 }
 
 void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& HitResult)
@@ -190,21 +200,21 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct)
 {
 	//storage for the grapple direction
-	const FVector GrappleDirection = GetGrappleDirection();
+	const FVector LocGrappleDirection = GetGrappleDirection();
 
 	switch (GrappleInterpStruct.InterpMode)
 	{
 		case InterpTo:
 			//interpolate the velocity
-			GrappleVelocity = FMath::VInterpTo(GetOwner()->GetVelocity(), GrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel).GetClampedToMaxSize(PlayerMovementComponent->GetMaxSpeed());
+			GrappleVelocity = FMath::VInterpTo(GetOwner()->GetVelocity(), LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel).GetClampedToMaxSize(PlayerMovementComponent->GetMaxSpeed());
 			break;
 		case InterpStep:
 			//interpolate the velocity
-			GrappleVelocity = FMath::VInterpTo(GetOwner()->GetVelocity(), GrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel).GetClampedToMaxSize(PlayerMovementComponent->GetMaxSpeed());
+			GrappleVelocity = FMath::VInterpTo(GetOwner()->GetVelocity(), LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel).GetClampedToMaxSize(PlayerMovementComponent->GetMaxSpeed());
 			break;
 		default /* constant */:
 			//interpolate the velocity
-			GrappleVelocity = FMath::VInterpConstantTo(GetOwner()->GetVelocity(),  GrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel).GetClampedToMaxSize(PlayerMovementComponent->GetMaxSpeed());
+			GrappleVelocity = FMath::VInterpConstantTo(GetOwner()->GetVelocity(),  LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel).GetClampedToMaxSize(PlayerMovementComponent->GetMaxSpeed());
 			break;
 	}
 
