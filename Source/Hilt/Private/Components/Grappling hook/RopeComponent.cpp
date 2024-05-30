@@ -69,21 +69,7 @@ void URopeComponent::CheckCollisionPoints()
 {
 	//setup collision parameters for traces and sweeps
 	FCollisionQueryParams CollisionParams;
-	//CollisionParams.AddIgnoredActor(GetOwner());
-
-	////check if we have an attached actor
-	//if (StartHit.IsValidBlockingHit())
-	//{
-	//	//add the attached actor to the ignored actors
-	//	CollisionParams.AddIgnoredActor(StartHit.GetActor());
-	//}
-
-	////check if we're using the attached actor as the rope end
-	//if (GrappleableComponent->IsValidLowLevelFast())
-	//{
-	//	//add the attached actor to the ignored actors
-	//	CollisionParams.AddIgnoredActor(GrappleableComponent->GetOwner());
-	//}
+	CollisionParams.AddIgnoredActor(GetOwner());
 
 	//iterate through all the rope points
 	for (int Index = 0; Index < RopePoints.Num() - 1; Index++)
@@ -91,9 +77,6 @@ void URopeComponent::CheckCollisionPoints()
 		//check if we're not at the first rope point
 		if (Index != 0)
 		{
-			//set jitter to false
-			bUseJitter = false;
-
 			//sweep from the previous rope point to the next rope point
 			FHitResult Surrounding;
 			GetWorld()->SweepSingleByChannel(Surrounding, RopePoints[Index - 1], RopePoints[Index + 1], FQuat(), ECC_Visibility, FCollisionShape::MakeSphere(RopeRadius), CollisionParams);
@@ -131,8 +114,11 @@ void URopeComponent::CheckCollisionPoints()
 		//check for hits
 		if (Next.IsValidBlockingHit())
 		{
+			//print the name of the component we hit
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, Next.GetComponent()->GetName());
+
 			//if we hit something, add a new rope point at the hit location if we're not too close to the last rope point
-			if (FVector::Dist(RopePoints[Index], Next.Location) > MinCollisionPointSpacing / 2 && FVector::Dist(RopePoints[Index + 1], Next.Location) > MinCollisionPointSpacing / 2 && !Next.bStartPenetrating && Next.Location != Next.TraceEnd)
+			if (FVector::Dist(RopePoints[Index], Next.Location) > MinCollisionPointSpacing && FVector::Dist(RopePoints[Index + 1], Next.Location) > MinCollisionPointSpacing && !Next.bStartPenetrating && Next.Location != Next.TraceEnd && Next.Location != Next.TraceStart)
 			{
 				//insert the new rope point at the hit location
 				RopePoints.Insert(Next.Location + Next.ImpactNormal, Index + 1);
@@ -145,7 +131,7 @@ void URopeComponent::SetAttachedRopePointPositions()
 {
 	//set the start and end rope points
 	RopePoints[0] = GetComponentLocation();
-	RopePoints[1] = GetRopeEnd();
+	RopePoints[RopePoints.Num() - 1] = GetRopeEnd();
 }
 
 void URopeComponent::SpawnNiagaraSystem(int Index)
@@ -196,9 +182,6 @@ void URopeComponent::RenderRope()
 
 					//set the end location of the Niagara component
 					NiagaraComponents[Index]->SetVectorParameter(RibbonEndParameterName, RopePoints[Index + 1]);
-
-					//set whether or not to use jitter
-					NiagaraComponents[Index]->SetBoolParameter(JitterParameterName, bUseJitter);
 
 					//check if we should use rope radius
 					if (UseRopeRadiusAsRibbonWidth)
