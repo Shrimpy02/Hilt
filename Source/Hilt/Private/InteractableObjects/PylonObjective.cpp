@@ -1,13 +1,12 @@
 // Class Includes
-#include "InteractableObjects/LaunchPad.h"
+#include "InteractableObjects/PylonObjective.h"
 
 // Other Includes
 #include "Player/PlayerCharacter.h"
-#include "Components/PlayerMovementComponent.h"
 #include "Components/BoxComponent.h"
 
 // ---------------------- Constructor`s -----------------------------
-ALaunchPad::ALaunchPad()
+APylonObjective::APylonObjective()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -25,18 +24,18 @@ ALaunchPad::ALaunchPad()
 
 // ---------------------- Public Function`s -------------------------
 
-void ALaunchPad::BeginPlay()
+void APylonObjective::BeginPlay()
 {
 	Super::BeginPlay();
-	TriggerCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ALaunchPad::OnOverlap);
+	TriggerCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &APylonObjective::OnOverlap);
 }
 
-void ALaunchPad::Tick(float DeltaTime)
+void APylonObjective::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
-void ALaunchPad::RemoveLevelPresence()
+void APylonObjective::RemoveLevelPresence()
 {
 	Super::RemoveLevelPresence();
 
@@ -46,7 +45,7 @@ void ALaunchPad::RemoveLevelPresence()
 
 }
 
-void ALaunchPad::AddLevelPresence()
+void APylonObjective::AddLevelPresence()
 {
 	Super::AddLevelPresence();
 
@@ -55,44 +54,18 @@ void ALaunchPad::AddLevelPresence()
 	TriggerCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
-void ALaunchPad::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APylonObjective::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (CoolingDown == false)
+	APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor);
+	if(Player)
 	{
-		ThrowActor(OtherActor);
-		// Sets jumped bool so that function does not repeat.
-		CoolingDown = true;
-		// Resets Jumped to false when x seconds has gone. 
-		GetWorldTimerManager().SetTimer(MainTimerHandler, this, &ALaunchPad::CooldownComplete, LaunchPadCoolDownTime);
+		RemoveLevelPresence();
 	}
 }
 
 // --------------------- Private Function`s -------------------------
 
-FVector ALaunchPad::CalcThrowDirection()
-{
-	FRotator ActorRotation = GetActorRotation();
-	return ActorRotation.RotateVector(RelativeThrowDirection);
-}
-
-void ALaunchPad::ThrowActor(AActor* _actor)
-{
-	if (_actor)
-	{
-		APlayerCharacter* Player = Cast<APlayerCharacter>(_actor);
-		if (Player)
-			Player->PlayerMovementComponent->AddImpulse(CalcThrowDirection() * DefaultThrowStrength);
-
-		ThrewAnActor();
-	}
-}
-
-void ALaunchPad::CooldownComplete()
-{
-	CoolingDown = false;
-	ThrowCoolDownComplete();
-}
 
 
 // ---------------- Getter`s / Setter`s / Adder`s --------------------

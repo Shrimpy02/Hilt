@@ -1,39 +1,24 @@
 #pragma once
 
-// Class includes
 #include "CoreMinimal.h"
 #include "InteractableObjects/BaseInteractableObject.h"
-#include "LaunchPad.generated.h"
-
-// Forward Declaration`s
+#include "PylonObjective.generated.h"
 
 /**
- * @class ALaunchPad.
- * @brief An interactable object that launches actors that enter the launch zone.
- *
- * ALaunchPad takes in the collided actor and launches it in the specified direction.
+ * @class APylonObjective.
+ * @brief An interactable object triggered on collision acting as a level objective for the player.
  */
 UCLASS()
-class ALaunchPad : public ABaseInteractableObject
+class APylonObjective : public ABaseInteractableObject
 {
 	GENERATED_BODY()
 
 public:
 	//  ---------------------- Public Variable`s ----------------------
 
-	UPROPERTY(EditAnywhere, Category = "Variables")
-	float LaunchPadCoolDownTime = 3.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Variables")
-	FVector RelativeThrowDirection = FVector(0,0,1);
-
-	UPROPERTY(EditAnywhere, Category = "Variables")
-	float DefaultThrowStrength = 400000.0f;
-
 private:
 	//  ---------------------- Private Variable`s ---------------------
-	UPROPERTY(VisibleDefaultsOnly, Category = "Variables")
-	bool CoolingDown = false;
+
 
 	// ------------- Class components ------------
 
@@ -41,9 +26,6 @@ private:
 	UBoxComponent* TriggerCollisionBox;
 
 	// ------------- class Refs ------------
-
-	// ------------- Timer Handlers ------------
-	FTimerHandle MainTimerHandler;
 
 	// VFX ------------------------------
 	UPROPERTY(EditAnywhere, Category = "VFX")
@@ -63,7 +45,7 @@ public:
 	//  ---------------------- Public Function`s ----------------------
 	// Constructor`s -------
 
-	ALaunchPad();
+	APylonObjective();
 
 	// Function`s ----------
 	virtual void BeginPlay() override;
@@ -76,18 +58,10 @@ public:
 		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Patrol")
-	void ThrewAnActor();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Patrol")
-	void ThrowCoolDownComplete();
-
 private:
 	//  --------------------- Private Function`s ----------------------
 
-	FVector CalcThrowDirection();
-	void ThrowActor(AActor* _actor);
-	void CooldownComplete();
+
 
 public:
 	//  --------------- Getter`s / Setter`s / Adder`s -----------------
