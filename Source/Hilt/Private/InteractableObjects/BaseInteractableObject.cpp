@@ -1,5 +1,6 @@
 // Class Includes
 #include "InteractableObjects/BaseInteractableObject.h"
+#include "Core/HiltTags.h"
 
 // Other Includes
 #include "NiagaraComponent.h"
@@ -44,12 +45,58 @@ ABaseInteractableObject::ABaseInteractableObject()
 void ABaseInteractableObject::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Add Tags
+	Tags.Add(HiltTags::ObjectTag);
+	Tags.Add(HiltTags::ObjectActiveTag);
+
 }
 
 void ABaseInteractableObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateVFXLocationRotation();
+}
+
+void ABaseInteractableObject::RemoveLevelPresence()
+{
+	// Visible mesh ------------
+	// Disable collision & visibility
+	VisibleMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	VisibleMesh->ToggleVisibility(false);
+
+	// Blocker collision box ------------
+	// Disable collision
+	BlockerCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// Niagara component ------------
+	// Disable visibility
+	NiagaraComp->ToggleVisibility(false);
+
+	ToggleActiveOrInactiveTag();
+}
+
+void ABaseInteractableObject::AddLevelPresence()
+{
+	// Visible mesh ------------
+	// Enable collision & visibility
+	VisibleMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	VisibleMesh->ToggleVisibility(true);
+
+	// Blocker collision box ------------
+	// Enable collision
+	BlockerCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	// Niagara component ------------
+	// Enable visibility
+	NiagaraComp->ToggleVisibility(true);
+
+	ToggleActiveOrInactiveTag();
+}
+
+bool ABaseInteractableObject::IsActive()
+{
+	return Tags.Contains(HiltTags::ObjectActiveTag) ? true : false;
 }
 
 void ABaseInteractableObject::UpdateVFXLocationRotation()
@@ -88,5 +135,21 @@ void ABaseInteractableObject::PlayAudio(USoundBase* _soundBase, FVector _locatio
 			_soundBase,
 			_location
 		);
+	}
+}
+
+void ABaseInteractableObject::ToggleActiveOrInactiveTag()
+{
+	if(Tags.Contains(HiltTags::ObjectActiveTag) && !Tags.Contains(HiltTags::ObjectNotActiveTag))
+	{
+		Tags.Remove(HiltTags::ObjectActiveTag);
+		Tags.Add(HiltTags::ObjectNotActiveTag);
+	} else if (!Tags.Contains(HiltTags::ObjectActiveTag) && Tags.Contains(HiltTags::ObjectNotActiveTag))
+	{
+		Tags.Add(HiltTags::ObjectActiveTag);
+		Tags.Remove(HiltTags::ObjectNotActiveTag);
+	} else
+	{
+		GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Error: Duplicate active/inactive tags detected on object"));
 	}
 }

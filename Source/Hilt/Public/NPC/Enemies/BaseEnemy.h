@@ -36,13 +36,13 @@ class ABaseEnemy : public AActor
 public:
     //  ---------------------- Public Variable`s ----------------------
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables")
 	bool CanDie = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables")
 	bool CanMove = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables")
 	int Health = 1;
 
 	EEnemyState EnemyState = EEnemyState::EES_Idle;
@@ -52,7 +52,7 @@ private:
 
 	// ------------- Class components ------------
 	UPROPERTY(VisibleAnywhere)
-	USkeletalMeshComponent* Mesh;
+	USkeletalMeshComponent* VisibleMesh;
 
 	UPROPERTY(VisibleAnywhere)
 	UCapsuleComponent* CollisionMesh;
@@ -113,12 +113,13 @@ public:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
 
+	virtual void RemoveLevelPresence();
+	virtual void AddLevelPresence();
+	virtual bool IsAlive();
+
 	// Retrieves the result of take damage from UKismet system
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
-	// Kills enemy if health < 0 and they can be killed
-    UFUNCTION(BlueprintCallable)
-    virtual void Die();
 
 	// Checks if a point / target is within range of self and returns true if is and false if it is not
 	UFUNCTION(BlueprintCallable)
@@ -149,11 +150,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void PlayAudio(USoundBase* _soundBase, FVector _location);
 
-
 private:
     //  --------------------- Private Function`s ----------------------
 
-
+	void ToggleActiveOrInactiveTag();
 
 public:
     //  --------------- Getter`s / Setter`s / Adder`s -----------------

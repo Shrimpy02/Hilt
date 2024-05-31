@@ -25,7 +25,7 @@ public:
 	float LaunchPadCoolDownTime = 3.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Variables")
-	FVector DefaultThrowDirection = GetActorUpVector();
+	FVector RelativeThrowDirection = FVector(0,0,1);
 
 	UPROPERTY(EditAnywhere, Category = "Variables")
 	float DefaultThrowStrength = 400000.0f;
@@ -41,6 +41,9 @@ private:
 	UBoxComponent* TriggerCollisionBox;
 
 	// ------------- class Refs ------------
+
+	// ------------- Timer Handlers ------------
+	FTimerHandle MainTimerHandler;
 
 	// VFX ------------------------------
 	UPROPERTY(EditAnywhere, Category = "VFX")
@@ -65,14 +68,13 @@ public:
 	// Function`s ----------
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void RemoveLevelPresence() override;
+	virtual void AddLevelPresence() override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
-
-	void ThrowActor(AActor* _actor);
-	void CooldownComplete();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Patrol")
 	void ThrewAnActor();
@@ -83,7 +85,9 @@ public:
 private:
 	//  --------------------- Private Function`s ----------------------
 
-
+	FVector CalcThrowDirection();
+	void ThrowActor(AActor* _actor);
+	void CooldownComplete();
 
 public:
 	//  --------------- Getter`s / Setter`s / Adder`s -----------------

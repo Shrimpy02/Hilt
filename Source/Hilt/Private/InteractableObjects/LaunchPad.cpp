@@ -2,7 +2,6 @@
 #include "InteractableObjects/LaunchPad.h"
 
 // Other Includes
-#include "NiagaraComponent.h"
 #include "Player/PlayerCharacter.h"
 #include "Components/PlayerMovementComponent.h"
 #include "Components/BoxComponent.h"
@@ -37,27 +36,23 @@ void ALaunchPad::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ALaunchPad::ThrowActor(AActor* _actor)
+void ALaunchPad::RemoveLevelPresence()
 {
-	if (_actor)
-	{
-		APlayerCharacter* Player = Cast<APlayerCharacter>(_actor);
-		if (Player)
-		{
-			//GEngine->AddOnScreenDebugMessage(-1, 2.5f, FColor::Green, TEXT("Throw Player"));
-			Player->PlayerMovementComponent->AddImpulse(DefaultThrowDirection * DefaultThrowStrength);
-		}
-		else
-			//GEngine->AddOnScreenDebugMessage(-1, 2.5f, FColor::Yellow, TEXT("Throw Random Actor"));
+	Super::RemoveLevelPresence();
 
-		ThrewAnActor();
-	}
+	// Trigger Collision Box mesh ------------
+	// Disable collision
+	TriggerCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 }
 
-void ALaunchPad::CooldownComplete()
+void ALaunchPad::AddLevelPresence()
 {
-	CoolingDown = false;
-	ThrowCoolDownComplete();
+	Super::AddLevelPresence();
+
+	// Trigger Collision Box ------------
+	// Enable collision
+	TriggerCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void ALaunchPad::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -75,6 +70,29 @@ void ALaunchPad::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
 // --------------------- Private Function`s -------------------------
 
+FVector ALaunchPad::CalcThrowDirection()
+{
+	FRotator ActorRotation = GetActorRotation();
+	return ActorRotation.RotateVector(RelativeThrowDirection);
+}
+
+void ALaunchPad::ThrowActor(AActor* _actor)
+{
+	if (_actor)
+	{
+		APlayerCharacter* Player = Cast<APlayerCharacter>(_actor);
+		if (Player)
+			Player->PlayerMovementComponent->AddImpulse(CalcThrowDirection() * DefaultThrowStrength);
+
+		ThrewAnActor();
+	}
+}
+
+void ALaunchPad::CooldownComplete()
+{
+	CoolingDown = false;
+	ThrowCoolDownComplete();
+}
 
 
 // ---------------- Getter`s / Setter`s / Adder`s --------------------
