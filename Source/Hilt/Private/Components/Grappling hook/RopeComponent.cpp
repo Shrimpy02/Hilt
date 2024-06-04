@@ -114,8 +114,8 @@ void URopeComponent::CheckCollisionPoints()
 		//check for hits
 		if (Next.IsValidBlockingHit())
 		{
-			//print the name of the component we hit
-			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, Next.GetComponent()->GetName());
+			////print the name of the component we hit
+			//GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, Next.GetComponent()->GetName());
 
 			//if we hit something, add a new rope point at the hit location if we're not too close to the last rope point
 			if (FVector::Dist(RopePoints[Index], Next.Location) > MinCollisionPointSpacing && FVector::Dist(RopePoints[Index + 1], Next.Location) > MinCollisionPointSpacing && !Next.bStartPenetrating && Next.Location != Next.TraceEnd && Next.Location != Next.TraceStart)
