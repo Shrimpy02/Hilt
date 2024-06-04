@@ -35,6 +35,11 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	//call the parent implementation
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	//set all grappling variables to their default values
+	GrappleDirection = FVector::ZeroVector;
+	GrappleDotProduct = 0.f;
+	AbsoluteGrappleDotProduct = 0.f;
+
 	//update the can grapple variable
 	CanGrappleVar = CanGrapple();
 
@@ -65,11 +70,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			PlayerMovementComponent->bOrientRotationToMovement = true;
 		}
 	}
-
-	//set all grappling variables to their default values
-	GrappleDirection = FVector::ZeroVector;
-	GrappleDotProduct = 0.f;
-	AbsoluteGrappleDotProduct = 0.f;
 }
 
 void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& HitResult)
