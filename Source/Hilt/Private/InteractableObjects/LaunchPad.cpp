@@ -2,57 +2,25 @@
 #include "InteractableObjects/LaunchPad.h"
 
 // Other Includes
-#include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
 #include "Player/PlayerCharacter.h"
-#include "Components/SkeletalMeshComponent.h"
+#include "Components/PlayerMovementComponent.h"
 #include "Components/BoxComponent.h"
-#include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 // ---------------------- Constructor`s -----------------------------
 ALaunchPad::ALaunchPad()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-
-	// Collision Mesh
-	CollisionMesh = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionMesh"));
-	SetRootComponent(CollisionMesh);
-
+	// Trigger Collision Mesh  -------------
+	TriggerCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerCollisionBox"));
+	TriggerCollisionBox->SetupAttachment(GetRootComponent());
 	// Collision Settings
-	CollisionMesh->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
-	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CollisionMesh->SetGenerateOverlapEvents(true);
-	CollisionMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-
-	// Visible Mesh
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	Mesh->SetupAttachment(GetRootComponent());
-
-	// Collision Settings
-	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
-	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Mesh->SetGenerateOverlapEvents(true);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-
-	// Launch Mesh
-	LaunchMesh = CreateDefaultSubobject<USphereComponent>(TEXT("LaunchMesh"));
-	LaunchMesh->SetupAttachment(GetRootComponent());
-
-		// Collision Settings
-	LaunchMesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
-	LaunchMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	LaunchMesh->SetGenerateOverlapEvents(true);
-	LaunchMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
-	LaunchMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-	LaunchMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-
-	// Niagara
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
-	NiagaraComp->SetupAttachment(GetRootComponent());
+	TriggerCollisionBox->SetCollisionObjectType(ECC_WorldStatic);
+	TriggerCollisionBox->SetGenerateOverlapEvents(true);
+	TriggerCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	TriggerCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
+	TriggerCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	TriggerCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 }
 
 // ---------------------- Public Function`s -------------------------
@@ -60,76 +28,31 @@ ALaunchPad::ALaunchPad()
 void ALaunchPad::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	TriggerCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ALaunchPad::OnOverlap);
 }
 
 void ALaunchPad::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	UpdateVFXLocationRotation();
 }
 
-void ALaunchPad::ThrowActor(AActor* _actor)
+void ALaunchPad::RemoveLevelPresence()
 {
-	if(_actor)
-	{
-		if (APlayerCharacter* Player = Cast<APlayerCharacter>(_actor))
-			GEngine->AddOnScreenDebugMessage(-1, 2.5f, FColor::Green, TEXT("Throw Player"));
-		
-		else
-			GEngine->AddOnScreenDebugMessage(-1, 2.5f, FColor::Yellow, TEXT("Throw Random Actor"));
-		ThrewAnActor();
-	}
-		
-	// How it used to be:
-	//Player->PlayerMovementComponent->AddImpulse(ThrowAngle * _throwPower);
-	//PlayVFXActivate(GetActorLocation());
-	//PlayAudioActivate(GetActorLocation());
+	Super::RemoveLevelPresence();
+
+	// Trigger Collision Box mesh ------------
+	// Disable collision
+	TriggerCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 }
 
-void ALaunchPad::CooldownComplete()
+void ALaunchPad::AddLevelPresence()
 {
-	CoolingDown = false;
-	ThrowCoolDownComplete();
-}
+	Super::AddLevelPresence();
 
-void ALaunchPad::UpdateVFXLocationRotation()
-{
-	if (NiagaraComp)
-	{
-		NiagaraComp->SetWorldLocation(GetActorLocation());
-		NiagaraComp->SetWorldRotation(GetActorRotation());
-	}
-}
-
-void ALaunchPad::PlayVFX(UNiagaraSystem* _niagaraVFX, FVector _location, FRotator _rotation)
-{
-	if (_niagaraVFX && NiagaraComp) {
-		NiagaraComp->SetAsset(_niagaraVFX);
-
-		NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			this,
-			_niagaraVFX,
-			_location,
-			_rotation,
-			FVector(1.f),
-			true,
-			true,
-			ENCPoolMethod::None,
-			true);
-	}
-}
-
-void ALaunchPad::PlayAudio(USoundBase* _soundBase, FVector _location)
-{
-	if (_soundBase)
-	{
-		UGameplayStatics::PlaySoundAtLocation(
-			this,
-			_soundBase,
-			_location
-		);
-	}
+	// Trigger Collision Box ------------
+	// Enable collision
+	TriggerCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void ALaunchPad::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -141,17 +64,36 @@ void ALaunchPad::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		// Sets jumped bool so that function does not repeat.
 		CoolingDown = true;
 		// Resets Jumped to false when x seconds has gone. 
-		GetWorldTimerManager().SetTimer(JumpResetTimerHandeler, this, &ALaunchPad::CooldownComplete, LaunchPadCoolDownTime);
+		GetWorldTimerManager().SetTimer(MainTimerHandler, this, &ALaunchPad::CooldownComplete, LaunchPadCoolDownTime);
 	}
-}
-
-void ALaunchPad::EndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
 }
 
 // --------------------- Private Function`s -------------------------
 
+FVector ALaunchPad::CalcThrowDirection()
+{
+	FRotator ActorRotation = GetActorRotation();
+	return ActorRotation.RotateVector(RelativeThrowDirection);
+}
+
+void ALaunchPad::ThrowActor(AActor* _actor)
+{
+	if (_actor)
+	{
+		APlayerCharacter* Player = Cast<APlayerCharacter>(_actor);
+		if (Player)
+			Player->PlayerMovementComponent->AddImpulse(CalcThrowDirection() * DefaultThrowStrength);
+
+		ThrewAnActor();
+	}
+}
+
+void ALaunchPad::CooldownComplete()
+{
+	CoolingDown = false;
+	ThrowCoolDownComplete();
+}
 
 
 // ---------------- Getter`s / Setter`s / Adder`s --------------------
+

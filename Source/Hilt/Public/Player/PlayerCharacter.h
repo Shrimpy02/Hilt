@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 //#include "Components/PlayerMovementComponent.h"
 #include "InputDataAsset.h"
+#include "Core/HiltGameModeBase.h"
 #include "PlayerCharacter.generated.h"
 
 class AObjectivePoint;
@@ -47,10 +48,14 @@ public:
 	//input data asset to use for setting up input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UInputDataAsset* InputDataAsset;
-	
+
+	//the Hilt game mode
+	UPROPERTY(BlueprintReadOnly)
+	AHiltGameModeBase* GameMode;
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
+	virtual void BeginPlay() override;
 
 	//input function for shooting the grappling hook
 	UFUNCTION()
@@ -78,13 +83,17 @@ public:
 
 	//function to toggle pausing of the game
 	UFUNCTION()
-	void PauseGame();
+	void PauseGame(const FInputActionValue& Value);
 
 	//function to fire the terrain gun
 	UFUNCTION()
-	void FireTerrainGun();
+	void FireTerrainGun(const FInputActionValue& Value);
 
 	//function to fire the rocket launcher
 	UFUNCTION()
-	void FireRocketLauncher();
+	void FireRocketLauncher(const FInputActionValue& Value);
+
+	//function to call the restart function
+	UFUNCTION()
+	void RestartGame(const FInputActionValue& Value);
 };

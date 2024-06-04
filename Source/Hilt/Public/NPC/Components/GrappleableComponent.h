@@ -4,24 +4,36 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
-#include "Player/GrapplingHook/GrapplingComponent.h"
+#include "Components/GrapplingHook/GrapplingComponent.h"
 #include "GrappleableComponent.generated.h"
 
 
 
-UCLASS()
+UCLASS(Blueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class UGrappleableComponent : public USceneComponent
 {
 	GENERATED_BODY()
 	
 public:
 
+	//eventtype(s)
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartGrapple, AActor*, GrapplingActor, const FHitResult&, HitResult);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
+
 	//the interp struct for the grapple
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FGrappleInterpStruct GrappleInterpStruct;
+	FGrappleInterpStruct GrappleInterpStruct = FGrappleInterpStruct();
 
 	//constructor
 	UGrappleableComponent();
+
+	//event called when the grappling actor starts grappling to this actor
+	UPROPERTY(BlueprintAssignable)
+	FOnStartGrapple OnStartGrappleEvent;
+
+	//event called when the grappling actor stops grappling to this actor
+	UPROPERTY(BlueprintAssignable)
+	FOnStopGrapple OnStopGrappleEvent;
 
 	//function called when the grappling actor starts grappling to this actor
 	UFUNCTION(BlueprintCallable)
@@ -37,7 +49,7 @@ public:
 
 	//function for whether or not we should use the grapple interp struct of this object
 	UFUNCTION(BlueprintCallable)
-	virtual bool ShouldUseGrappleInterpStruct() const { return true; }
+	virtual bool ShouldUseGrappleInterpStruct() const { return false; }
 
 	//function for getting the grapple interp struct for the object grappling
 	UFUNCTION(BlueprintCallable)
