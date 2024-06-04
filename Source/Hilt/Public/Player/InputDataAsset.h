@@ -44,6 +44,9 @@ public:
 	UInputAction* IA_PauseButton = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
+	UInputAction* IA_RestartGame = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
 	UInputAction* IA_FireGun = nullptr;
 
 	//constructor(s)

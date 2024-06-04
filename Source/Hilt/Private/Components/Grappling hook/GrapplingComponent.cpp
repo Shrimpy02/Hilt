@@ -78,6 +78,9 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 		StopGrapple();
 	}
 
+	//set the movement mode to falling to prevent us from being stuck on the ground
+	PlayerMovementComponent->SetMovementMode(MOVE_Falling);
+
 	//update bIsGrappling
 	bIsGrappling = true;
 
@@ -267,18 +270,55 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			//add the grapple vector to the character's velocity
 			GrappleVelocity = GetGrappleDirection() * GetPullSpeed() * DeltaTime;
 
-			//check if we have valid curves
-			if (GrappleAngleVelocityCurve && GrappleDistanceVelocityCurve)
+			//check if we have a valid angle velocity curve
+			if (GrappleAngleCurve)
 			{
 				//get the grapple angle velocity curve value
-				const float GrappleAngleVelocityCurveValue = GrappleAngleVelocityCurve->GetFloatValue(GetGrappleDotProduct(GrappleVelocity.GetSafeNormal()));
-
-				//get the grapple distance velocity curve value
-				const float GrappleDistanceVelocityCurveValue = GrappleDistanceVelocityCurve->GetFloatValue(FMath::Clamp(FVector::Dist(GetOwner()->GetActorLocation() , RopeComponent->GetRopeEnd()) / MaxGrappleDistance, 0, 1));
+				const float GrappleAngleVelocityCurveValue = GrappleAngleCurve->GetFloatValue(GetGrappleDotProduct(GrappleVelocity.GetSafeNormal()));
 
 				//multiply the grapple velocity by the grapple velocity curve value
-				GrappleVelocity *= GrappleAngleVelocityCurveValue * GrappleDistanceVelocityCurveValue;
+				GrappleVelocity *= GrappleAngleVelocityCurveValue;
 			}
+
+			//check if we have a valid distance velocity curve
+			if (GrappleDistanceCurve)
+			{
+				//get the grapple distance velocity curve value
+				const float GrappleDistanceVelocityCurveValue = GrappleDistanceCurve->GetFloatValue(FMath::Clamp(FVector::Dist(GetOwner()->GetActorLocation(), RopeComponent->GetRopeEnd()) / MaxGrappleDistance, 0, 1));
+				 
+				//multiply the grapple velocity by the grapple velocity curve value
+				GrappleVelocity *= GrappleDistanceVelocityCurveValue;
+			}
+
+			//check if we have a valid collision point velocity curve
+			if (GrappleCollisionPointsCurve)
+			{
+				//get the grapple collision point velocity curve value
+				const float GrappleCollisionPointVelocityCurveValue = GrappleCollisionPointsCurve->GetFloatValue(RopeComponent->RopePoints.Num() - 1);
+
+				//multiply the grapple velocity by the grapple velocity curve value
+				GrappleVelocity *= GrappleCollisionPointVelocityCurveValue;
+			}
+
+			////check if we have a valid segment length curve
+			//if (GrappleLastSegmentLengthCurve)
+			//{
+			//	//get the grapple segment length pull force curve value
+			//	const float GrappleSegmentLengthPullForceCurveValue = GrappleLastSegmentLengthCurve->GetFloatValue(FVector::Dist(RopeComponent->RopePoints[RopeComponent->RopePoints.Num()-2], RopeComponent->GetRopeEnd()) / FVector::Dist(RopeComponent->RopePoints[0], RopeComponent->GetRopeEnd()));
+
+			//	//multiply the grapple velocity by the grapple velocity curve value
+			//	GrappleVelocity *= GrappleSegmentLengthPullForceCurveValue;
+			//}
+
+			////check if we have a valid grapple velocity curve
+			//if (GrappleSpeedAndDirectionForceCurve)
+			//{
+			//	//get the grapple velocity curve value
+			//	const float GrappleVelocityCurveValue = GrappleSpeedAndDirectionForceCurve->GetFloatValue(FVector::DotProduct(GetOwner()->GetVelocity().GetSafeNormal(), GrappleVelocity.GetSafeNormal()) * GetOwner()->GetVelocity().Size() / PlayerMovementComponent->GetMaxSpeed());
+
+			//	//multiply the grapple velocity by the grapple velocity curve value
+			//	GrappleVelocity *= GrappleVelocityCurveValue;
+			//}
 
 			//calculate the grapple dot product
 			GrappleDotProduct = GetGrappleDotProduct(GrappleVelocity);
