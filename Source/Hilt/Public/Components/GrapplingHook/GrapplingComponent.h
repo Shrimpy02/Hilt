@@ -159,7 +159,7 @@ public:
 
 	//whether or not we can grapple right now
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
-	bool bCanGrapple = false;
+	bool CanGrappleVar = false;
 
 	//reference to the player movement component
 	UPROPERTY()
