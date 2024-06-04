@@ -42,15 +42,24 @@ AActor* UProjectileGunComponent::FireProjectile(const FVector Direction)
 
 	//spawn the projectile
 	AActor* Projectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, GetOwner()->GetActorRotation());
-	
+
 	//bind the projectile's hit event
 	Projectile->OnActorHit.AddDynamic(this, &UProjectileGunComponent::OnProjectileHit);
 
 	//check if the projectile has a projectile movement component
 	if (UProjectileMovementComponent* ProjectileMovementComponent = Projectile->FindComponentByClass<UProjectileMovementComponent>())
 	{
-		//set the initial projectile speed
-		SetInitialProjectileSpeed(Direction, ProjectileMovementComponent);
+		//check if we should add the owner's velocity to the projectile's velocity
+		if (bAddOwnerVelocity)
+		{
+			//set the initial projectile speed
+			SetInitialProjectileSpeed(Direction, ProjectileMovementComponent);
+		}
+		else
+		{
+			//set the initial projectile speed
+			SetInitialProjectileSpeed(Direction, ProjectileMovementComponent);
+		}
 	}
 
 	//call the OnProjectileFired delegate
