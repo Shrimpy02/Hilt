@@ -158,7 +158,7 @@ public:
 	FVector GrappleDirection = FVector::ZeroVector;
 
 	//whether or not we can grapple right now
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
 	bool bCanGrapple = false;
 
 	//reference to the player movement component
