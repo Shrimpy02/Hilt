@@ -35,6 +35,9 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	//call the parent implementation
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	//update the can grapple variable
+	CanGrappleVar = CanGrapple();
+
 	//check if we're grappling
 	if (bIsGrappling)
 	{
