@@ -157,6 +157,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector GrappleDirection = FVector::ZeroVector;
 
+	//whether or not we can grapple right now
+	UPROPERTY(BlueprintReadOnly)
+	bool bCanGrapple = false;
+
 	//reference to the player movement component
 	UPROPERTY()
 	class UPlayerMovementComponent* PlayerMovementComponent = nullptr;
