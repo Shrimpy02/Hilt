@@ -10,6 +10,7 @@
 //#include "Components/SphereComponent.h"
 #include "Components/RocketLauncherComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
+#include "Core/HiltGameModeBase.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UPlayerMovementComponent>(CharacterMovementComponentName))
 {
@@ -74,6 +75,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireRocketLauncher);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_RestartGame, ETriggerEvent::Triggered, this, &APlayerCharacter::RestartGame);
 	}
 
 	//check if we have a valid input subsystem
@@ -82,6 +84,14 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		//add the input mapping context
 		Subsystem->AddMappingContext(InputDataAsset->InputMappingContext, 0);
 	}
+}
+
+void APlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//get the game mode
+	GameMode = GetWorld()->GetAuthGameMode<AHiltGameModeBase>();
 }
 
 void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
@@ -140,7 +150,7 @@ void APlayerCharacter::MouseMovement(const FInputActionValue& Value)
 	AddControllerPitchInput(-LookAxisInput.Y);
 }
 
-void APlayerCharacter::PauseGame()
+void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 {
 	//get the player controller
 	APlayerController* PC = GetLocalViewingPlayerController();
@@ -149,16 +159,26 @@ void APlayerCharacter::PauseGame()
 	PC->SetPause(!PC->IsPaused());
 }
 
-void APlayerCharacter::FireTerrainGun()
+void APlayerCharacter::FireTerrainGun(const FInputActionValue& Value)
 {
 	//fire the terrain gun
 	TerrainGunComponent->FireProjectile(Camera->GetForwardVector());
 }
 
-void APlayerCharacter::FireRocketLauncher()
+void APlayerCharacter::FireRocketLauncher(const FInputActionValue& Value)
 {
 	//fire the rocket launcher
 	RocketLauncherComponent->FireProjectile(Camera->GetForwardVector());
+}
+
+void APlayerCharacter::RestartGame(const FInputActionValue& Value)
+{
+	//check if we have a valid game mode
+	if (GameMode)
+	{
+		//restart the game
+		 GameMode->RestartLevel();
+	}
 }
 
 void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
