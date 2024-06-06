@@ -84,6 +84,9 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 	//set the movement mode to falling to prevent us from being stuck on the ground
 	PlayerMovementComponent->SetMovementMode(MOVE_Falling);
 
+	//update the grapple direction (done immediately to for the animation blueprint)
+	GrappleDirection = GetGrappleDirection();
+
 	//update bIsGrappling
 	bIsGrappling = true;
 
@@ -122,6 +125,9 @@ void UGrapplingComponent::StopGrapple()
 		//return early
 		return;
 	}
+
+	//update the grapple direction (done immediately to for the animation blueprint)
+	GrappleDirection = FVector::ZeroVector;
 
 	//update bIsGrappling
 	bIsGrappling = false;
