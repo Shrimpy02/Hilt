@@ -84,18 +84,18 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 	//set the movement mode to falling to prevent us from being stuck on the ground
 	PlayerMovementComponent->SetMovementMode(MOVE_Falling);
 
-	//update the grapple direction (done immediately to for the animation blueprint)
-	GrappleDirection = GetGrappleDirection();
-
-	//update bIsGrappling
-	bIsGrappling = true;
-
 	//check if the rope component is valid
 	if (RopeComponent->IsValidLowLevelFast())
 	{
 		//activate the rope component
 		RopeComponent->ActivateRope(OtherActor, HitResult);
 	}
+
+	//update the grapple direction (done immediately to for the animation blueprint)
+	GrappleDirection = GetGrappleDirection();
+
+	//update bIsGrappling
+	bIsGrappling = true;
 
 	//check if the other actor has a grappleable component
 	if (GrappleableComponent = OtherActor->GetComponentByClass<UGrappleableComponent>(); GrappleableComponent->IsValidLowLevelFast())
@@ -129,15 +129,15 @@ void UGrapplingComponent::StopGrapple()
 	//update the grapple direction (done immediately to for the animation blueprint)
 	GrappleDirection = FVector::ZeroVector;
 
-	//update bIsGrappling
-	bIsGrappling = false;
-
 	//check if the rope component is valid
 	if (RopeComponent->IsValidLowLevelFast())
 	{
 		//deactivate the rope component
 		RopeComponent->DeactivateRope();
 	}
+
+	//update bIsGrappling
+	bIsGrappling = false;
 
 	//call the OnStopGrapple event
 	OnStopGrapple.Broadcast();
