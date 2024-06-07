@@ -84,6 +84,33 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 	//set the movement mode to falling to prevent us from being stuck on the ground
 	PlayerMovementComponent->SetMovementMode(MOVE_Falling);
 
+	//check if the other actor is valid
+	if (OtherActor->IsValidLowLevelFast())
+	{
+		//bind the destroyed event to this component
+		OtherActor->OnDestroyed.AddDynamic(this, &UGrapplingComponent::OnGrappleTargetDestroyed);
+
+		//set the grapple target
+		GrappleTarget = OtherActor;
+	}
+	//check if the hit result is valid
+	else if (HitResult.bBlockingHit)
+	{
+		//bind the destroyed event to this component
+		HitResult.GetActor()->OnDestroyed.AddDynamic(this, &UGrapplingComponent::OnGrappleTargetDestroyed);
+
+		//set the grapple target
+		GrappleTarget = HitResult.GetActor();
+	}
+	else
+	{
+		//somethin went wrong, print an error message
+		UE_LOG(LogTemp, Error, TEXT("Something went wrong when trying to start the grapple"));
+
+		//return early
+		return;
+	}
+
 	//check if the rope component is valid
 	if (RopeComponent->IsValidLowLevelFast())
 	{
@@ -124,6 +151,13 @@ void UGrapplingComponent::StopGrapple()
 	{
 		//return early
 		return;
+	}
+
+	//check if the grapple target is valid
+	if (GrappleTarget->IsValidLowLevelFast())
+	{
+		//unbind the destroyed event from the grapple target
+		GrappleTarget->OnDestroyed.RemoveDynamic(this, &UGrapplingComponent::OnGrappleTargetDestroyed);
 	}
 
 	//update the grapple direction (done immediately to for the animation blueprint)
@@ -346,6 +380,12 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			DoInterpGrapple(DeltaTime, PlayerMovementComponent->Velocity, GetGrappleInterpStruct());
 		break;
 	}
+}
+
+void UGrapplingComponent::OnGrappleTargetDestroyed(AActor* DestroyedActor)
+{
+	//stop grappling
+	StopGrapple();
 }
 
 FVector UGrapplingComponent::GetGrappleDirection() const

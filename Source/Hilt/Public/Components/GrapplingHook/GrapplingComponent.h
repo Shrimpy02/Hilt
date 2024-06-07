@@ -165,6 +165,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector GrappleInput = FVector::ZeroVector;
 
+	//storage for the actor we're grappling to
+	UPROPERTY(BlueprintReadOnly)
+	AActor* GrappleTarget = nullptr;
+
 	//reference to the player movement component
 	UPROPERTY()
 	class UPlayerMovementComponent* PlayerMovementComponent = nullptr;
@@ -201,6 +205,9 @@ private:
 
 	//function to apply the pull force to the player
 	void ApplyPullForce(float DeltaTime);
+
+	UFUNCTION()
+	void OnGrappleTargetDestroyed(AActor* DestroyedActor);
 
 public:
 	/**
