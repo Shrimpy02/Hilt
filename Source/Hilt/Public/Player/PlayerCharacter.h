@@ -53,6 +53,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	AHiltGameModeBase* GameMode;
 
+	//the current movement direction (for wasd movement)
+	UPROPERTY(BlueprintReadOnly)
+	FVector2D CurrentMoveDirection = FVector2D::ZeroVector;
+
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 	virtual void BeginPlay() override;
