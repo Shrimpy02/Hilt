@@ -68,6 +68,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InInputComponent); EnhancedInputComponent->IsValidLowLevel() && InputDataAsset->IsValidLowLevel())
 	{
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::WasdMovement);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Completed, this, &APlayerCharacter::WasdMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_MouseMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::MouseMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_DoJump, ETriggerEvent::Triggered, this, &APlayerCharacter::DoJump);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerCharacter::StopJumping);
@@ -98,6 +99,16 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 {
 	//get the vector direction from the input value
 	FVector2D VectorDirection = Value.Get<FVector2D>();
+
+	//set the current move direction
+	CurrentMoveDirection = VectorDirection;
+
+	//check if the vector direction is zero
+	if (VectorDirection.IsNearlyZero())
+	{
+		//return to prevent further execution
+		return;
+	}
 
 	//get the control rotation and set the pitch and roll to zero
 	const FRotator ControlPlayerRotationYaw = GetControlRotation();
