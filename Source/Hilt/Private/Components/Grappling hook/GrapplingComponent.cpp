@@ -186,6 +186,8 @@ void UGrapplingComponent::StartGrappleCheck()
 
 FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 {
+	GrappleInput = MovementInput;
+
 	//check if the player is grappling, we have valid angle and distance input curves, and the grappling component is valid
 	if (bIsGrappling && GrappleMovementAngleInputCurve && GrappleMovementDistanceInputCurve && IsValidLowLevelFast())
 	{
@@ -299,15 +301,15 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 				GrappleVelocity *= GrappleDistanceVelocityCurveValue;
 			}
 
-			//check if we have a valid collision point velocity curve
-			if (GrappleCollisionPointsCurve)
-			{
-				//get the grapple collision point velocity curve value
-				const float GrappleCollisionPointVelocityCurveValue = GrappleCollisionPointsCurve->GetFloatValue(RopeComponent->RopePoints.Num() - 1);
+			////check if we have a valid collision point velocity curve
+			//if (GrappleCollisionPointsCurve)
+			//{
+			//	//get the grapple collision point velocity curve value
+			//	const float GrappleCollisionPointVelocityCurveValue = GrappleCollisionPointsCurve->GetFloatValue(RopeComponent->RopePoints.Num() - 1);
 
-				//multiply the grapple velocity by the grapple velocity curve value
-				GrappleVelocity *= GrappleCollisionPointVelocityCurveValue;
-			}
+			//	//multiply the grapple velocity by the grapple velocity curve value
+			//	GrappleVelocity *= GrappleCollisionPointVelocityCurveValue;
+			//}
 
 			////check if we have a valid segment length curve
 			//if (GrappleLastSegmentLengthCurve)
