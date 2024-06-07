@@ -99,7 +99,7 @@ public:
 
 	//whether or not to apply gravity when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bApplyGravityWhenGrappling = true;
+	bool bApplyGravityWhenGrappling = false;
 
 	//the max speed to use when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")

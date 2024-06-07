@@ -10,7 +10,7 @@ UPlayerMovementComponent::UPlayerMovementComponent()
 	//bOrientRotationToMovement = true;
 	//MaxWalkSpeed = 1200.f;
 	//BrakingFrictionFactor = 0.1f;
-	//JumpZVelocity = 800.f;
+	JumpZVelocity = 800.f;
 	AirControl = 2.f;
 	GravityScale = 4.f;
 	bApplyGravityWhileJumping = false;
