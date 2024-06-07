@@ -35,6 +35,14 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	//call the parent implementation
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	//set all grappling variables to their default values
+	GrappleDirection = FVector::ZeroVector;
+	GrappleDotProduct = 0.f;
+	AbsoluteGrappleDotProduct = 0.f;
+
+	//update the can grapple variable
+	CanGrappleVar = CanGrapple();
+
 	//check if we're grappling
 	if (bIsGrappling)
 	{
@@ -62,11 +70,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			PlayerMovementComponent->bOrientRotationToMovement = true;
 		}
 	}
-
-	//set all grappling variables to their default values
-	GrappleDirection = FVector::ZeroVector;
-	GrappleDotProduct = 0.f;
-	AbsoluteGrappleDotProduct = 0.f;
 }
 
 void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& HitResult)
@@ -81,15 +84,18 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 	//set the movement mode to falling to prevent us from being stuck on the ground
 	PlayerMovementComponent->SetMovementMode(MOVE_Falling);
 
-	//update bIsGrappling
-	bIsGrappling = true;
-
 	//check if the rope component is valid
 	if (RopeComponent->IsValidLowLevelFast())
 	{
 		//activate the rope component
 		RopeComponent->ActivateRope(OtherActor, HitResult);
 	}
+
+	//update the grapple direction (done immediately to for the animation blueprint)
+	GrappleDirection = GetGrappleDirection();
+
+	//update bIsGrappling
+	bIsGrappling = true;
 
 	//check if the other actor has a grappleable component
 	if (GrappleableComponent = OtherActor->GetComponentByClass<UGrappleableComponent>(); GrappleableComponent->IsValidLowLevelFast())
@@ -120,8 +126,8 @@ void UGrapplingComponent::StopGrapple()
 		return;
 	}
 
-	//update bIsGrappling
-	bIsGrappling = false;
+	//update the grapple direction (done immediately to for the animation blueprint)
+	GrappleDirection = FVector::ZeroVector;
 
 	//check if the rope component is valid
 	if (RopeComponent->IsValidLowLevelFast())
@@ -129,6 +135,9 @@ void UGrapplingComponent::StopGrapple()
 		//deactivate the rope component
 		RopeComponent->DeactivateRope();
 	}
+
+	//update bIsGrappling
+	bIsGrappling = false;
 
 	//call the OnStopGrapple event
 	OnStopGrapple.Broadcast();
