@@ -200,6 +200,15 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
 }
 
+void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations)
+{
+	//call the parent implementation
+	Super::ProcessLanded(Hit, remainingTime, Iterations);
+
+	//stop grappling (if we're grappling)
+	PlayerPawn->GrappleComponent->StopGrapple();
+}
+
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 {
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
