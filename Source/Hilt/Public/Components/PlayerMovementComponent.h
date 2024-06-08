@@ -22,7 +22,7 @@ class UPlayerMovementComponent : public UCharacterMovementComponent
 
 public:
 
-	//reference to the player as a playerpawn
+	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	APlayerCharacter* PlayerPawn = nullptr;
 
@@ -51,7 +51,7 @@ public:
 	float MinSpeedForBoostedJump = 2000.f;
 
 	//whether or not the player is currently forced to be under the speed limit
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsSpeedLimited = true;
 
 	//the amount of force to apply in the direction the player is looking when jumping
@@ -86,6 +86,7 @@ public:
 
 	virtual float GetMaxSpeed() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
+	virtual void ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations) override;
 	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
 	virtual bool DoJump(bool bReplayingMoves) override;
 };

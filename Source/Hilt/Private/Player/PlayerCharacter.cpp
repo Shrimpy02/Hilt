@@ -10,6 +10,7 @@
 //#include "Components/SphereComponent.h"
 #include "Components/RocketLauncherComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
+#include "Core/HiltGameModeBase.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UPlayerMovementComponent>(CharacterMovementComponentName))
 {
@@ -67,6 +68,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InInputComponent); EnhancedInputComponent->IsValidLowLevel() && InputDataAsset->IsValidLowLevel())
 	{
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::WasdMovement);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Completed, this, &APlayerCharacter::WasdMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_MouseMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::MouseMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_DoJump, ETriggerEvent::Triggered, this, &APlayerCharacter::DoJump);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerCharacter::StopJumping);
@@ -74,6 +76,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireRocketLauncher);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_RestartGame, ETriggerEvent::Triggered, this, &APlayerCharacter::RestartGame);
 	}
 
 	//check if we have a valid input subsystem
@@ -84,10 +87,28 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 	}
 }
 
+void APlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//get the game mode
+	GameMode = GetWorld()->GetAuthGameMode<AHiltGameModeBase>();
+}
+
 void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 {
 	//get the vector direction from the input value
 	FVector2D VectorDirection = Value.Get<FVector2D>();
+
+	//set the current move direction
+	CurrentMoveDirection = VectorDirection;
+
+	//check if the vector direction is zero
+	if (VectorDirection.IsNearlyZero())
+	{
+		//return to prevent further execution
+		return;
+	}
 
 	//get the control rotation and set the pitch and roll to zero
 	const FRotator ControlPlayerRotationYaw = GetControlRotation();
@@ -140,7 +161,7 @@ void APlayerCharacter::MouseMovement(const FInputActionValue& Value)
 	AddControllerPitchInput(-LookAxisInput.Y);
 }
 
-void APlayerCharacter::PauseGame()
+void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 {
 	//get the player controller
 	APlayerController* PC = GetLocalViewingPlayerController();
@@ -149,16 +170,26 @@ void APlayerCharacter::PauseGame()
 	PC->SetPause(!PC->IsPaused());
 }
 
-void APlayerCharacter::FireTerrainGun()
+void APlayerCharacter::FireTerrainGun(const FInputActionValue& Value)
 {
 	//fire the terrain gun
 	TerrainGunComponent->FireProjectile(Camera->GetForwardVector());
 }
 
-void APlayerCharacter::FireRocketLauncher()
+void APlayerCharacter::FireRocketLauncher(const FInputActionValue& Value)
 {
 	//fire the rocket launcher
 	RocketLauncherComponent->FireProjectile(Camera->GetForwardVector());
+}
+
+void APlayerCharacter::RestartGame(const FInputActionValue& Value)
+{
+	//check if we have a valid game mode
+	if (GameMode)
+	{
+		//restart the game
+		 GameMode->RestartLevel();
+	}
 }
 
 void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)

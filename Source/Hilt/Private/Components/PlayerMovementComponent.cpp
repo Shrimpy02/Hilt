@@ -8,12 +8,12 @@
 UPlayerMovementComponent::UPlayerMovementComponent()
 {
 	//bOrientRotationToMovement = true;
-	//bApplyGravityWhileJumping = false;
 	//MaxWalkSpeed = 1200.f;
 	//BrakingFrictionFactor = 0.1f;
-	//JumpZVelocity = 800.f;
-	//AirControl = 2.f;
-	//GravityScale = 4.f;
+	JumpZVelocity = 800.f;
+	AirControl = 2.f;
+	GravityScale = 4.f;
+	bApplyGravityWhileJumping = false;
 	//FallingLateralFriction = 4.f;
 }
 
@@ -198,6 +198,15 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 	GetCharacterOwner()->LaunchCharacter(UnclampedLaunchVelocity.GetClampedToSize(MinCollisionLaunchSpeed, MaxCollisionLaunchSpeed), true, true);
 
 	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
+}
+
+void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations)
+{
+	//call the parent implementation
+	Super::ProcessLanded(Hit, remainingTime, Iterations);
+
+	//stop grappling (if we're grappling)
+	PlayerPawn->GrappleComponent->StopGrapple();
 }
 
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
