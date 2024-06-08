@@ -70,6 +70,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void RemoveLevelPresence() override;
 	virtual void AddLevelPresence() override;
+	void ResetCooldown();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
