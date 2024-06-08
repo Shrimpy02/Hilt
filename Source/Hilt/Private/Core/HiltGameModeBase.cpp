@@ -2,8 +2,13 @@
 // class includes
 #include "Core/HiltGameModeBase.h"
 #include "InteractableObjects/BaseInteractableObject.h"
+#include "InteractableObjects/LaunchPad.h"
+#include "InteractableObjects/SpawnPoint.h"
 #include "NPC/Enemies/BaseEnemy.h"
+
 // Other Includes
+#include "Components/Camera/PlayerCameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
 
@@ -15,6 +20,8 @@ AHiltGameModeBase::AHiltGameModeBase()
 void AHiltGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	RestartLevel();
 }
 
 void AHiltGameModeBase::Tick(float DeltaTime)
@@ -33,29 +40,53 @@ void AHiltGameModeBase::RestartLevel()
 	// Reset actors
 	for (AActor* Object : FoundActors)
 	{
-		// Try all casts
-		ABaseInteractableObject* InteractableObject = Cast<ABaseInteractableObject>(Object);
-		ABaseEnemy* Enemy = Cast<ABaseEnemy>(Object);
+			//Rest Interactable objects
+		if(ABaseInteractableObject* InteractableObject = Cast<ABaseInteractableObject>(Object)){
 
-			//Rest Interactable object
-		if(InteractableObject && !InteractableObject->IsActive()){
+			// Reset non active objects ------------
+			if(!InteractableObject->IsActive())
+			{
+				InteractableObject->AddLevelPresence();
+			}
 
-			InteractableObject->AddLevelPresence();
+			// Reset active objects cooldowns ------------
+			else if (ALaunchPad* throwPad = Cast<ALaunchPad>(InteractableObject))
+			{
+				throwPad->ResetCooldown();
+			}
 
-			//Rest Enemies
-		} else if (Enemy && !Enemy->IsAlive()){
-
-			Enemy->AddLevelPresence();
+			// Reset player to spawnpoint if there is one
+			else if (ABaseInteractableObject* spawnPoint = Cast<ASpawnPoint>(Object))
+			{
+				if (UWorld* World = GetWorld())
+					if (APlayerController* PC = World->GetFirstPlayerController())
+						if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
+						{
+							PlayerCharacter->SetActorLocation(spawnPoint->GetActorLocation());
+							PlayerCharacter->SetActorRotation(spawnPoint->GetActorRotation());
+							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+							
+						}
+			}
 		}
+
+		//Rest Enemies
+		else if (ABaseEnemy* Enemy = Cast<ABaseEnemy>(Object)) {
+
+			// Reset non active enemies ------------
+			if(!Enemy->IsAlive())
+			{
+				Enemy->AddLevelPresence();
+			}
+		}
+
+
 	}
 
+
+
 	// Reset player
-	if (UWorld* World = GetWorld())
-		if (APlayerController* PC = World->GetFirstPlayerController())
-			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
-			{
-				// rest player function goes here.
-			}
+	
 				
 
 }
