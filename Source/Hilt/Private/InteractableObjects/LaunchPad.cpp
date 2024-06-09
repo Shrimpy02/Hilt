@@ -50,13 +50,24 @@ void ALaunchPad::AddLevelPresence()
 {
 	Super::AddLevelPresence();
 
+	// Reset cooldown
+	GetWorld()->GetTimerManager().ClearTimer(MainTimerHandler);
+	CooldownComplete();
+
 	// Trigger Collision Box ------------
 	// Enable collision
 	TriggerCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
+void ALaunchPad::ResetCooldown()
+{
+	// Reset cooldown
+	GetWorld()->GetTimerManager().ClearTimer(MainTimerHandler);
+	CooldownComplete();
+}
+
 void ALaunchPad::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                           UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (CoolingDown == false)
 	{

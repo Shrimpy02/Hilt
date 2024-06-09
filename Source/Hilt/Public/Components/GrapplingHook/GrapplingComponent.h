@@ -95,11 +95,11 @@ public:
 	
 	//the movement input modifier to use when processing the grapple movement input curve
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float GrappleMovementInputModifier = 10;
+	float GrappleMovementInputModifier = 20;
 
 	//whether or not to apply gravity when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bApplyGravityWhenGrappling = true;
+	bool bApplyGravityWhenGrappling = false;
 
 	//the max speed to use when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -133,9 +133,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementDistanceInputCurve = nullptr;
 
-	//the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
-	UCurveFloat* GrappleCollisionPointsCurve = nullptr;
+	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	//UCurveFloat* GrappleCollisionPointsCurve = nullptr;
 
 	////the float curve to use for modifying the pull force based on how close the player is to max speed and how close the grapple direction is to the player's velocity direction
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -160,6 +160,14 @@ public:
 	//whether or not we can grapple right now
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
 	bool CanGrappleVar = false;
+
+	//the current grapple input
+	UPROPERTY(BlueprintReadOnly)
+	FVector GrappleInput = FVector::ZeroVector;
+
+	//storage for the actor we're grappling to
+	UPROPERTY(BlueprintReadOnly)
+	AActor* GrappleTarget = nullptr;
 
 	//reference to the player movement component
 	UPROPERTY()
@@ -197,6 +205,9 @@ private:
 
 	//function to apply the pull force to the player
 	void ApplyPullForce(float DeltaTime);
+
+	UFUNCTION()
+	void OnGrappleTargetDestroyed(AActor* DestroyedActor);
 
 public:
 	/**
