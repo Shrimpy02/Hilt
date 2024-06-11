@@ -38,9 +38,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	float MaxCollisionLaunchSpeed = 4000.f;
 
-	//the float curve to use when applying the collision launch speed based on the speed of the player (0 = min speed, 1 = max speed)
+	//the dot product to use for what is considered a head on collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
+	float HeadOnCollisionDot = 0.3f;
+
+	//the float curve to use when applying the collision launch speed based on the speed of the player (0 = min speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
+
+	//the float curve to use for max acceleration when walking based on the speed of the player (0 = min speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* MaxWalkingAccelerationCurve = nullptr;
 
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -53,6 +61,26 @@ public:
 	//whether or not the player is currently forced to be under the speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsSpeedLimited = true;
+
+	//the max acceleration when reversing walking direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float MaxReverseWalkingAcceleration = 9999.f;
+
+	//the built up excess speed from applying the speed limit
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	float ExcessSpeed = 0.f;
+
+	//the max excess speed that can be built up
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float MaxExcessSpeed = 1000.f;
+
+	//the degredation rate of the excess speed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float ExcessSpeedDegredationRate = 10.f;
+
+	//the amount of excess speed needed to stop applying the speed limit
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float ExcessSpeedStopLimit = 10.f;
 
 	//the amount of force to apply in the direction the player is looking when jumping
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SuperJump")
@@ -75,8 +103,13 @@ public:
 	//constructor
 	UPlayerMovementComponent();
 
+	//function to apply the speed limit to a velocity (if speed limit is enabled)
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	FVector ApplySpeedLimit(const FVector& InVelocity, const float& InDeltaTime);
+
 	//override functions
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
@@ -85,6 +118,7 @@ public:
 	virtual float GetGravityZ() const override;
 
 	virtual float GetMaxSpeed() const override;
+	virtual float GetMaxAcceleration() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
 	virtual void ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations) override;
 	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;

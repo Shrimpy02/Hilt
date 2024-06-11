@@ -97,6 +97,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GrappleMovementInputModifier = 20;
 
+	//grappledown input modifier to use when processing the grapple movement input curve
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float GrappleDownInputModifier = 20;
+
 	//whether or not to apply gravity when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bApplyGravityWhenGrappling = false;
