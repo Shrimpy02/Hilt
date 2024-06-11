@@ -7,6 +7,28 @@
 #include "NiagaraSystem.h"
 #include "RopeComponent.generated.h"
 
+USTRUCT(BlueprintType)
+struct FRopePoint
+{
+	GENERATED_BODY()
+
+	//the attached actor for the rope point
+	UPROPERTY(BlueprintReadOnly)
+	AActor* AttachedActor = nullptr;
+
+	//the relative location of the rope point to the attached actor
+	UPROPERTY(BlueprintReadOnly)
+	FVector RelativeLocation = FVector::ZeroVector;
+
+	//constructor(s)
+	FRopePoint();
+	explicit FRopePoint(const FHitResult& HitResult);
+	explicit FRopePoint(AActor* OtherActor, const FVector& Location);
+
+	//function to get the location of the rope point in world space
+	FVector GetWL() const;
+};
+
 UCLASS()
 class URopeComponent : public USceneComponent
 {
@@ -14,9 +36,9 @@ class URopeComponent : public USceneComponent
 	
 public:
 
-	//the possible sphere sweep hit for the end of the rope
-	UPROPERTY(BlueprintReadOnly)
-	FHitResult StartHit = FHitResult();
+	////the possible sphere sweep hit for the end of the rope
+	//UPROPERTY(BlueprintReadOnly)
+	//FHitResult StartHit = FHitResult();
 
 	//the possible grappleable component for the end of the rope
 	UPROPERTY(BlueprintReadOnly)
@@ -36,37 +58,19 @@ public:
 
 	//the name of the user parameter for the end of the Niagara ribbons
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope|Rendering")
-	FName RibbonEndParameterName = "RopeEnd";
-
-	//whether or not to use the rope radius as the ribbon width
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope|Rendering")
-	bool UseRopeRadiusAsRibbonWidth = true;
-
-	//the name of the user parameter for the width of the Niagara ribbons
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope|Rendering", meta = (EditCondition = "UseRopeRadiusAsRibbonWidth == false", EditConditionHides))
-	FName RibbonWidthParameterName = "RopeWidth";
-
-	//the width of the ribbon used to render the rope(only used if UseRopeRadiusAsRibbonWidth is false)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope|Rendering", meta = (EditCondition = "UseRopeRadiusAsRibbonWidth == false", EditConditionHides))
-	float RibbonWidth = 10.f;
+	FName RibbonEndParameterName = "HookEnd";
 
 	//array of niagara components used to render the rope
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope|Rendering")
 	TArray<UNiagaraComponent*> NiagaraComponents;
 
 	//the minimum spacing between new and old rope points in the infinite length rope mode
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Rope|InfiniteLength")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Rope")
 	float MinCollisionPointSpacing = 20.f;
 
-	//array of rope points used when the rope is infinite length
+	//array of rope points for the rope
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope", meta = (ShowOnlyInnerProperties))
-	TArray<FVector> RopePoints = {FVector(0, 0, 0), FVector(0, 0, 0)};
-
-	//the tick behaviour to use for the niagara components
-	ENiagaraTickBehavior TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
-
-	//the tick group to use for the niagara components
-	TEnumAsByte<ETickingGroup> TickGroup = TG_LastDemotable;
+	TArray<FRopePoint> RopePoints;
 
 private:
 	//whether or not the rope is currently active
@@ -88,9 +92,6 @@ public:
 	//traces along the collision points and removes unnecessary collision points
 	void CheckCollisionPoints();
 
-	//sets the collision points for the rope to the current location of the actors we're attached to
-	void SetAttachedRopePointPositions();
-
 	//spawns a new niagara system for a rope point at the given index in the rope points array, pointing towards the next point in the array (not called for the last point in the array)
 	void SpawnNiagaraSystem(int Index);
 
@@ -104,7 +105,7 @@ public:
 	//function to activate the rope
 	UFUNCTION()
 	void ActivateRope(AActor* OtherActor, const FHitResult& HitResult);
-public:
+
 	/**
 	 * Getters
 	*/
