@@ -1,10 +1,12 @@
 #include "Components/Camera/CameraArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Player/PlayerCharacter.h"
 
 UCameraArmComponent::UCameraArmComponent(const FObjectInitializer& ObjectInitializer)
 {
 	//set the default values
 	CameraLagMaxDistance = 800;
+	ProbeSize = 120;
 }
 
 void UCameraArmComponent::BeginPlay()
@@ -38,25 +40,33 @@ void UCameraArmComponent::BeginPlay()
 		//set the timer handle
 		GetWorld()->GetTimerManager().SetTimer(ZoomInterpTimerHandle, this, &UCameraArmComponent::InterpCameraZoom, CameraZoomUpdateSpeed, true);
 	}
+
+	//set the player character
+	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+
+	//set the original target offset
+	OriginalTargetOffset = TargetOffset;
 }
 
 void UCameraArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime)
 {
-	////check if we should apply camera offset and if the character owner is valid
-	//if (bApplyCameraOffset)
-	//{
-	//	//get the controller rotation
-	//	FRotator ControllerRotation = UGameplayStatics::GetPlayerController(this, 0)->GetControlRotation();
 
-	//	//remove the pitch from the controller rotation
-	//	ControllerRotation.Pitch = 0;
+	//check if the player character is valid
+	if (!PlayerCharacter->IsValidLowLevelFast())
+	{
+		//default to the parent implementation
+		Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
 
-	//	//get the camera offset
-	//	const FVector CamSocketOffset = UKismetMathLibrary::GetRightVector(ControllerRotation);
+		//prevent further execution
+		return;
+	}
 
-	//	//set the socket offset
-	//	SocketOffset = CamSocketOffset * CameraOffsetAmount;
-	//}
+	//get the input vector of the player character
+	const FVector2D InputVector = PlayerCharacter->CurrentMoveDirection;
+
+	//set the target offset
+	TargetOffset = FMath::VInterpTo(TargetOffset, OriginalTargetOffset + (RightVec * InputVector.X + ForwardVec * InputVector.Y) * -MoveOffsetAmount, DeltaTime, MoveOffsetInterpSpeed);
+
 
 	Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
 }

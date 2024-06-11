@@ -9,7 +9,8 @@ UPlayerMovementComponent::UPlayerMovementComponent()
 {
 	//bOrientRotationToMovement = true;
 	MaxWalkSpeed = 1200;
-	//BrakingFrictionFactor = 0.1;
+	bUseSeparateBrakingFriction = true;
+	BrakingFriction = 0.5;
 	JumpZVelocity = 800;
 	AirControl = 2;
 	GravityScale = 4;
@@ -39,8 +40,8 @@ FVector UPlayerMovementComponent::ApplySpeedLimit(const FVector& InVelocity, con
 		//clamp the excess speed
 		ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
 
-		//print on screen debug message of the excess speeds' size to show that we got here
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, FString::Printf(TEXT("Delta Size: %f"), ExcessSpeed));
+		////print on screen debug message of the excess speeds' size to show that we got here
+		//GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, FString::Printf(TEXT("Delta Size: %f"), ExcessSpeed));
 
 	}
 
@@ -134,6 +135,19 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 	return PlayerPawn->GrappleComponent->ProcessGrappleInput(ReturnVec).GetClampedToMaxSize(GetMaxSpeed());
 }
 
+bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const
+{
+	//check if we're grappling
+	if (PlayerPawn->GrappleComponent->bIsGrappling)
+	{
+		//return false if we're grappling
+		return false;
+	}
+
+	//default to the parent implementation
+	return Super::IsValidLandingSpot(CapsuleLocation, Hit);
+}
+
 float UPlayerMovementComponent::GetGravityZ() const
 {
 	if (!PlayerPawn)
@@ -201,8 +215,8 @@ float UPlayerMovementComponent::GetMaxAcceleration() const
 	//check if we're moving in the opposite direction of the velocity
 	if (IsWalking() && Velocity.Size() > 0 && FVector::DotProduct(Velocity.GetSafeNormal(), GetLastInputVector().GetSafeNormal()) < 0)
 	{
-		//print on screen debug message to show that we got here
-		GEngine->AddOnScreenDebugMessage(69, 5.f, FColor::Red, TEXT("Got Here"));
+		////print on screen debug message to show that we got here
+		//GEngine->AddOnScreenDebugMessage(69, 5.f, FColor::Red, TEXT("Got Here"));
 
 		//return the max acceleration
 		return MaxReverseWalkingAcceleration;
