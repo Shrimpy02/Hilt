@@ -140,6 +140,13 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 	//check if we're grappling
 	if (PlayerPawn->GrappleComponent->bIsGrappling)
 	{
+		//check if the dot product of the hit normal and the grapple direction is less than -0.8
+		if (FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GetGrappleDirection()) < -0.8)
+		{
+			//return true if we're grappling and the dot product is less than -0.8
+			return true;
+		}
+
 		//return false if we're grappling
 		return false;
 	}
