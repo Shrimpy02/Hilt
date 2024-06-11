@@ -7,9 +7,6 @@
 
 URopeComponent::URopeComponent()
 {
-	//initialize the rope points array
-	RopePoints.Init(FVector(), 2);
-
 	//add the no grapple tag
 	ComponentTags.Add(HiltTags::NoGrappleTag);
 
@@ -231,7 +228,7 @@ void URopeComponent::DeactivateRope()
 	NiagaraComponents.Empty();
 
 	//clear the rope points array
-	RopePoints.Empty();
+	RopePoints = RopePoints = {FVector(0, 0, 0), FVector(0, 0, 0)};
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
@@ -247,7 +244,7 @@ void URopeComponent::ActivateRope(AActor* OtherActor, const FHitResult& HitResul
 	bIsRopeActive = true;
 
 	//initialize the rope points array
-	RopePoints.Init(FVector(), 2);
+	RopePoints = RopePoints = {FVector(0, 0, 0), FVector(0, 0, 0)};
 
 	//set the attached rope point positions
 	SetAttachedRopePointPositions();

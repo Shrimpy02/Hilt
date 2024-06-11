@@ -60,7 +60,7 @@ public:
 
 	//array of rope points used when the rope is infinite length
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope", meta = (ShowOnlyInnerProperties))
-	TArray<FVector> RopePoints;
+	TArray<FVector> RopePoints = {FVector(0, 0, 0), FVector(0, 0, 0)};
 
 	//the tick behaviour to use for the niagara components
 	ENiagaraTickBehavior TickBehavior = ENiagaraTickBehavior::UseComponentTickGroup;
