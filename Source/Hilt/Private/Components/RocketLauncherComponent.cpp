@@ -30,6 +30,17 @@ void URocketLauncherComponent::OnProjectileHit(AActor* Projectile, AActor* Other
 		GetWorld()->SpawnActor<AActor>(RocketExplosionClass, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 	}
 
+	////check if our owner is a player character
+	//if (const APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner()))
+	//{
+	//	//check if the player character is valid
+	//	if (PlayerCharacter->IsValidLowLevelFast())
+	//	{
+	//		//stop grappling
+	//		PlayerCharacter->GrappleComponent->StopGrapple();
+	//	}
+	//}
+
 	//call the parent implementation
 	Super::OnProjectileHit(Projectile, OtherActor, NormalImpulse, Hit);
 }

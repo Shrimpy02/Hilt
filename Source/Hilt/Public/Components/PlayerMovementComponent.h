@@ -114,7 +114,7 @@ public:
 	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
 	//virtual bool ShouldRemainVertical() const override;
-	//virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
+	virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
 	virtual float GetGravityZ() const override;
 
 	virtual float GetMaxSpeed() const override;
