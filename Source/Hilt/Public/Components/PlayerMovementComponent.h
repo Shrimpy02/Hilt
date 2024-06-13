@@ -50,10 +50,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* MaxWalkingAccelerationCurve = nullptr;
 
-	//the float curve to use for the braking friction based on the speed of the player (0 = min speed, 1 = max speed)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* BrakingFrictionCurve = nullptr;
-
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float SpeedLimit = 4000.f;
