@@ -17,7 +17,7 @@ UPlayerMovementComponent::UPlayerMovementComponent()
 	bApplyGravityWhileJumping = false;
 	//FallingLateralFriction = 4;
 
-	BrakingDecelerationWalking = 1536;
+	BrakingDecelerationWalking = 1024;
 }
 
 FVector UPlayerMovementComponent::ApplySpeedLimit(const FVector& InVelocity, const float& InDeltaTime)
@@ -79,24 +79,6 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	{
 		//start applying the speed limit
 		bIsSpeedLimited = true;
-	}
-
-	//check if our current speed is greater than the max walk speed
-	if (Velocity.Size() > MaxWalkSpeed && IsWalking())
-	{
-		//set the braking friction to the friction curve's value
-		BrakingFriction = BrakingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
-
-		//set the braking deceleration to 0
-		BrakingDecelerationWalking = 0;
-	}
-	else
-	{
-		//set the braking friction to 0.5
-		BrakingFriction = 0.5;
-
-		//set the braking deceleration to the default value
-		BrakingDecelerationWalking = 1536;
 	}
 }
 
@@ -327,18 +309,6 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 
 void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations)
 {
-	//check if we're moving at a speed greater than the max walk speed
-	if (Velocity.Size() > MaxWalkSpeed)
-	{
-		//set the braking friction to 0
-		BrakingFriction = 0;
-	}
-	else
-	{
-		//set the braking friction to 0.5
-		BrakingFriction = 0.5;
-	}
-
 	//call the parent implementation
 	Super::ProcessLanded(Hit, remainingTime, Iterations);
 
@@ -348,9 +318,6 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 {
-	//reset the braking friction
-	BrakingFriction = 0.5;
-
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
 	if (Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && !bIsSpeedLimited)
 	{
