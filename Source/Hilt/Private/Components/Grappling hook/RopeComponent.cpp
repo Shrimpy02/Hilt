@@ -105,8 +105,8 @@ void URopeComponent::CheckCollisionPoints()
 			GetWorld()->LineTraceSingleByChannel(Surrounding, RopePoints[Index - 1].GetWL(), RopePoints[Index + 1].GetWL(), ECC_Visibility, CollisionParams);
 			//DrawDebugLine(GetWorld(), RopePoints[Index - 1].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Blue, false, 0.f, 0, 5.f);
 
-			//check if the sweep didn't return a blocking hit and didn't started inside an object
-			if (!Surrounding.bBlockingHit && !Surrounding.bStartPenetrating)
+			//check if the sweep didn't return a blocking hit and didn't started inside an object or if the rope point doesn't have a valid attached actor
+			if (!Surrounding.bBlockingHit && !Surrounding.bStartPenetrating || !RopePoints[Index].AttachedActor->IsValidLowLevelFast())
 			{
 				//remove the rope point from the array
 				RopePoints.RemoveAt(Index);
@@ -153,6 +153,31 @@ void URopeComponent::CheckCollisionPoints()
 			}
 
 			//DrawDebugLine(GetWorld(), RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Yellow, false, 0.f, 0, 5.f);
+		}
+	}
+
+	//this code is for fixing a bug where the last rope point would be pushed into an object leading to the second to last rope point never being removed
+	//check if the distance between the first and second rope point is too small
+	if (FVector::Dist(RopePoints[0].GetWL(), RopePoints.Last().GetWL()) < MinCollisionPointSpacing)
+	{
+		//storage for the hit result
+		FHitResult EndHit;
+
+		//do a line trace from the last rope point to the second last rope point
+		GetWorld()->LineTraceSingleByChannel(EndHit, RopePoints.Last().GetWL(), RopePoints[RopePoints.Num() - 2].GetWL(), ECC_Visibility, CollisionParams);
+
+		//check if the hit is a valid blocking hit and started penetrating
+		if (EndHit.IsValidBlockingHit() && !EndHit.bStartPenetrating)
+		{
+			//if it did then do the trace in the opposite direction
+			GetWorld()->LineTraceSingleByChannel(EndHit, RopePoints.Last().GetWL(), RopePoints[RopePoints.Num() - 2].GetWL(), ECC_Visibility, CollisionParams);
+
+			//double check if the hit is a valid blocking hit and didn't start penetrating
+			if (EndHit.IsValidBlockingHit() && !EndHit.bStartPenetrating)
+			{
+				//set the last rope point to a new rope point at the hit location
+				RopePoints[RopePoints.Num() - 1] = FRopePoint(EndHit);
+			}
 		}
 	}
 }
@@ -242,7 +267,7 @@ void URopeComponent::DeactivateRope()
 void URopeComponent::ActivateRope(AActor* OtherActor, const FHitResult& HitResult)
 {
 	//set the grappleable component
-	this->GrappleableComponent = OtherActor->FindComponentByClass<UGrappleableComponent>();
+	GrappleableComponent = OtherActor->FindComponentByClass<UGrappleableComponent>();
 
 	//set the active state to true
 	bIsRopeActive = true;
