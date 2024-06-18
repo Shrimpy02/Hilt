@@ -56,7 +56,7 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		GrappleDirection = GetGrappleDirection();
 
 		//check that we're not grounded
-		if (!PlayerMovementComponent->IsMovingOnGround() && RopeComponent->StartHit.Normal.Z < PlayerMovementComponent->GetWalkableFloorZ())
+		if (!PlayerMovementComponent->IsMovingOnGround() && -GrappleDirection.GetSafeNormal().Z < PlayerMovementComponent->GetWalkableFloorZ())
 		{
 			//set borientrotationtoMovement to false
 			PlayerMovementComponent->bOrientRotationToMovement = false;
@@ -320,7 +320,7 @@ void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float Max
 	CollisionShape.ShapeType = CanGrappleCollisionShape;
 
 	//do the line trace
-	GetWorld()->SweepSingleByChannel(GrappleHit, CameraLocation, End, FQuat::Identity, CanGrappleTraceChannel, CollisionShape, GrappleCollisionParams);
+	GetWorld()->SweepSingleByChannel(GrappleHit, CameraLocation + Rotation * 10, End, FQuat::Identity, CanGrappleTraceChannel, CollisionShape, GrappleCollisionParams);
 }
 
 void UGrapplingComponent::ApplyPullForce(float DeltaTime)
