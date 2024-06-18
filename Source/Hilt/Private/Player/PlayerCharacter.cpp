@@ -74,8 +74,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerCharacter::StopJumping);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_ShootGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_StartSlide, ETriggerEvent::Triggered, this, &APlayerCharacter::StartSlide);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopSlide, ETriggerEvent::Triggered, this, &APlayerCharacter::StopSlide);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireRocketLauncher);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_RestartGame, ETriggerEvent::Triggered, this, &APlayerCharacter::RestartGame);
 	}
 
@@ -201,6 +203,16 @@ void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 {
 	//stop grappling
 	GrappleComponent->StopGrapple();
+}
+
+void APlayerCharacter::StartSlide(const FInputActionValue& Value)
+{
+	PlayerMovementComponent->StartSlide();
+}
+
+void APlayerCharacter::StopSlide(const FInputActionValue& Value)
+{
+	PlayerMovementComponent->StopSlide();
 }
 
 void APlayerCharacter::DoJump(const FInputActionValue& Value)

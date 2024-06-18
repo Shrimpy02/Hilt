@@ -16,7 +16,11 @@ struct FRopePoint
 	UPROPERTY(BlueprintReadOnly)
 	AActor* AttachedActor = nullptr;
 
-	//the relative location of the rope point to the attached actor
+	//the component to use for the rope point's location
+	UPROPERTY(BlueprintReadOnly)
+	USceneComponent* Component = nullptr;
+
+	//the relative location of the rope point to the attached actor (if not using a component's location)
 	UPROPERTY(BlueprintReadOnly)
 	FVector RelativeLocation = FVector::ZeroVector;
 
@@ -36,9 +40,9 @@ class URopeComponent : public USceneComponent
 	
 public:
 
-	////the possible sphere sweep hit for the end of the rope
-	//UPROPERTY(BlueprintReadOnly)
-	//FHitResult StartHit = FHitResult();
+	//list of classes that the rope should ignore when checking for collisions
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope")
+	TArray<TSubclassOf<AActor>> IgnoredClasses;
 
 	//the possible grappleable component for the end of the rope
 	UPROPERTY(BlueprintReadOnly)
@@ -68,6 +72,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Rope")
 	float MinCollisionPointSpacing = 20.f;
 
+	//the collision channel to use for the collision checks of the rope
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rope")
+	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Visibility;
+
 	//array of rope points for the rope
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope", meta = (ShowOnlyInnerProperties))
 	TArray<FRopePoint> RopePoints;
@@ -88,6 +96,9 @@ public:
 	//function for switching the rope niagara system
 	UFUNCTION(BlueprintCallable, Category = "Rope")
 	void SetNiagaraSystem(UNiagaraSystem* NewSystem);
+
+	//function to get the collision query params used for the rope's collision checks
+	FCollisionQueryParams GetCollisionParams();
 
 	//traces along the collision points and removes unnecessary collision points
 	void CheckCollisionPoints();

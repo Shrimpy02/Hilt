@@ -49,6 +49,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
 	UInputAction* IA_FireGun = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
+	UInputAction* IA_StartSlide = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
+	UInputAction* IA_StopSlide = nullptr;
+
 	//constructor(s)
 	UInputDataAsset();
 };

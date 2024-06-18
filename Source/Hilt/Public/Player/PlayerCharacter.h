@@ -69,6 +69,14 @@ public:
 	UFUNCTION()
 	void StopGrapple(const FInputActionValue& Value);
 
+	//input function to start sliding
+	UFUNCTION()
+	void StartSlide(const FInputActionValue& Value);
+
+	//input function to stop sliding
+	UFUNCTION()
+	void StopSlide(const FInputActionValue& Value);
+
 	//input function to jump
 	UFUNCTION()
 	void DoJump(const FInputActionValue& Value);
