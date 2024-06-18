@@ -101,25 +101,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GrappleDownInputModifier = 1;
 
+	//the air control you have when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float GrappleAirControl = 2;
+
 	//whether or not to apply gravity when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bApplyGravityWhenGrappling = false;
 
 	//the max speed to use when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float GrappleMaxSpeed = 8000.f;
+	float GrappleMaxSpeed = 8000;
 
 	//the max distance the Grappling hook can travel
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
-	float MaxGrappleDistance = 9000.f;
+	float MaxGrappleDistance = 9000;
 
 	//the max distance to check for when checking if the player can grapple to where they are aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
-	float MaxGrappleCheckDistance = 18000.f;
-
-	//the trace channel to use when checking if the player can grapple to where they are aiming
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple");
-	TEnumAsByte<ECollisionChannel> CanGrappleTraceChannel = ECC_Visibility;
+	float MaxGrappleCheckDistance = 18000;
 
 	//the float curve to use when applying the grapple velocity using the dot product of the character's velocity and the velocity that was added from grappling last frame (-1 = opposite direction, 0 = perpendicular(90 degrees), 1 = same direction)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -151,11 +151,11 @@ public:
 
 	//the grapple dot product to based of the grapple velocity and the player's velocity
 	UPROPERTY(BlueprintReadOnly)
-	float GrappleDotProduct = 0.f;
+	float GrappleDotProduct = 0;
 
 	//the grapple dot product to based of the grapple velocity and (0, 0, 1)
 	UPROPERTY(BlueprintReadOnly)
-	float AbsoluteGrappleDotProduct = 0.f;
+	float AbsoluteGrappleDotProduct = 0;
 
 	//the grapple direction we're using
 	UPROPERTY(BlueprintReadOnly)

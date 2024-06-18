@@ -13,7 +13,14 @@ void UGrappleableComponent::OnStartGrapple(AActor* OtherActor, const FHitResult&
 	//set the component's relative location to the relative hit location
 	SetRelativeLocation(HitLocation);
 
+	//broadcast the event
 	OnStartGrappleEvent.Broadcast(OtherActor, HitResult);
+}
+
+void UGrappleableComponent::OnCollisionGrapple(AActor* OtherActor, const FHitResult& HitResult)
+{
+	//broadcast the event
+	OnCollisionGrappleEvent.Broadcast(OtherActor, HitResult);
 }
 
 void UGrappleableComponent::OnStopGrapple()
@@ -21,6 +28,7 @@ void UGrappleableComponent::OnStopGrapple()
 	//reset the component's relative location
 	SetRelativeLocation(FVector::ZeroVector);
 
+	//broadcast the event
 	OnStopGrappleEvent.Broadcast();
 }
 

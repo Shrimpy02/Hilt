@@ -3,6 +3,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Core/HiltTags.h"
+#include "Kismet/GameplayStatics.h"
 #include "NPC/Components/GrappleableComponent.h"
 
 FRopePoint::FRopePoint()
@@ -11,8 +12,14 @@ FRopePoint::FRopePoint()
 
 FVector FRopePoint::GetWL() const
 {
-	return AttachedActor->GetTransform().TransformPosition(RelativeLocation);
+	//check if we're using the world location
+	if (Component)
+	{
+		//return the world location
+		return Component->GetComponentLocation();
+	}
 
+	return AttachedActor->GetTransform().TransformPosition(RelativeLocation);
 }
 
 FRopePoint::FRopePoint(const FHitResult& HitResult)
@@ -87,11 +94,31 @@ void URopeComponent::SetNiagaraSystem(UNiagaraSystem* NewSystem)
 	}
 }
 
-void URopeComponent::CheckCollisionPoints()
+FCollisionQueryParams URopeComponent::GetCollisionParams()
 {
 	//setup collision parameters for traces and sweeps
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetOwner());
+
+	////iterate throught the array of ignored classes
+	//for (const TSubclassOf<AActor> IgnoredClass : IgnoredClasses)
+	//{
+	//	//setup an array of the actors to ignore
+	//	TArray<AActor*> IgnoredActors;
+
+	//	//get the actors of this class
+	//	UGameplayStatics::GetAllActorsOfClass(GetWorld(), IgnoredClass, IgnoredActors);
+
+	//	//add the ignored actors to the collision parameters' ignored actors
+	//	CollisionParams.AddIgnoredActors(IgnoredActors);
+	//}
+
+	return CollisionParams;
+}
+
+void URopeComponent::CheckCollisionPoints()
+{
+	const FCollisionQueryParams CollisionParams = GetCollisionParams();
 
 	//iterate through all the rope points
 	for (int Index = 0; Index < RopePoints.Num() - 1; Index++)
@@ -102,7 +129,7 @@ void URopeComponent::CheckCollisionPoints()
 			//sweep from the previous rope point to the next rope point
 			FHitResult Surrounding;
 			//GetWorld()->SweepSingleByChannel(Surrounding, RopePoints[Index - 1].GetWL(), RopePoints[Index + 1].GetWL(), FQuat(), ECC_Visibility, FCollisionShape::MakeSphere(RopeRadius), CollisionParams);
-			GetWorld()->LineTraceSingleByChannel(Surrounding, RopePoints[Index - 1].GetWL(), RopePoints[Index + 1].GetWL(), ECC_Visibility, CollisionParams);
+			GetWorld()->LineTraceSingleByChannel(Surrounding, RopePoints[Index - 1].GetWL(), RopePoints[Index + 1].GetWL(), CollisionChannel, CollisionParams);
 			//DrawDebugLine(GetWorld(), RopePoints[Index - 1].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Blue, false, 0.f, 0, 5.f);
 
 			//check if the sweep didn't return a blocking hit and didn't started inside an object
@@ -135,8 +162,8 @@ void URopeComponent::CheckCollisionPoints()
 		FHitResult Next;
 
 		//sweep from the current rope point to the next rope point
-		//GetWorld()->SweepSingleByChannel(Next, RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FQuat(), ECC_Visibility, FCollisionShape::MakeSphere(RopeRadius), CollisionParams);
-		GetWorld()->LineTraceSingleByChannel(Next, RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), ECC_Visibility, CollisionParams);
+		//GetWorld()->SweepSingleByChannel(Next, RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FQuat(), CollisionChannel, FCollisionShape::MakeSphere(RopeRadius), CollisionParams);
+		GetWorld()->LineTraceSingleByChannel(Next, RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), CollisionChannel, CollisionParams);
 
 
 		//check for hits
@@ -147,6 +174,17 @@ void URopeComponent::CheckCollisionPoints()
 			{
 				////insert the new rope point at the hit location
 				//RopePoints.Insert(Next.Location + Next.ImpactNormal * 10, Index + 1);
+
+				//check if the hit actor has a grappleable component
+				if (Next.GetActor()->FindComponentByClass<UGrappleableComponent>())
+				{
+					//get the grappleable component and check if it's valid
+					if (UGrappleableComponent* LocGrappleableComponent = Next.GetActor()->FindComponentByClass<UGrappleableComponent>())
+					{
+						//broadcast the collision grapple event
+						LocGrappleableComponent->OnCollisionGrapple(GetOwner(), Next);
+					}
+				}
 
 				//insert the new rope point at the correct tarray index
 				RopePoints.Insert(FRopePoint(Next), Index + 1);
@@ -249,6 +287,7 @@ void URopeComponent::ActivateRope(AActor* OtherActor, const FHitResult& HitResul
 
 	//set the rope points
 	RopePoints = { FRopePoint(GetOwner(), GetComponentLocation()), FRopePoint(HitResult) };
+	RopePoints[0].Component = this;
 }
 
 float URopeComponent::GetRopeLength() const
