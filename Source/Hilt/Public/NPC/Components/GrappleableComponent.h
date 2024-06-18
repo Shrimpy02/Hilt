@@ -18,6 +18,7 @@ public:
 
 	//eventtype(s)
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartGrapple, AActor*, GrapplingActor, const FHitResult&, HitResult);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCollisionGrapple, AActor*, GrapplingActor, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
 
 	//the interp struct for the grapple
@@ -31,6 +32,10 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnStartGrapple OnStartGrappleEvent;
 
+	//event called when the grappling actor rope collides with this actor
+	UPROPERTY(BlueprintAssignable)
+	FOnCollisionGrapple OnCollisionGrappleEvent;
+
 	//event called when the grappling actor stops grappling to this actor
 	UPROPERTY(BlueprintAssignable)
 	FOnStopGrapple OnStopGrappleEvent;
@@ -38,6 +43,10 @@ public:
 	//function called when the grappling actor starts grappling to this actor
 	UFUNCTION(BlueprintCallable)
 	virtual void OnStartGrapple(AActor* OtherActor, const FHitResult& HitResult);
+
+	//function called when the grappling actor rope collides with this actor
+	UFUNCTION(BlueprintCallable)
+	virtual void OnCollisionGrapple(AActor* OtherActor, const FHitResult& HitResult);
 
 	//function called when the grappling actor stops grappling to this actor
 	UFUNCTION(BlueprintCallable)
