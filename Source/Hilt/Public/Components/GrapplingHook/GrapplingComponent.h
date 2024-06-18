@@ -97,17 +97,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GrappleMovementInputModifier = 20;
 
+	//grappledown input modifier to use when processing the grapple movement input curve
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float GrappleDownInputModifier = 1;
+
 	//whether or not to apply gravity when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bApplyGravityWhenGrappling = false;
 
 	//the max speed to use when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float GrappleMaxSpeed = 4000.f;
+	float GrappleMaxSpeed = 8000.f;
 
 	//the max distance the Grappling hook can travel
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
-	float MaxGrappleDistance = 17000.f;
+	float MaxGrappleDistance = 9000.f;
 
 	//the max distance to check for when checking if the player can grapple to where they are aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
