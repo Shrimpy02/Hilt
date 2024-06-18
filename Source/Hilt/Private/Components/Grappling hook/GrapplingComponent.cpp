@@ -310,17 +310,14 @@ void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float Max
 	const FVector End = CameraLocation + Rotation * MaxDistance;
 
 	//the collision parameters to use for the line trace
-	FCollisionQueryParams GrappleCollisionParams;
-
-	//ignore the owner of the grapple hook
-	GrappleCollisionParams.AddIgnoredActor(GetOwner());
+	const FCollisionQueryParams GrappleCollisionParams = RopeComponent->GetCollisionParams();
 
 	//set the collision shape
 	FCollisionShape CollisionShape;
 	CollisionShape.ShapeType = CanGrappleCollisionShape;
 
 	//do the line trace
-	GetWorld()->SweepSingleByChannel(GrappleHit, CameraLocation + Rotation * 10, End, FQuat::Identity, CanGrappleTraceChannel, CollisionShape, GrappleCollisionParams);
+	GetWorld()->SweepSingleByChannel(GrappleHit, CameraLocation + Rotation * 10, End, FQuat::Identity, RopeComponent->CollisionChannel, CollisionShape, GrappleCollisionParams);
 }
 
 void UGrapplingComponent::ApplyPullForce(float DeltaTime)
