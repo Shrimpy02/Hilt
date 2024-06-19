@@ -74,14 +74,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Zoom")
 	bool bIgnoreZVelocity = true;
 
-	//whether or not to apply camera offset based on character input
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|CameraOffset")
-	bool bApplyCameraOffset = false;
-
-	//the amount of camera offset to apply based on character input vector
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|CameraOffset", meta=(ClampMin = 0.0f, editcondition = "bApplyCameraOffset", editconditionHides))
-	float CameraOffsetAmount = 100;
-
 	//whether or not to smooth camera movement when character crouches (character class must call OnCrouch when crouching)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Crouch")
 	bool bSmoothCrouch = true;
@@ -93,6 +85,30 @@ public:
 	//the time between each crouch lerping (in seconds)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Crouch", meta=(ClampMin = 0.0f, editcondition = "bSmoothCrouch", editconditionHides))
 	float CrouchLerpTime = 0.025f;
+
+	//the target offset vector to use for the x value of the input vector
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
+	FVector RightVec = FVector(0, 1, 0);
+
+	//the target offset vector to use for the x value of the input vector
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
+	FVector ForwardVec = FVector(1, 0, 0);
+
+	//the offset amount to use for the offset vectors
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
+	float MoveOffsetAmount = 50;
+
+	//the movement offset interpolation speed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
+	float MoveOffsetInterpSpeed = 1;
+
+	//storage for the player character as a player character
+	UPROPERTY()
+	class APlayerCharacter* PlayerCharacter = nullptr;
+
+	//original target offset
+	UPROPERTY()
+	FVector OriginalTargetOffset;
 
 	//the current index in the CamZoomInterps array to use
 	float CurrentInterpIndex = 0;

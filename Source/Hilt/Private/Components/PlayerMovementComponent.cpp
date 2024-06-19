@@ -8,13 +8,65 @@
 UPlayerMovementComponent::UPlayerMovementComponent()
 {
 	//bOrientRotationToMovement = true;
-	//MaxWalkSpeed = 1200.f;
-	//BrakingFrictionFactor = 0.1f;
-	JumpZVelocity = 800.f;
-	AirControl = 2.f;
-	GravityScale = 4.f;
+	MaxWalkSpeed = 1200;
+	bUseSeparateBrakingFriction = true;
+	BrakingFriction = 0.5;
+	JumpZVelocity = 800;
+	AirControl = 2;
+	GravityScale = 4;
 	bApplyGravityWhileJumping = false;
-	//FallingLateralFriction = 4.f;
+	//FallingLateralFriction = 4;
+
+	BrakingDecelerationWalking = 1536;
+}
+
+FVector UPlayerMovementComponent::ApplySpeedLimit(const FVector& InVelocity, const float& InDeltaTime)
+{
+	//check if we don't have a valid player pawn
+	if (!PlayerPawn)
+	{
+		return InVelocity;
+	}
+
+	//storage for the new velocity
+	const FVector NewVelocity = InVelocity.GetClampedToMaxSize(FMath::Min(SpeedLimit, GetMaxSpeed()));
+
+	//check if the new velocity is different from the old velocity
+	if (NewVelocity != InVelocity)
+	{
+		//add the difference to the excess speed
+		ExcessSpeed += FMath::Abs(NewVelocity.Size() - InVelocity.Size()) * InDeltaTime;
+
+		//clamp the excess speed
+		ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
+
+		////print on screen debug message of the excess speeds' size to show that we got here
+		//GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, FString::Printf(TEXT("Delta Size: %f"), ExcessSpeed));
+
+	}
+
+	//return the velocity clamped to the speed limit
+	return NewVelocity;
+}
+
+void UPlayerMovementComponent::StartSlide()
+{
+	//check if our velocity is less than the minimum slide speed
+	if (Velocity.Size() < MinSlideSpeed)
+	{
+		//prevent further execution of this function
+		return;
+	}
+
+	//set slide variables
+	bIsSliding = true;
+	bIsBrakeSliding = false;
+	CurrentSlideSpeed = Velocity.Size();
+}
+
+void UPlayerMovementComponent::StopSlide()
+{
+	bIsSliding = false;
 }
 
 void UPlayerMovementComponent::BeginPlay()
@@ -24,6 +76,41 @@ void UPlayerMovementComponent::BeginPlay()
 
 	//get our owner as a player pawn
 	PlayerPawn = Cast<APlayerCharacter>(GetOwner());
+}
+
+void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	//call the parent implementation
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	//apply the degredation rate to the excess speed
+	ExcessSpeed -= ExcessSpeedDegredationRate * DeltaTime;
+
+	//clamp the excess speed
+	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
+
+	//check if the excess is greater or equal to the stop limit
+	if (ExcessSpeed >= ExcessSpeedStopLimit)
+	{
+		//stop applying the speed limit
+		bIsSpeedLimited = false;
+	}
+	else
+	{
+		//start applying the speed limit
+		bIsSpeedLimited = true;
+	}
+
+	//check if we're sliding
+	if (bIsSliding)
+	{
+		//check if the velocity is less than the minimum slide speed
+		if (Velocity.Size() < MinSlideSpeed)
+		{
+			//stop sliding
+			bIsSliding = false;
+		}
+	}
 }
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
@@ -63,7 +150,7 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 	//Store the input vector
 	const FVector ReturnVec = Super::ConsumeInputVector();
 
-	//check if the input vector is zero
+	//check if the input vector is nearly zero
 	if (ReturnVec.IsNearlyZero())
 	{
 		//set the grapple mode to set velocity
@@ -75,8 +162,100 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 		PlayerPawn->GrappleComponent->SetGrappleMode(AddToVelocity);
 	}
 
-	//process the grapple input if there is any
-	return PlayerPawn->GrappleComponent->ProcessGrappleInput(ReturnVec).GetClampedToMaxSize(GetMaxSpeed());
+	//check if we're grappling
+	if(PlayerPawn->GrappleComponent->bIsGrappling)
+	{
+		//process the grapple input if there is any
+		return PlayerPawn->GrappleComponent->ProcessGrappleInput(ReturnVec).GetClampedToMaxSize(GetMaxSpeed());	
+	}
+
+	//check if we're sliding
+	if (bIsSliding && IsWalking())
+	{
+		//check if the dot product of the input vector and the velocity is less than the brake sliding dot product
+		if (FVector::DotProduct(ReturnVec, Velocity.GetSafeNormal()) < -BrakeSlidingDotProduct)
+		{
+			//set brake sliding to true
+			bIsBrakeSliding = true;
+		}
+		else
+		{
+			//set brake sliding to false
+			bIsBrakeSliding = false;
+		}
+	}
+
+	//return the parent implementation
+	return ReturnVec;
+}
+
+float UPlayerMovementComponent::GetMaxBrakingDeceleration() const
+{
+	//check if we're sliding and walking
+	if (bIsSliding && IsWalking())
+	{
+		//return 0
+		return 0;
+	}
+
+	//default to the parent implementation
+	return Super::GetMaxBrakingDeceleration();
+}
+
+void UPlayerMovementComponent::ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration)
+{
+	//check if we're not sliding and we are walking
+	if (!bIsSliding && IsWalking())
+	{
+		//set the friction to the value of the sliding friction
+		Friction = WalkingBrakingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+	}
+	//check if we're sliding and walking
+	else if (bIsSliding && IsWalking())
+	{
+		//set the friction to 0
+		Friction = 0;
+	}
+	else if (bIsSliding && IsWalking() && bIsBrakeSliding)
+	{
+		//set the friction to the value of the brake sliding friction curve
+		Friction = BrakeSlidingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+	}
+
+	//call the parent implementation
+	Super::ApplyVelocityBraking(DeltaTime, Friction, BrakingDeceleration);
+}
+
+void UPlayerMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration)
+{
+	//check if we're sliding and walking and we're not brake sliding
+	if (bIsSliding && IsWalking() && !bIsBrakeSliding)
+	{
+		//set the friction to the value of the sliding friction
+		Friction = SlidingGroundFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+	}
+
+	Super::CalcVelocity(DeltaTime, Friction, bFluid, BrakingDeceleration);
+}
+
+bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const
+{
+	//check if we're grappling
+	if (PlayerPawn->GrappleComponent->bIsGrappling)
+	{
+		//check if the dot product of the hit normal and the grapple direction is less than -0.8
+		if (FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GetGrappleDirection()) < -0.8)
+		{
+			//return true if we're grappling and the dot product is less than -0.8
+			return true;
+		}
+
+		//return false if we're grappling
+		return false;
+	}
+
+	//default to the parent implementation
+	return Super::IsValidLandingSpot(CapsuleLocation, Hit);
 }
 
 float UPlayerMovementComponent::GetGravityZ() const
@@ -89,10 +268,21 @@ float UPlayerMovementComponent::GetGravityZ() const
 	//check if the player is grappling
 	if (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->bApplyGravityWhenGrappling)
 	{
-		return 0.f;
+		return 0;
 	}
 
 	return Super::GetGravityZ();
+}
+
+FVector UPlayerMovementComponent::GetAirControl(float DeltaTime, float TickAirControl, const FVector& FallAcceleration)
+{
+	//if we're grappling, return the grapple air control
+	if (PlayerPawn->GrappleComponent->bIsGrappling)
+	{
+		TickAirControl = PlayerPawn->GrappleComponent->GrappleAirControl;
+	}
+
+	return Super::GetAirControl(DeltaTime, TickAirControl, FallAcceleration);
 }
 
 float UPlayerMovementComponent::GetMaxSpeed() const
@@ -131,6 +321,13 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 		return MaxFallSpeed;
 	}
 
+	//check if we're walking and we're sliding
+	if (IsWalking() && bIsSliding)
+	{
+		//return the current slide speed
+		return CurrentSlideSpeed;
+	}
+
 	//check if we're applying the speed limit
 	if (bIsSpeedLimited)
 	{
@@ -139,6 +336,26 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 	}
 
 	return Super::GetMaxSpeed();
+}
+
+float UPlayerMovementComponent::GetMaxAcceleration() const
+{
+	////check if we're sliding and walking
+	//if (bIsSliding && IsWalking())
+	//{
+	//	//return slide acceleration
+	//	return MaxSlideAccelerationCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed()) * MaxAcceleration;
+	//}
+
+	//check if we're walking and we have a valid curve
+	if (IsWalking() && MaxWalkingAccelerationCurve)
+	{
+		//return the max walking acceleration
+		return MaxWalkingAccelerationCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed()) * MaxAcceleration;
+	}
+
+	//default to the parent implementation
+	return Super::GetMaxAcceleration();
 }
 
 void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta)
@@ -188,15 +405,23 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 		return;
 	}
 
-	//calculate the launch velocity
-	const FVector UnclampedLaunchVelocity = Hit.ImpactNormal * Bounciness * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+	//check if the dot product of the velocity and the impact normal is less than the negative of the head on collision dot
+	if (FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal) < -HeadOnCollisionDot)
+	{
 
-	//stop grappling
-	PlayerPawn->GrappleComponent->StopGrapple();
+		//calculate the launch velocity
+		const FVector UnclampedLaunchVelocity = Hit.ImpactNormal * Bounciness * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 
-	//clamp the launch velocity and launch the character
-	GetCharacterOwner()->LaunchCharacter(UnclampedLaunchVelocity.GetClampedToSize(MinCollisionLaunchSpeed, MaxCollisionLaunchSpeed), true, true);
+		//stop grappling
+		PlayerPawn->GrappleComponent->StopGrapple();
 
+		//clamp the launch velocity and launch the character
+		GetCharacterOwner()->LaunchCharacter(UnclampedLaunchVelocity.GetClampedToSize(MinCollisionLaunchSpeed, MaxCollisionLaunchSpeed), true, true);
+
+		return;
+	}
+
+	//default to the parent implementation
 	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
 }
 
@@ -207,6 +432,13 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 
 	//stop grappling (if we're grappling)
 	PlayerPawn->GrappleComponent->StopGrapple();
+
+	//check if we're sliding
+	if (bIsSliding)
+	{
+		//set the current slide speed
+		CurrentSlideSpeed = Velocity.Size();
+	}
 }
 
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
@@ -227,7 +459,7 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		if (DotProduct <= 0)
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce;
+			Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
 
 			////call the blueprint event
 			//OnCorrectedDirectionalJump.Broadcast(LastDirectionalJumpDirection, Velocity.GetSafeNormal());
@@ -235,7 +467,7 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		else
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce;
+			Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
 
 			////call the blueprint event
 			//OnDirectionalJump.Broadcast(LastDirectionalJumpDirection);
