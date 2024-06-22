@@ -50,6 +50,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* MaxWalkingAccelerationCurve = nullptr;
 
+	//the float curve to use for braking deceleration when sliding based on the speed of the player (0 = min speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* WalkingBrakingFrictionCurve = nullptr;
+
+	//the ground friction to apply when sliding
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
+	UCurveFloat* SlidingGroundFrictionCurve = nullptr;
+
+	//the float curve to use for friction when brake sliding based on the speed of the player (0 = min speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* BrakeSlidingFrictionCurve = nullptr;
+
+	////the float curve to use for max acceleration when sliding based on the speed of the player (0 = min speed, 1 = max speed)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	//UCurveFloat* MaxSlideAccelerationCurve = nullptr;
+
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float SpeedLimit = 4000.f;
@@ -61,10 +77,6 @@ public:
 	//whether or not the player is currently forced to be under the speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsSpeedLimited = true;
-
-	//the max acceleration when reversing walking direction
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float MaxReverseWalkingAcceleration = 9999.f;
 
 	//the built up excess speed from applying the speed limit
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
@@ -82,16 +94,36 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float ExcessSpeedStopLimit = 10.f;
 
+	//whether or not the player is currently sliding
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
+	bool bIsSliding = false;
+
+	//the minimum speed that must be maintained to continue sliding
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
+	float MinSlideSpeed = 2000.f;
+
+	////the acceleration to apply when sliding
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
+	//float SlideAcceleration = 1000.f;
+
+	//whether or not the player is brake sliding
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding|BrakeSliding")
+	bool bIsBrakeSliding = false;
+
+	//the dot product value that the dot product of the player's velocity and the player's input vector must be lower than to start sliding (is multiplied by -1)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding|BrakeSliding")
+	float BrakeSlidingDotProduct = 0.8f;
+
 	//the amount of force to apply in the direction the player is looking when jumping
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SuperJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float DirectionalJumpForce = 3000.f;
 
 	//the amount of boost to give to the character while a directional jump is providing force
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SuperJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float DirectionalJumpGlideForce = 500.f;
 
 	//the amount of boost to apply when boosting a jump
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SuperJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500.f;
 
 	//whether or not last jump was a directional jump
@@ -100,6 +132,9 @@ public:
 	//the direction of the last directional jump
 	FVector LastDirectionalJumpDirection = FVector::UpVector;
 
+	//the current slide speed (from either landing or starting a slide)
+	float CurrentSlideSpeed = 0.f;
+
 	//constructor
 	UPlayerMovementComponent();
 
@@ -107,20 +142,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	FVector ApplySpeedLimit(const FVector& InVelocity, const float& InDeltaTime);
 
+	//function to start sliding
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StartSlide();
+
+	//function to stop sliding
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StopSlide();
+
 	//override functions
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
-	//virtual bool ShouldRemainVertical() const override;
+	virtual float GetMaxBrakingDeceleration() const override;
+	virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
+	virtual void CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration) override;
 	virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
 	virtual float GetGravityZ() const override;
+	virtual FVector GetAirControl(float DeltaTime, float TickAirControl, const FVector& FallAcceleration) override;
 
 	virtual float GetMaxSpeed() const override;
 	virtual float GetMaxAcceleration() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
 	virtual void ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations) override;
-	//virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
 	virtual bool DoJump(bool bReplayingMoves) override;
 };
