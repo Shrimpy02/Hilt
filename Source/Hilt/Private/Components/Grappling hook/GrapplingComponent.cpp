@@ -81,8 +81,12 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 		StopGrapple();
 	}
 
-	//set the movement mode to falling to prevent us from being stuck on the ground
-	PlayerMovementComponent->SetMovementMode(MOVE_Falling);
+	//check if we're not using debug mode
+	if (!bUseDebugMode)
+	{
+		//set the movement mode to falling to prevent us from being stuck on the ground
+		PlayerMovementComponent->SetMovementMode(MOVE_Falling);
+	}
 
 	//check if the other actor is valid
 	if (OtherActor->IsValidLowLevelFast())
@@ -238,7 +242,7 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	//}
 
 	//check if the player is grappling, we have valid angle and distance input curves, and the grappling component is valid
-	if (bIsGrappling && GrappleMovementAngleInputCurve && GrappleMovementDistanceInputCurve && IsValidLowLevelFast())
+	if (bIsGrappling && GrappleMovementAngleInputCurve && GrappleMovementDistanceInputCurve && IsValidLowLevelFast() && !bUseDebugMode)
 	{
 		//get the dot product of the current grapple direction and the return vector
 		const float DotProduct = FVector::DotProduct(GetOwner()->GetActorUpVector(), MovementInput.GetSafeNormal());
@@ -322,6 +326,13 @@ void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float Max
 
 void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 {
+	//check if we're using debug mode
+	if (bUseDebugMode)
+	{
+		//return early
+		return;
+	}
+
 	//storage for the velocity that will be applied from the grapple
 	FVector GrappleVelocity;
 

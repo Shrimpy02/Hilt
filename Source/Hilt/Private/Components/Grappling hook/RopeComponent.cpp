@@ -3,23 +3,106 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Core/HiltTags.h"
-#include "Kismet/GameplayStatics.h"
 #include "NPC/Components/GrappleableComponent.h"
+
+FVerletConstraint::FVerletConstraint()
+{
+}
+
+FVerletConstraint::FVerletConstraint(FRopePoint* InStartPoint, FRopePoint* InEndPoint, const float InCompensation1, const float InCompensation2, const float InDistance)
+{
+	//set the start point of the constraint
+	StartPoint = InStartPoint;
+
+	//set the end point of the constraint
+	EndPoint = InEndPoint;
+
+	//set the compensation to apply to the first point of the constraint
+	Compensation1 = InCompensation1;
+
+	//set the compensation to apply to the second point of the constraint
+	Compensation2 = InCompensation2;
+
+	//set the distance between the two points of the constraint
+	Distance = InDistance;
+
+}
+
+FVector FVerletConstraint::GetStartPoint() const
+{
+	return StartPoint->GetWL();
+}
+
+FVector FVerletConstraint::GetEndPoint() const
+{
+	return EndPoint->GetWL();
+}
+
+float FVerletConstraint::GetDistance() const
+{
+	return Distance;
+}
+
+void FVerletConstraint::SetStartPoint(const FVector& NewStartPoint) const
+{
+	StartPoint->SetWL(NewStartPoint);
+}
+
+void FVerletConstraint::SetEndPoint(const FVector& NewEndPoint) const
+{
+	EndPoint->SetWL(NewEndPoint);
+}
 
 FRopePoint::FRopePoint()
 {
 }
 
+FRopePoint::FRopePoint(FVector InLocation, const bool bInUseWorldSpace, const float InMass) : RelativeLocation(InLocation), bUseWorldSpace(bInUseWorldSpace), Mass(InMass)
+{
+}
+
 FVector FRopePoint::GetWL() const
 {
-	//check if we're using the world location
+	//check if we're using world space for this rope point
+	if (bUseWorldSpace)
+	{
+		//return the world location of the component
+		return RelativeLocation;
+	}
+
+	//check if we're using a component for this rope point
 	if (Component)
 	{
-		//return the world location
+		//default to the relative location transformed by the attached actor's transform
 		return Component->GetComponentLocation();
 	}
 
-	return AttachedActor->GetTransform().TransformPosition(RelativeLocation);
+	//check if we're using an actor for this rope point
+	if (AttachedActor)
+	{
+		//default to the relative location transformed by the attached actor's transform
+		return AttachedActor->GetTransform().TransformPosition(RelativeLocation);
+	}
+
+	//default to the zero vector to prevent crashes and still have some indication that something went wrong
+	return FVector::ZeroVector;
+}
+
+void FRopePoint::SetWL(const FVector& NewLocation)
+{
+	//todo add force so that the rope can pull an attached actor
+
+	//check if we're using world location
+	if (bUseWorldSpace)
+	{
+		//set the relative location
+		RelativeLocation = NewLocation;
+	}
+	else
+	{
+		////set the relative location
+		//RelativeLocation = AttachedActor->GetTransform().InverseTransformPosition(NewLocation);
+	}
 }
 
 FRopePoint::FRopePoint(const FHitResult& HitResult)
@@ -29,6 +112,9 @@ FRopePoint::FRopePoint(const FHitResult& HitResult)
 
 	//set the relative location
 	RelativeLocation = AttachedActor->GetTransform().InverseTransformPosition(HitResult.ImpactPoint);
+
+	//set the collision point flag
+	bIsCollisionPoint = true;
 }
 
 FRopePoint::FRopePoint(AActor* OtherActor, const FVector& Location)
@@ -66,6 +152,9 @@ void URopeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 		//render the rope
 		RenderRope();
+
+		//perform the verlet integration
+		VerletIntegration(DeltaTime);
 	}
 }
 
@@ -81,6 +170,75 @@ void URopeComponent::DestroyComponent(const bool bPromoteChildren)
 	Super::DestroyComponent(bPromoteChildren);
 }
 
+void URopeComponent::VerletIntegrationStep(float DeltaTime)
+{
+	//iterate through all the rope points
+	for (FRopePoint& RopePoint : RopePoints)
+	{
+		//get the forces acting on the verlet point (gravity, tension, and damping)
+		const FVector Force = FVector(0.f, 0.f, -9.8) /*+ VerletPoint.Tension + VerletPoint.Damping*/;
+
+		//calculate the acceleration on the rope point
+		const FVector Acceleration = FVector(Force / RopePoint.Mass);
+
+		//calculate the new position of the verlet point
+		const FVector NewPosition = RopePoint.GetWL() + (RopePoint.GetWL() - RopePoint.OldPosition) * Damping + Acceleration * FMath::Square(DeltaTime);
+
+		//update the old position of the verlet point
+		RopePoint.OldPosition = RopePoint.GetWL();
+
+		//update the position of the verlet point
+		RopePoint.SetWL(NewPosition);
+	}
+}
+
+void URopeComponent::EnforceConstraints()
+{
+	//iterate through all the constraints
+	for (auto Constraint : Constraints)
+	{
+		//get the delta between the start and end points
+		const FVector Delta = Constraint.GetStartPoint() - Constraint.GetEndPoint();
+
+		
+		//const float DeltaLength = FMath::Sqrt(Delta.X * Delta.X + Delta.Y * Delta.Y + Delta.Z * Delta.Z);
+
+		//get the delta length and check if it's greater than the constraint's distance
+		if (const float DeltaLength = FMath::Sqrt(Delta.X * Delta.X + Delta.Y * Delta.Y + Delta.Z * Delta.Z); DeltaLength > 0)
+		{
+			//get the difference between the delta length and the distance
+			const float Diff = (DeltaLength - Constraint.GetDistance()) / DeltaLength;
+
+			//check if the start point compensation is not null
+			if (Constraint.Compensation1 != 0)
+			{
+				//apply the compensation to the start point
+				Constraint.SetStartPoint(Constraint.GetStartPoint() - Delta * Diff * Constraint.Compensation1);
+			}
+
+			//check if the end point compensation is not null
+			if (Constraint.Compensation2 != 0)
+			{
+				//apply the compensation to the end point
+				Constraint.SetEndPoint(Constraint.GetEndPoint() + Delta * Diff * Constraint.Compensation2);
+			}
+		}
+	}
+}
+
+void URopeComponent::VerletIntegration(float DeltaTime)
+{
+	//iterate through all the verlet iterations
+	for (int Index = 0; Index < NumVerletIterations; ++Index)
+	{
+		//perform the verlet integration step
+		VerletIntegrationStep(DeltaTime);
+
+		//enforce the constraints of the rope
+		EnforceConstraints();
+	}
+}
+
 void URopeComponent::SetNiagaraSystem(UNiagaraSystem* NewSystem)
 {
 	//set the new niagara system
@@ -94,7 +252,7 @@ void URopeComponent::SetNiagaraSystem(UNiagaraSystem* NewSystem)
 	}
 }
 
-FCollisionQueryParams URopeComponent::GetCollisionParams()
+FCollisionQueryParams URopeComponent::GetCollisionParams() const
 {
 	//setup collision parameters for traces and sweeps
 	FCollisionQueryParams CollisionParams;
@@ -118,13 +276,14 @@ FCollisionQueryParams URopeComponent::GetCollisionParams()
 
 void URopeComponent::CheckCollisionPoints()
 {
+	//get the collision parameters
 	const FCollisionQueryParams CollisionParams = GetCollisionParams();
 
 	//iterate through all the rope points
 	for (int Index = 0; Index < RopePoints.Num() - 1; Index++)
 	{
-		//check if we're not at the first rope point
-		if (Index != 0)
+		//check if we're not at the first rope point and that we're a collision point
+		if (Index != 0 && RopePoints[Index].bIsCollisionPoint)
 		{
 			//sweep from the previous rope point to the next rope point
 			FHitResult Surrounding;
@@ -166,32 +325,32 @@ void URopeComponent::CheckCollisionPoints()
 		GetWorld()->LineTraceSingleByChannel(Next, RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), CollisionChannel, CollisionParams);
 
 
-		//check for hits
-		if (Next.IsValidBlockingHit())
-		{
-			//if we hit something, add a new rope point at the hit location if we're not too close to the last rope point
-			if (FVector::Dist(RopePoints[Index].GetWL(), Next.Location) > MinCollisionPointSpacing && FVector::Dist(RopePoints[Index + 1].GetWL(), Next.Location) > MinCollisionPointSpacing)
-			{
-				////insert the new rope point at the hit location
-				//RopePoints.Insert(Next.Location + Next.ImpactNormal * 10, Index + 1);
+		////check for hits
+		//if (Next.IsValidBlockingHit())
+		//{
+		//	//if we hit something, add a new rope point at the hit location if we're not too close to the last rope point
+		//	if (FVector::Dist(RopePoints[Index].GetWL(), Next.Location) > MinCollisionPointSpacing && FVector::Dist(RopePoints[Index + 1].GetWL(), Next.Location) > MinCollisionPointSpacing)
+		//	{
+		//		////insert the new rope point at the hit location
+		//		//RopePoints.Insert(Next.Location + Next.ImpactNormal * 10, Index + 1);
 
-				//check if the hit actor has a grappleable component
-				if (Next.GetActor()->FindComponentByClass<UGrappleableComponent>())
-				{
-					//get the grappleable component and check if it's valid
-					if (UGrappleableComponent* LocGrappleableComponent = Next.GetActor()->FindComponentByClass<UGrappleableComponent>())
-					{
-						//broadcast the collision grapple event
-						LocGrappleableComponent->OnCollisionGrapple(GetOwner(), Next);
-					}
-				}
+		//		//check if the hit actor has a grappleable component
+		//		if (Next.GetActor()->FindComponentByClass<UGrappleableComponent>())
+		//		{
+		//			//get the grappleable component and check if it's valid
+		//			if (UGrappleableComponent* LocGrappleableComponent = Next.GetActor()->FindComponentByClass<UGrappleableComponent>())
+		//			{
+		//				//broadcast the collision grapple event
+		//				LocGrappleableComponent->OnCollisionGrapple(GetOwner(), Next);
+		//			}
+		//		}
 
-				//insert the new rope point at the correct tarray index
-				RopePoints.Insert(FRopePoint(Next), Index + 1);
-			}
+		//		//insert the new rope point at the correct tarray index
+		//		RopePoints.Insert(FRopePoint(Next), Index + 1);
+		//	}
 
-			//DrawDebugLine(GetWorld(), RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Yellow, false, 0.f, 0, 5.f);
-		}
+		//	//DrawDebugLine(GetWorld(), RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Yellow, false, 0.f, 0, 5.f);
+		//}
 	}
 }
 
@@ -222,8 +381,17 @@ void URopeComponent::RenderRope()
 		//iterate through all the rope points except the last one
 		for (int Index = 0; Index < RopePoints.Num() - 1; ++Index)
 		{
-			//draw a debug line between the current rope point and the next rope point
-			DrawDebugLine(GetWorld(), RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Red, false, 0.f, 0, 5.f);
+			//check if we have an even index
+			if (Index % 2 == 0)
+			{
+				//draw a debug line between the current rope point and the next rope point
+				DrawDebugLine(GetWorld(), RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Blue, false, 0.f, 0, 5.f);
+			}
+			else
+			{
+				//draw a debug line between the current rope point and the next rope point
+				DrawDebugLine(GetWorld(), RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL(), FColor::Red, false, 0.f, 0, 5.f);
+			}
 		}
 
 		//return to prevent further execution
@@ -274,9 +442,15 @@ void URopeComponent::DeactivateRope()
 
 	//clear the niagara components array
 	NiagaraComponents.Empty();
+
+	//clear the rope points array
+	RopePoints.Empty();
+
+	//clear the constraints array
+	Constraints.Empty();
 }
 
-// ReSharper disable once CppParameterMayBeConstPtrOrRef
+// ReSharper disable once CppParameterMayBeConstPtrOrRef (non-const reference is required for the OtherActor parameter)
 void URopeComponent::ActivateRope(AActor* OtherActor, const FHitResult& HitResult)
 {
 	//set the grappleable component
@@ -288,6 +462,45 @@ void URopeComponent::ActivateRope(AActor* OtherActor, const FHitResult& HitResul
 	//set the rope points
 	RopePoints = { FRopePoint(GetOwner(), GetComponentLocation()), FRopePoint(HitResult) };
 	RopePoints[0].Component = this;
+
+	//get the direction from the first rope point to the second rope point
+	const FVector Direction = (RopePoints[1].GetWL() - RopePoints[0].GetWL()).GetSafeNormal();
+
+	//get the distance between the first rope point and the second rope point
+	const float Distance = FVector::Dist(RopePoints[1].GetWL(), RopePoints[0].GetWL());
+
+	//add the extra verlet points
+	for (int Index = 0; Index < NumVerletPoints - 1; ++Index)
+	{
+		//get how far along the rope the verlet point should be
+		const float Alpha = float(Index + 1) / float(NumVerletPoints + 1);
+
+		//get the value of the initial verlet placement curve
+		const float Value = InitialVerletPlacementCurve->GetFloatValue(Alpha);
+
+		//add the verlet point to the rope
+		RopePoints.Insert(FRopePoint(Direction * Distance * Value), RopePoints.Num() - 1);
+	}
+
+	//add the constraints
+	for (int Index = 0; Index < RopePoints.Num() - 1; ++Index)
+	{
+		//get how far along the rope the the constraint is
+		const float Alpha = float(Index + 1) / float(NumVerletPoints + 1);
+
+		//get the value of constraint compensation 1 curve
+		const float Compensation1 = ConstraintCompensation1Curve->GetFloatValue(Alpha);
+
+		//get the value of constraint compensation 2 curve
+		const float Compensation2 = ConstraintCompensation2Curve->GetFloatValue(Alpha);
+
+		//get the distance between the two rope points
+		const float Dist = FVector::Dist(RopePoints[Index].GetWL(), RopePoints[Index + 1].GetWL());
+
+		//add the constraint to the rope
+		Constraints.Add(FVerletConstraint(&RopePoints[Index], &RopePoints[Index + 1], Compensation1, Compensation2, Distance / (NumVerletPoints + 1)));
+		
+	}
 }
 
 float URopeComponent::GetRopeLength() const

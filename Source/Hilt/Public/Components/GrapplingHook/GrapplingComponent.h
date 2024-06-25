@@ -74,6 +74,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsGrappling = false;
 
+	//whether or not we're using debug mode
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	bool bUseDebugMode = false;
+
 	//the current grapple mode
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<EGrapplingMode> GrappleMode = AddToVelocity;
@@ -136,6 +140,10 @@ public:
 	//the float curve to use when applying the grapple wasd movement using the rope length divided by the max grapple distance (1 = max distance, 0 = 0 distance, clamped to 0-1)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementDistanceInputCurve = nullptr;
+
+	//the friction to use when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleFriction = 0.5f;
 
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")

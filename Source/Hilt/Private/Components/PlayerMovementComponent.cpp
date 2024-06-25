@@ -1,6 +1,7 @@
 #include "Components/PlayerMovementComponent.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Components/GrapplingHook/RopeComponent.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
 
@@ -88,18 +89,6 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	//clamp the excess speed
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
-
-	//check if the excess is greater or equal to the stop limit
-	if (ExcessSpeed >= ExcessSpeedStopLimit)
-	{
-		//stop applying the speed limit
-		bIsSpeedLimited = false;
-	}
-	else
-	{
-		//start applying the speed limit
-		bIsSpeedLimited = true;
-	}
 
 	//check if we're sliding
 	if (bIsSliding)
@@ -198,6 +187,13 @@ float UPlayerMovementComponent::GetMaxBrakingDeceleration() const
 		return 0;
 	}
 
+	//check if we're falling and the z velocity is less than 0
+	if (IsFalling() && Velocity.Z < 0 && !bMightBeBunnyJumping)
+	{
+		//return the value of the falling braking friction curve
+		return FallingBrakingDecelerationCurve->GetFloatValue(FMath::Abs(Velocity.Z) / GetMaxSpeed());
+	}
+
 	//default to the parent implementation
 	return Super::GetMaxBrakingDeceleration();
 }
@@ -205,17 +201,18 @@ float UPlayerMovementComponent::GetMaxBrakingDeceleration() const
 void UPlayerMovementComponent::ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration)
 {
 	//check if we're not sliding and we are walking
-	if (!bIsSliding && IsWalking())
+	if ((!bIsSliding && IsWalking()) || bMightBeBunnyJumping && IsFalling())
 	{
 		//set the friction to the value of the sliding friction
 		Friction = WalkingBrakingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 	}
 	//check if we're sliding and walking
-	else if (bIsSliding && IsWalking())
+	else if (bIsSliding && IsWalking() && !bIsBrakeSliding)
 	{
 		//set the friction to 0
 		Friction = 0;
 	}
+	//check if we're sliding and walking and we're brake sliding
 	else if (bIsSliding && IsWalking() && bIsBrakeSliding)
 	{
 		//set the friction to the value of the brake sliding friction curve
@@ -235,24 +232,33 @@ void UPlayerMovementComponent::CalcVelocity(float DeltaTime, float Friction, boo
 		Friction = SlidingGroundFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 	}
 
+	//check if we're falling and grappling
+	if (IsFalling() && PlayerPawn->GrappleComponent->bIsGrappling)
+	{
+		//set the friction to the value of grapple friction
+		Friction = PlayerPawn->GrappleComponent->GrappleFriction;
+	}
+
+	//delegate to the parent implementation
 	Super::CalcVelocity(DeltaTime, Friction, bFluid, BrakingDeceleration);
 }
 
 bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const
 {
 	//check if we're grappling
-	if (PlayerPawn->GrappleComponent->bIsGrappling)
+	if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
 	{
-		//check if the dot product of the hit normal and the grapple direction is less than -0.8
-		if (FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GetGrappleDirection()) < -0.8)
+		//check if the surface normal is close to the opposite of the grapple direction
+		if (float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection); LocDot > -0.8)
 		{
-			//return true if we're grappling and the dot product is less than -0.8
-			return true;
-		}
+			GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), LocDot));
 
-		//return false if we're grappling
-		return false;
+			//return false
+			return false;
+		}
 	}
+
+	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Dot: 0"));
 
 	//default to the parent implementation
 	return Super::IsValidLandingSpot(CapsuleLocation, Hit);
@@ -285,6 +291,35 @@ FVector UPlayerMovementComponent::GetAirControl(float DeltaTime, float TickAirCo
 	return Super::GetAirControl(DeltaTime, TickAirControl, FallAcceleration);
 }
 
+void UPlayerMovementComponent::StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc)
+{
+	//delegate to the parent implementation
+	Super::StartFalling(Iterations, remainingTime, timeTick, Delta, subLoc);
+}
+
+void UPlayerMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
+{
+	//check if we might be bunny jumping
+	if (bMightBeBunnyJumping)
+	{
+		//storage for the line trace
+		FHitResult Hit;
+
+		//do a line trace straight down from the player with the bunny jump trace distance
+		GetWorld()->LineTraceSingleByChannel(Hit, GetOwner()->GetActorLocation(), GetOwner()->GetActorLocation() - FVector::UpVector * AvoidBunnyJumpTraceDistance, ECC_Visibility);
+
+		//check if it wasn't a valid blocking hit and we didn't start penetrating
+		if (!Hit.IsValidBlockingHit() && !Hit.bStartPenetrating)
+		{
+			//set might be bunny jumping to false
+			bMightBeBunnyJumping = false;
+		}
+	}
+
+	//delegate to the parent implementation
+	Super::PhysFalling(deltaTime, Iterations);
+}
+
 float UPlayerMovementComponent::GetMaxSpeed() const
 {
 	//check if we don't have a valid player pawn
@@ -307,18 +342,27 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 		return PlayerPawn->GrappleComponent->GrappleMaxSpeed;
 	}
 
-	//check if we're falling
+	//check if we're falling and we're probably not bunny jumping
 	if (IsFalling())
 	{
+		//storage for the max speed to use
+		float MaxSpeedToUse = MaxFallSpeed;
+
+		//check if we might be bunny jumping
+		if (bMightBeBunnyJumping)
+		{
+			MaxSpeedToUse = MaxWalkSpeed;
+		}
+
 		//check if we're applying the speed limit
 		if (bIsSpeedLimited)
 		{
 			//return the max fall speed or the speed limit, whichever is smaller
-			return FMath::Min(MaxFallSpeed, SpeedLimit);
+			return FMath::Min(MaxSpeedToUse, SpeedLimit);
 		}
 
 		//return the max fall speed
-		return MaxFallSpeed;
+		return MaxSpeedToUse;
 	}
 
 	//check if we're walking and we're sliding
@@ -348,10 +392,13 @@ float UPlayerMovementComponent::GetMaxAcceleration() const
 	//}
 
 	//check if we're walking and we have a valid curve
-	if (IsWalking() && MaxWalkingAccelerationCurve)
+	if ((IsWalking() /*&& MaxWalkingAccelerationCurve*/ && !bIsSliding) || bMightBeBunnyJumping && IsFalling())
 	{
-		//return the max walking acceleration
-		return MaxWalkingAccelerationCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed()) * MaxAcceleration;
+		////return the max walking acceleration
+		//return MaxWalkingAccelerationCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+
+		//return max walking acceleration
+		return MaxWalkingAcceleration;
 	}
 
 	//default to the parent implementation
@@ -427,6 +474,9 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 
 void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations)
 {
+	//set might be bunny jumping to true
+	bMightBeBunnyJumping = true;
+
 	//call the parent implementation
 	Super::ProcessLanded(Hit, remainingTime, Iterations);
 
@@ -444,7 +494,7 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 {
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
-	if (Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && !bIsSpeedLimited)
+	if (Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0)
 	{
 		//get the direction of the jump
 		LastDirectionalJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();
@@ -473,8 +523,10 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 			//OnDirectionalJump.Broadcast(LastDirectionalJumpDirection);
 		}
 
+		//set the last jump was directional to true
 		bLastJumpWasDirectional = true;
 	}
 
+	//default to the parent implementation
 	return Super::DoJump(bReplayingMoves);
 }
