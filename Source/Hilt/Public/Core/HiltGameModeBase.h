@@ -18,6 +18,19 @@ class AHiltGameModeBase : public AGameModeBase
 public:
 	//  ---------------------- Public Variable`s ----------------------
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Time")
+	float TotalElapsedTime = 0.0f;
+	float LocalElapsedTime = 0.0f;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Time")
+	float Millisecs = 0;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Time")
+	int Seconds = 0;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Time")
+	int Minutes = 0;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Variables-Time")
+	bool TimerShouldTick = true;
+	FTimerHandle TimerHandler;
+
 private:
 	//  ---------------------- Private Variable`s ---------------------
 
@@ -32,8 +45,20 @@ public:
 	// Function`s ----------
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-
 	virtual void RestartLevel();
+
+	// Timer -----
+
+	void CountTime();
+	UFUNCTION(BlueprintCallable)
+	void StartTimer();
+	UFUNCTION(BlueprintCallable)
+	void ResetTimer();
+	UFUNCTION(BlueprintCallable)
+	void StopTimer();
+
+
+
 
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void RestartLevelBP();
