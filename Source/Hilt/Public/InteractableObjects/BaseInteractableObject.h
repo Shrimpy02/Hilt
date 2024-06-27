@@ -13,6 +13,7 @@ struct FTimerHandle;
 class UNiagaraSystem;
 class UNiagaraComponent;
 class USoundBase;
+class UGrappleableComponent;
 
 /**
  * @class ABaseInteractableObject.
@@ -33,9 +34,15 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UBoxComponent* BlockerCollisionBox;
 
+	UPROPERTY(VisibleAnywhere)
+	UGrappleableComponent* GrappleComponent;
+
 	// ------------- VFX ------------
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* NiagaraComp;
+
+	//
+	bool isBeingGrappled = false;
 
 private:
 	//  ---------------------- Private Variable`s ---------------------
@@ -55,6 +62,9 @@ public:
 	virtual void RemoveLevelPresence();
 	virtual void AddLevelPresence();
 	virtual bool IsActive();
+
+	void ToggleGrappleOn(AActor* GrapplingActor, const FHitResult& HitResult);
+	void ToggleGrappleOff();
 
 	// VFX ------------------------------
 	// Updates all Niagara components to play at the enemies location
