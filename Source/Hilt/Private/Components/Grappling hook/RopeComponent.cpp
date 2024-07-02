@@ -7,9 +7,6 @@
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
 
-//reference to the owner of this component as a player character
-APlayerCharacter* PlayerCharacter = nullptr;
-
 FVerletConstraint::FVerletConstraint()
 {
 }
@@ -142,15 +139,6 @@ URopeComponent::URopeComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	bAutoActivate = true;
 	UActorComponent::SetComponentTickEnabled(true);
-}
-
-void URopeComponent::BeginPlay()
-{
-	//call the parent implementation
-	Super::BeginPlay();
-
-	//cast the owner to a player character
-	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 }
 
 void URopeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
