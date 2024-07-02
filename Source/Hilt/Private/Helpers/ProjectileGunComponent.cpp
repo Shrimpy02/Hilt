@@ -4,7 +4,6 @@
 
 UProjectileGunComponent::UProjectileGunComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UProjectileGunComponent::SetInitialProjectileSpeed(const FVector Direction, UProjectileMovementComponent* ProjectileMovementComponent)

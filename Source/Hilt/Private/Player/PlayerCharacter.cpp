@@ -30,7 +30,6 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	PlayerMovementComponent = Cast<UPlayerMovementComponent>(GetCharacterMovement());
 	Camera = CreateDefaultSubobject<UPlayerCameraComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, Camera));
 	CameraArm = CreateDefaultSubobject<UCameraArmComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, CameraArm));
-	TerrainGunComponent = CreateDefaultSubobject<UTerrainGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, TerrainGunComponent));
 	RocketLauncherComponent = CreateDefaultSubobject<URocketLauncherComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
 	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
@@ -39,7 +38,6 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	CameraArm->SetupAttachment(GetRootComponent());
 	Camera->SetupAttachment(CameraArm);
 	RopeComponent->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
-	TerrainGunComponent->SetupAttachment(GetRootComponent());
 	RocketLauncherComponent->SetupAttachment(GetRootComponent());
 
 	////set relative location and rotation for the mesh
@@ -170,12 +168,6 @@ void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 
 	//toggle the pause menu
 	PC->SetPause(!PC->IsPaused());
-}
-
-void APlayerCharacter::FireTerrainGun(const FInputActionValue& Value)
-{
-	//fire the terrain gun
-	TerrainGunComponent->FireProjectile(Camera->GetForwardVector());
 }
 
 void APlayerCharacter::FireRocketLauncher(const FInputActionValue& Value)
