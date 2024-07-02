@@ -74,6 +74,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsGrappling = false;
 
+	//whether or not we're using debug mode
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	bool bUseDebugMode = false;
+
 	//the current grapple mode
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<EGrapplingMode> GrappleMode = AddToVelocity;
@@ -96,10 +100,6 @@ public:
 	//the movement input modifier to use when processing the grapple movement input curve
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GrappleMovementInputModifier = 20;
-
-	//grappledown input modifier to use when processing the grapple movement input curve
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float GrappleDownInputModifier = 1;
 
 	//the air control you have when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -136,6 +136,14 @@ public:
 	//the float curve to use when applying the grapple wasd movement using the rope length divided by the max grapple distance (1 = max distance, 0 = 0 distance, clamped to 0-1)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementDistanceInputCurve = nullptr;
+
+	//the friction to use when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleFriction = 0.5f;
+
+	//the number of points to search for when checking the direction of the rope
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	int GrappleDirectionChecks = 15;
 
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -199,6 +207,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector ProcessGrappleInput(FVector MovementInput);
 
+	//function for the rope to pull the player
+	UFUNCTION(BlueprintCallable)
+	void PullPlayer(FVector Vector);
+
 private:
 
 	//function to handle the interpolation modes of the grapple
@@ -218,8 +230,8 @@ public:
 	 * Getters
 	*/
 
-	//function to get the direction of the grapple
-	UFUNCTION(BlueprintCallable)
+	//function to get the direction of the grapple (not blueprint callable due to it possibly being expensive for performance)
+	UFUNCTION()
 	FVector GetGrappleDirection() const;
 
 	//function to get the grapple interp struct to use

@@ -30,7 +30,6 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	PlayerMovementComponent = Cast<UPlayerMovementComponent>(GetCharacterMovement());
 	Camera = CreateDefaultSubobject<UPlayerCameraComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, Camera));
 	CameraArm = CreateDefaultSubobject<UCameraArmComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, CameraArm));
-	TerrainGunComponent = CreateDefaultSubobject<UTerrainGunComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, TerrainGunComponent));
 	RocketLauncherComponent = CreateDefaultSubobject<URocketLauncherComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
 	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
@@ -39,7 +38,6 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	CameraArm->SetupAttachment(GetRootComponent());
 	Camera->SetupAttachment(CameraArm);
 	RopeComponent->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
-	TerrainGunComponent->SetupAttachment(GetRootComponent());
 	RocketLauncherComponent->SetupAttachment(GetRootComponent());
 
 	////set relative location and rotation for the mesh
@@ -70,12 +68,12 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::WasdMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_WasdMovement, ETriggerEvent::Completed, this, &APlayerCharacter::WasdMovement);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_MouseMovement, ETriggerEvent::Triggered, this, &APlayerCharacter::MouseMovement);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_DoJump, ETriggerEvent::Triggered, this, &APlayerCharacter::DoJump);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopJump, ETriggerEvent::Triggered, this, &APlayerCharacter::StopJumping);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_ShootGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_Jump, ETriggerEvent::Triggered, this, &APlayerCharacter::DoJump);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_Jump, ETriggerEvent::Completed, this, &APlayerCharacter::StopJumping);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_Grapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_StartSlide, ETriggerEvent::Triggered, this, &APlayerCharacter::StartSlide);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopSlide, ETriggerEvent::Triggered, this, &APlayerCharacter::StopSlide);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_Slide, ETriggerEvent::Triggered, this, &APlayerCharacter::StartSlide);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_Slide, ETriggerEvent::Completed, this, &APlayerCharacter::StopSlide);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireRocketLauncher);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_RestartGame, ETriggerEvent::Triggered, this, &APlayerCharacter::RestartGame);
@@ -117,7 +115,7 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 	const FRotator YawPlayerRotation(0.f, ControlPlayerRotationYaw.Yaw, 0.f);
 
 	//check if we're grappling
-	if (GrappleComponent->bIsGrappling)
+	if (GrappleComponent->bIsGrappling && !GrappleComponent->bUseDebugMode)
 	{
 		//get the up vector from the control rotation
 		const FVector PlayerDirectionYaw_Upwards_Downwards = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Z);
@@ -170,12 +168,6 @@ void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 
 	//toggle the pause menu
 	PC->SetPause(!PC->IsPaused());
-}
-
-void APlayerCharacter::FireTerrainGun(const FInputActionValue& Value)
-{
-	//fire the terrain gun
-	TerrainGunComponent->FireProjectile(Camera->GetForwardVector());
 }
 
 void APlayerCharacter::FireRocketLauncher(const FInputActionValue& Value)
