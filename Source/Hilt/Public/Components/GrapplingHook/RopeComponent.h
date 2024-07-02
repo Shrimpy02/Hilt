@@ -7,6 +7,7 @@
 #include "NiagaraSystem.h"
 #include "RopeComponent.generated.h"
 
+//struct for rope points
 USTRUCT(BlueprintType)
 struct FRopePoint
 {
@@ -22,15 +23,94 @@ struct FRopePoint
 
 	//the relative location of the rope point to the attached actor (if not using a component's location)
 	UPROPERTY(BlueprintReadOnly)
-	FVector RelativeLocation = FVector::ZeroVector;
+	FVector Location = FVector::ZeroVector;
+
+	//the velocity of the rope point
+	UPROPERTY(BlueprintReadOnly)
+	FVector Velocity = FVector::ZeroVector;
+
+	//the acceleration of the rope point
+	UPROPERTY(BlueprintReadOnly)
+	FVector Acceleration = FVector::ZeroVector;
+
+	//whether or not this rope point is a collision point
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsCollisionPoint = false;
+
+	//whether or not to use world space for the location of the rope point
+	UPROPERTY(BlueprintReadOnly)
+	bool bUseWorldSpace = false;
+	
+	////older locations of the rope point for verlet integration
+	//UPROPERTY(BlueprintReadOnly)
+	//TArray<FVector> OldLocations;
+
+	////the deltatimes that were used for the old locations
+	//UPROPERTY(BlueprintReadOnly)
+	//TArray<float> OldTimesteps;
+
+	////the mass of this rope point
+	//UPROPERTY(BlueprintReadOnly)
+	//float Mass = 1;
 
 	//constructor(s)
 	FRopePoint();
+	explicit FRopePoint(FVector InLocation, bool bInUseWorldSpace = true);
 	explicit FRopePoint(const FHitResult& HitResult);
-	explicit FRopePoint(AActor* OtherActor, const FVector& Location);
+	explicit FRopePoint(AActor* InOtherActor, const FVector& InLocation);
 
 	//function to get the location of the rope point in world space
 	FVector GetWL() const;
+
+	//function to set the location of the rope point in world space (if using relative location, will set the location of the attached actor)
+	void SetWL(const FVector& NewLocation);
+};
+
+//struct for constraints between rope points
+USTRUCT(BlueprintType)
+struct FVerletConstraint
+{
+	GENERATED_BODY()
+
+	//start point of the constraint
+	struct FRopePoint* StartPoint = nullptr;
+
+	//end point of the constraint
+	struct FRopePoint* EndPoint = nullptr;
+
+	//the compensation to apply to the first point of the constraint
+	UPROPERTY(BlueprintReadOnly)
+	float Compensation1 = 0.5;
+
+	//the compensation to apply to the second point of the constraint
+	UPROPERTY(BlueprintReadOnly)
+	float Compensation2 = 0.5;
+
+	//the length of the constraint
+	UPROPERTY(BlueprintReadOnly)
+	float Distance = 0.f;
+
+	//constructor(s)
+	FVerletConstraint();
+	explicit FVerletConstraint(FRopePoint* InStartPoint, FRopePoint* InEndPoint, float InCompensation1 = 0.5, float InCompensation2 = 0.5, float InDistance = 0);
+
+	//function to get the first point of the constraint
+	FVector GetStartPoint() const;
+
+	//function to get the second point of the constraint
+	FVector GetEndPoint() const;
+
+	//function to get the distance between the two points of the constraint
+	float GetDistance() const;
+
+	//function to set the first point of the constraint
+	void SetStartPoint(const FVector& NewStartPoint) const;
+
+	//function to set the second point of the constraint
+	void SetEndPoint(const FVector& NewEndPoint) const;
+
+	//function to set the distance between the two points of the constraint
+	void SetDistance(float NewDistance);
 };
 
 UCLASS()
@@ -80,6 +160,61 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rope", meta = (ShowOnlyInnerProperties))
 	TArray<FRopePoint> RopePoints;
 
+	//whether or not to use verlet integration for the rope
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	bool bUseVerletIntegration = true;
+
+	//array of constraints for the verlet integration rope points
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Verlet Integration", meta = (ShowOnlyInnerProperties))
+	TArray<FVerletConstraint> Constraints;
+
+	//the number of verlet rope points to use between each 2 rope points
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	int32 NumVerletPoints = 250;
+
+	////how many times to perform the verlet integration per frame
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	//int32 NumVerletIterations = 1;
+
+	//how many times to perform the constraint enforcement per frame
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	int32 NumConstraintIterations = 25;
+
+	////how many old locations to store for each rope point
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	//int32 NumOldLocations = 2;
+
+	//the float curve for the compensation1 of the constraints
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	UCurveFloat* ConstraintCompensation1Curve = nullptr;
+
+	//the float curve for the compensation2 of the constraints
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	UCurveFloat* ConstraintCompensation2Curve = nullptr;
+
+	//the damping factor for the verlet integration
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	float Damping = 0.85;
+
+	//the stiffness of the constraints
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	float Stiffness = 1;
+
+	//the gravity to apply to the rope points
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	float VerletGravityFactor = 4;
+
+	//the drag to apply to the rope points
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	float RopeDrag = 0.1;
+
+	//the mass of each rope point
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
+	float RopeMass = 1;
+
+	//array of collision points for the rope
+	TArray<FRopePoint*> CollisionPoints;
+
 private:
 	//whether or not the rope is currently active
 	UPROPERTY(BlueprintReadOnly, Category = "Rope", meta=(AllowPrivateAccess))
@@ -90,15 +225,30 @@ public:
 	//constructor
 	URopeComponent();
 
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void DestroyComponent(bool bPromoteChildren) override;
+
+	//function to enforce the constraints of the rope
+	void EnforceConstraints();
+
+	//function to check for collisions with the rope when verlet integration is used and update the rope points accordingly
+	bool CheckForCollisions(const FVector& Start, const FVector& End, FRopePoint& Point) const;
+	bool CheckForCollisions(const FVerletConstraint& Constraint, const FVector& InNewStartPos1, const FVector& InNewStartPos2) const;
+	bool CheckForCollisions(FRopePoint& Point, const FVector& InNewPosition, const FVector& OldPosition, const FVector& InVelocity, const FVector& InAcceleration) const;
+
+	//function to do all verlet integration steps for this frame
+	void VerletIntegration(float DeltaTime);
+
+	//function to apply forces to the rope point (used for velocity-verlet integration)
+	FVector CalculateAccel(const FRopePoint& RopePoint) const;
 
 	//function for switching the rope niagara system
 	UFUNCTION(BlueprintCallable, Category = "Rope")
 	void SetNiagaraSystem(UNiagaraSystem* NewSystem);
 
 	//function to get the collision query params used for the rope's collision checks
-	FCollisionQueryParams GetCollisionParams();
+	FCollisionQueryParams GetCollisionParams() const;
 
 	//traces along the collision points and removes unnecessary collision points
 	void CheckCollisionPoints();
@@ -120,6 +270,10 @@ public:
 	/**
 	 * Getters
 	*/
+
+	//function to get the direction of the rope from a given t value and direction (forwards or backwards)
+	UFUNCTION(BlueprintCallable, Category = "Rope")
+	FVector GetRopeDirection(int RopeDirectionChecks) const;
 
 	//function to get the length of the rope
 	UFUNCTION(BlueprintCallable, Category = "Rope")

@@ -81,8 +81,12 @@ void UGrapplingComponent::StartGrapple(AActor* OtherActor, const FHitResult& Hit
 		StopGrapple();
 	}
 
-	//set the movement mode to falling to prevent us from being stuck on the ground
-	PlayerMovementComponent->SetMovementMode(MOVE_Falling);
+	//check if we're not using debug mode
+	if (!bUseDebugMode)
+	{
+		//set the movement mode to falling to prevent us from being stuck on the ground
+		PlayerMovementComponent->SetMovementMode(MOVE_Falling);
+	}
 
 	//check if the other actor is valid
 	if (OtherActor->IsValidLowLevelFast())
@@ -238,7 +242,7 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	//}
 
 	//check if the player is grappling, we have valid angle and distance input curves, and the grappling component is valid
-	if (bIsGrappling && GrappleMovementAngleInputCurve && GrappleMovementDistanceInputCurve && IsValidLowLevelFast())
+	if (bIsGrappling && GrappleMovementAngleInputCurve && GrappleMovementDistanceInputCurve && IsValidLowLevelFast() && !bUseDebugMode)
 	{
 		//get the dot product of the current grapple direction and the return vector
 		const float DotProduct = FVector::DotProduct(GetOwner()->GetActorUpVector(), MovementInput.GetSafeNormal());
@@ -264,6 +268,35 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 
 	//default to the movement input
 	return MovementInput;
+}
+
+void UGrapplingComponent::PullPlayer(FVector Vector)
+{
+	//TODO: check all this code and make sure it's correct
+
+	//check if we're using debug mode
+	if (bUseDebugMode)
+	{
+		//return early
+		return;
+	}
+
+	//check if we're grappling
+	if (bIsGrappling)
+	{
+		//check if the grapple mode is set to AddToVelocity
+		if (GrappleMode == AddToVelocity)
+		{
+			//add the grapple vector to the character's velocity
+			PlayerMovementComponent->Velocity += Vector;
+		}
+		//check if the grapple mode is set to InterpVelocity
+		else if (GrappleMode == InterpVelocity)
+		{
+			//interpolate the velocity
+			PlayerMovementComponent->Velocity = PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), Vector, GetWorld()->GetDeltaSeconds(), GetGrappleInterpStruct().PullAccel), GetWorld()->GetDeltaSeconds());
+		}
+	}
 }
 
 void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct)
@@ -322,6 +355,13 @@ void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float Max
 
 void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 {
+	//check if we're using debug mode
+	if (bUseDebugMode)
+	{
+		//return early
+		return;
+	}
+
 	//storage for the velocity that will be applied from the grapple
 	FVector GrappleVelocity;
 
@@ -408,8 +448,40 @@ void UGrapplingComponent::OnGrappleTargetDestroyed(AActor* DestroyedActor)
 
 FVector UGrapplingComponent::GetGrappleDirection() const
 {
-	//get the direction from the first rope point to the second rope point
-	return (RopeComponent->GetSecondRopePoint() - GetOwner()->GetActorLocation()).GetSafeNormal();
+	//old code for when the rope component only had two points (instead of a dynamic array of points that can be any length)
+	////get the direction from the first rope point to the second rope point
+	//return (RopeComponent->GetSecondRopePoint() - GetOwner()->GetActorLocation()).GetSafeNormal();
+
+	////storage for the direction to each rope point individually
+	//TArray<FVector> GrappleDirections;
+
+	////for loop to perform the grapple direction checks	
+	//for (int Index = 1; Index < GrappleDirectionChecks; ++Index)
+	//{
+	//	//get the direction from the first rope point to the current rope point
+	//	const FVector LocGrappleDirection = (RopeComponent->RopePoints[Index].GetWL() - RopeComponent->RopePoints[0].GetWL()).GetSafeNormal();
+
+	//	//add the direction to the array
+	//	GrappleDirections.Add(LocGrappleDirection);
+	//}
+
+	////storage for the return vector
+	//FVector ReturnVec = FVector::ZeroVector;
+
+	////iterate over the grapple directions array
+	//for (const FVector& LocGrappleDirection : GrappleDirections)
+	//{
+	//	//add the grapple direction to the return vector
+	//	ReturnVec += LocGrappleDirection;
+	//}
+
+	////normalize the return vector
+	//ReturnVec.Normalize();
+
+	////return the return vector
+	//return ReturnVec;
+
+	return RopeComponent->GetRopeDirection(GrappleDirectionChecks);
 }
 
 FGrappleInterpStruct UGrapplingComponent::GetGrappleInterpStruct() const
