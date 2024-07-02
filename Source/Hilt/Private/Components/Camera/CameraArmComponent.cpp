@@ -61,13 +61,17 @@ void UCameraArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocati
 		return;
 	}
 
-	//get the input vector of the player character
-	const FVector2D InputVector = PlayerCharacter->CurrentMoveDirection;
+	//check if we're using the movement offset
+	if (bUseMoveOffset)
+	{
+		//get the input vector of the player character
+		const FVector2D InputVector = PlayerCharacter->CurrentMoveDirection;
 
-	//set the target offset
-	TargetOffset = FMath::VInterpTo(TargetOffset, OriginalTargetOffset + (RightVec * InputVector.X + ForwardVec * InputVector.Y) * -MoveOffsetAmount, DeltaTime, MoveOffsetInterpSpeed);
+		//set the target offset
+		TargetOffset = FMath::VInterpTo(TargetOffset, OriginalTargetOffset + (RightVec * InputVector.X + ForwardVec * InputVector.Y) * -MoveOffsetAmount, DeltaTime, MoveOffsetInterpSpeed);
+	}
 
-
+	//defualt to the parent implementation
 	Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
 }
 

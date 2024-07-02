@@ -46,9 +46,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
 
-	//the float curve to use for max acceleration when walking based on the speed of the player (0 = min speed, 1 = max speed)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* MaxWalkingAccelerationCurve = nullptr;
+	////the float curve to use for max acceleration when walking based on the speed of the player (0 = min speed, 1 = max speed)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	//UCurveFloat* MaxWalkingAccelerationCurve = nullptr;
 
 	//the float curve to use for braking deceleration when sliding based on the speed of the player (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
@@ -65,6 +65,10 @@ public:
 	////the float curve to use for max acceleration when sliding based on the speed of the player (0 = min speed, 1 = max speed)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	//UCurveFloat* MaxSlideAccelerationCurve = nullptr;
+
+	//the float curve to use for applying braking deceleration when falling (0 = min speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* FallingBrakingDecelerationCurve = nullptr;
 
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -90,9 +94,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float ExcessSpeedDegredationRate = 10.f;
 
-	//the amount of excess speed needed to stop applying the speed limit
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float ExcessSpeedStopLimit = 10.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Walking")
+	float MaxWalkingAcceleration = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling")
+	float AvoidBunnyJumpTraceDistance = 1000.f;
 
 	//whether or not the player is currently sliding
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
@@ -135,6 +141,10 @@ public:
 	//the current slide speed (from either landing or starting a slide)
 	float CurrentSlideSpeed = 0.f;
 
+	//whether the player has gone far enough above the ground to be considered not bunny hopping
+	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
+	bool bMightBeBunnyJumping = true;
+
 	//constructor
 	UPlayerMovementComponent();
 
@@ -162,6 +172,8 @@ public:
 	virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
 	virtual float GetGravityZ() const override;
 	virtual FVector GetAirControl(float DeltaTime, float TickAirControl, const FVector& FallAcceleration) override;
+	virtual void StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc) override;
+	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
 
 	virtual float GetMaxSpeed() const override;
 	virtual float GetMaxAcceleration() const override;

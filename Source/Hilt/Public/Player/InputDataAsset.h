@@ -29,15 +29,12 @@ public:
 	UInputAction* IA_MouseMovement = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
-	UInputAction* IA_DoJump = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintreadWrite, Category = "Inputsystem")
-	UInputAction* IA_StopJump = nullptr;
+	UInputAction* IA_Jump = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
-	UInputAction* IA_ShootGrapple = nullptr;
+	UInputAction* IA_Grapple = nullptr;
 
-	UPROPERTY(editDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
 	UInputAction* IA_StopGrapple = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
@@ -50,10 +47,7 @@ public:
 	UInputAction* IA_FireGun = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
-	UInputAction* IA_StartSlide = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inputsystem")
-	UInputAction* IA_StopSlide = nullptr;
+	UInputAction* IA_Slide = nullptr;
 
 	//constructor(s)
 	UInputDataAsset();
