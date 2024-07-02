@@ -28,6 +28,13 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (TimerShouldTick)
+	{
+		TotalElapsedTime += DeltaTime;
+		LocalElapsedTime += DeltaTime;
+		CountTime();
+	}
+
 }
 
 void AHiltGameModeBase::RestartLevel()
@@ -36,6 +43,9 @@ void AHiltGameModeBase::RestartLevel()
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseInteractableObject::StaticClass(), FoundActors);
 	GEngine->AddOnScreenDebugMessage(-2, 5.f, FColor::Green, FString::Printf(TEXT("Num resetable things in level: %d"), FoundActors.Num()));
+
+	// Restarts timer
+	ResetTimer();
 
 	// Reset actors
 	for (AActor* Object : FoundActors)
@@ -84,10 +94,7 @@ void AHiltGameModeBase::RestartLevel()
 	}
 
 
-
 	// Reset player
-	
-				
 
 }
 
@@ -95,3 +102,50 @@ void AHiltGameModeBase::RestartLevelBP()
 {
 	RestartLevel();
 }
+
+void AHiltGameModeBase::StartTimer()
+{
+	TimerShouldTick = true;
+	TotalElapsedTime = 0.0f;
+	LocalElapsedTime = 0.0f;
+}
+
+void AHiltGameModeBase::StopTimer()
+{
+	TimerShouldTick = false;
+}
+
+void AHiltGameModeBase::ResetTimer()
+{
+	TotalElapsedTime = 0.0f;
+	LocalElapsedTime = 0.0f;
+	Millisecs = 0;
+	Seconds = 0;
+	Minutes = 0;
+}
+
+void AHiltGameModeBase::CountTime()
+{
+	// Calculate the milliseconds
+	Millisecs = LocalElapsedTime;
+
+	// Calculate the seconds
+	if (Millisecs >= 1.0f)
+	{
+		Seconds += 1;
+		LocalElapsedTime = 0.0f;
+	}
+
+	// Calculate the minutes
+	if(Seconds >= 60)
+	{
+		Minutes += 1;
+		Seconds = 0;
+	}
+
+	// Debug: Print elapsed time
+	//GEngine->AddOnScreenDebugMessage(5, 1.f, FColor::Orange, FString::Printf(TEXT("Minutes: %i Seconds: %i Milliseconds: %f"), Minutes, Seconds, Millisecs));
+	//GEngine->AddOnScreenDebugMessage(6, 1.f, FColor::Orange, FString::Printf(TEXT("Total Elapsed time: %f"), TotalElapsedTime));
+	//GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Orange, FString::Printf(TEXT("Local Elapsed time: %f"), LocalElapsedTime));
+}
+

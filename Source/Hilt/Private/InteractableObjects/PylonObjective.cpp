@@ -1,5 +1,6 @@
 // Class Includes
 #include "InteractableObjects/PylonObjective.h"
+#include "NPC/Components/GrappleableComponent.h"
 
 // Other Includes
 #include "Player/PlayerCharacter.h"
@@ -60,6 +61,13 @@ void APylonObjective::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor);
 	if(Player)
 	{
+		// if player and is being grappled stop grapple
+		if (isBeingGrappled)
+		{
+			Player->StopGrapple(0);
+			isBeingGrappled = false;
+		}
+
 		RemoveLevelPresence();
 	}
 }
