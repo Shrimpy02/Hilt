@@ -145,6 +145,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleFriction = 0.5f;
 
+	//the number of points to search for when checking the direction of the rope
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	int GrappleDirectionChecks = 15;
+
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	//UCurveFloat* GrappleCollisionPointsCurve = nullptr;
@@ -207,6 +211,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector ProcessGrappleInput(FVector MovementInput);
 
+	//function for the rope to pull the player
+	UFUNCTION(BlueprintCallable)
+	void PullPlayer(FVector Vector);
+
 private:
 
 	//function to handle the interpolation modes of the grapple
@@ -226,8 +234,8 @@ public:
 	 * Getters
 	*/
 
-	//function to get the direction of the grapple
-	UFUNCTION(BlueprintCallable)
+	//function to get the direction of the grapple (not blueprint callable due to it possibly being expensive for performance)
+	UFUNCTION()
 	FVector GetGrappleDirection() const;
 
 	//function to get the grapple interp struct to use

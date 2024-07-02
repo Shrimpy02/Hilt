@@ -270,6 +270,35 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	return MovementInput;
 }
 
+void UGrapplingComponent::PullPlayer(FVector Vector)
+{
+	//TODO: check all this code and make sure it's correct
+
+	//check if we're using debug mode
+	if (bUseDebugMode)
+	{
+		//return early
+		return;
+	}
+
+	//check if we're grappling
+	if (bIsGrappling)
+	{
+		//check if the grapple mode is set to AddToVelocity
+		if (GrappleMode == AddToVelocity)
+		{
+			//add the grapple vector to the character's velocity
+			PlayerMovementComponent->Velocity += Vector;
+		}
+		//check if the grapple mode is set to InterpVelocity
+		else if (GrappleMode == InterpVelocity)
+		{
+			//interpolate the velocity
+			PlayerMovementComponent->Velocity = PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), Vector, GetWorld()->GetDeltaSeconds(), GetGrappleInterpStruct().PullAccel), GetWorld()->GetDeltaSeconds());
+		}
+	}
+}
+
 void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct)
 {
 	//storage for the grapple direction
@@ -419,8 +448,40 @@ void UGrapplingComponent::OnGrappleTargetDestroyed(AActor* DestroyedActor)
 
 FVector UGrapplingComponent::GetGrappleDirection() const
 {
-	//get the direction from the first rope point to the second rope point
-	return (RopeComponent->GetSecondRopePoint() - GetOwner()->GetActorLocation()).GetSafeNormal();
+	//old code for when the rope component only had two points (instead of a dynamic array of points that can be any length)
+	////get the direction from the first rope point to the second rope point
+	//return (RopeComponent->GetSecondRopePoint() - GetOwner()->GetActorLocation()).GetSafeNormal();
+
+	////storage for the direction to each rope point individually
+	//TArray<FVector> GrappleDirections;
+
+	////for loop to perform the grapple direction checks	
+	//for (int Index = 1; Index < GrappleDirectionChecks; ++Index)
+	//{
+	//	//get the direction from the first rope point to the current rope point
+	//	const FVector LocGrappleDirection = (RopeComponent->RopePoints[Index].GetWL() - RopeComponent->RopePoints[0].GetWL()).GetSafeNormal();
+
+	//	//add the direction to the array
+	//	GrappleDirections.Add(LocGrappleDirection);
+	//}
+
+	////storage for the return vector
+	//FVector ReturnVec = FVector::ZeroVector;
+
+	////iterate over the grapple directions array
+	//for (const FVector& LocGrappleDirection : GrappleDirections)
+	//{
+	//	//add the grapple direction to the return vector
+	//	ReturnVec += LocGrappleDirection;
+	//}
+
+	////normalize the return vector
+	//ReturnVec.Normalize();
+
+	////return the return vector
+	//return ReturnVec;
+
+	return RopeComponent->GetRopeDirection(GrappleDirectionChecks);
 }
 
 FGrappleInterpStruct UGrapplingComponent::GetGrappleInterpStruct() const
