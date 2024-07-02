@@ -29,10 +29,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	class UPlayerMovementComponent* PlayerMovementComponent;
 
-	//the terrain gun component that handles the shoting of the terrain projectile, and turning that projectile into terrain
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UTerrainGunComponent* TerrainGunComponent;
-
 	//the rocket launcher component that handles the shooting of the rocket projectile
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class URocketLauncherComponent* RocketLauncherComponent;
@@ -96,10 +92,6 @@ public:
 	//function to toggle pausing of the game
 	UFUNCTION()
 	void PauseGame(const FInputActionValue& Value);
-
-	//function to fire the terrain gun
-	UFUNCTION()
-	void FireTerrainGun(const FInputActionValue& Value);
 
 	//function to fire the rocket launcher
 	UFUNCTION()

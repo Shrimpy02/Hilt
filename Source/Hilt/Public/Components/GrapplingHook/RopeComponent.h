@@ -162,7 +162,7 @@ public:
 
 	//whether or not to use verlet integration for the rope
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Verlet Integration")
-	bool bUseVerletIntegration = true;
+	bool bUseVerletIntegration = false;
 
 	//array of constraints for the verlet integration rope points
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Verlet Integration", meta = (ShowOnlyInnerProperties))

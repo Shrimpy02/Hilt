@@ -101,10 +101,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GrappleMovementInputModifier = 20;
 
-	//grappledown input modifier to use when processing the grapple movement input curve
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float GrappleDownInputModifier = 1;
-
 	//the air control you have when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GrappleAirControl = 2;

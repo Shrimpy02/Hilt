@@ -190,7 +190,7 @@ void UGrapplingComponent::StopGrapple()
 	}
 
 	//reset the owner's rotation
-	GetOwner()->SetActorRotation(FRotator::ZeroRotator);
+	GetOwner()->SetActorRotation(PlayerMovementComponent->Velocity.Rotation());
 
 	//check if we should disable gravity when grappling
 	if (bDisableGravityWhenGrappling)
@@ -254,13 +254,7 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 		const float GrappleMovementInputDistanceCurveValue = GrappleMovementDistanceInputCurve->GetFloatValue(FMath::Clamp(FVector::Dist(GetOwner()->GetActorLocation(), RopeComponent->GetRopeEnd()) / MaxGrappleDistance, 0, 1));
 
 		//multiply the return vector by the grapple movement input curve value, the grapple distance movement input curve value, and the grapple movement input modifier
-		FVector ReturnVec = MovementInput * GrappleMovementInputAngleCurveValue * GrappleMovementInputDistanceCurveValue * GrappleMovementInputModifier;
-
-		//check if we're moving downwards
-		if (GrappleInput.Z < 0)
-		{
-			ReturnVec *= GrappleDownInputModifier;
-		}
+		const FVector ReturnVec = MovementInput * GrappleMovementInputAngleCurveValue * GrappleMovementInputDistanceCurveValue * GrappleMovementInputModifier;
 
 		//return the return vector
 		return ReturnVec;
