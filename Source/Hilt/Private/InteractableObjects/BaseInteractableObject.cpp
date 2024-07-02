@@ -8,6 +8,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "NPC/Components/GrappleableComponent.h"
 
 ABaseInteractableObject::ABaseInteractableObject()
 {
@@ -17,6 +18,9 @@ ABaseInteractableObject::ABaseInteractableObject()
 	// Also acts as object 
 	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
 	SetRootComponent(NiagaraComp);
+
+	// GrappleComp -----
+	GrappleComponent = CreateDefaultSubobject<UGrappleableComponent>(TEXT("GrappleComp"));
 
 	// Visible Mesh -------------
 	VisibleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisibleMesh"));
@@ -39,7 +43,6 @@ ABaseInteractableObject::ABaseInteractableObject()
 	BlockerCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
 	BlockerCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	BlockerCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-
 }
 
 void ABaseInteractableObject::BeginPlay()
@@ -50,6 +53,8 @@ void ABaseInteractableObject::BeginPlay()
 	Tags.Add(HiltTags::ObjectTag);
 	Tags.Add(HiltTags::ObjectActiveTag);
 
+	GrappleComponent->OnStartGrappleEvent.AddDynamic(this, &ABaseInteractableObject::ToggleGrappleOn);
+	GrappleComponent->OnStopGrappleEvent.AddDynamic(this, &ABaseInteractableObject::ToggleGrappleOff);
 }
 
 void ABaseInteractableObject::Tick(float DeltaTime)
@@ -72,8 +77,10 @@ void ABaseInteractableObject::RemoveLevelPresence()
 	// Niagara component ------------
 	// Disable visibility
 	NiagaraComp->ToggleVisibility(false);
-
+	
+	// Toggles between inactive and active tags'
 	ToggleActiveOrInactiveTag();
+
 }
 
 void ABaseInteractableObject::AddLevelPresence()
@@ -91,12 +98,26 @@ void ABaseInteractableObject::AddLevelPresence()
 	// Enable visibility
 	NiagaraComp->ToggleVisibility(true);
 
+	// Toggles between inactive and active tags
 	ToggleActiveOrInactiveTag();
+
 }
 
 bool ABaseInteractableObject::IsActive()
 {
 	return Tags.Contains(HiltTags::ObjectActiveTag) ? true : false;
+}
+
+void ABaseInteractableObject::ToggleGrappleOn(AActor* GrapplingActor, const FHitResult& HitResult)
+{
+	isBeingGrappled = true;
+	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Grapple on"));
+}
+
+void ABaseInteractableObject::ToggleGrappleOff()
+{
+	isBeingGrappled = false;
+	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Grapple off"));
 }
 
 void ABaseInteractableObject::UpdateVFXLocationRotation()
