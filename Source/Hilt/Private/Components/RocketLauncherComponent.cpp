@@ -4,8 +4,45 @@
 
 URocketLauncherComponent::URocketLauncherComponent()
 {
+	//enable ticking
+	PrimaryComponentTick.bCanEverTick = true;
+	bAutoActivate = true;
+	UActorComponent::SetComponentTickEnabled(true);
+
 	//set the default values
 	RocketExplosionClass = nullptr;
+}
+
+AActor* URocketLauncherComponent::FireProjectile(FVector Direction)
+{
+	//check if we have any ammo
+	if (CurrentAmmo <= 0)
+	{
+		//print a message to the screen
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Out of ammo"));
+
+		//return nullptr
+		return nullptr;
+	}
+
+	//check if the last fire time is less than the reload time
+	if (GetWorld()->GetTimeSeconds() - LastFireTime < LoadTime)
+	{
+		//print a message to the screen
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Reloading"));
+
+		//return nullptr
+		return nullptr;
+	}
+
+	//decrement the current ammo
+	CurrentAmmo--;
+
+	//set the last fire time
+	LastFireTime = GetWorld()->GetTimeSeconds();
+
+	//spawn and return the projectile
+	return Super::FireProjectile(Direction);
 }
 
 void URocketLauncherComponent::OnProjectileHit(AActor* Projectile, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
@@ -30,17 +67,60 @@ void URocketLauncherComponent::OnProjectileHit(AActor* Projectile, AActor* Other
 		GetWorld()->SpawnActor<AActor>(RocketExplosionClass, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 	}
 
-	////check if our owner is a player character
-	//if (const APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner()))
-	//{
-	//	//check if the player character is valid
-	//	if (PlayerCharacter->IsValidLowLevelFast())
-	//	{
-	//		//stop grappling
-	//		PlayerCharacter->GrappleComponent->StopGrapple();
-	//	}
-	//}
-
 	//call the parent implementation
 	Super::OnProjectileHit(Projectile, OtherActor, NormalImpulse, Hit);
+}
+
+void URocketLauncherComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	//call the parent implementation
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (bEnableReloading)
+	{
+		//load a rocket into the rocket launcher
+		LoadRocketClip();
+	}
+}
+
+void URocketLauncherComponent::BeginPlay()
+{
+	//call the parent implementation
+	Super::BeginPlay();
+
+	//set the current ammo to the starting ammo
+	CurrentAmmo = StartingAmmo;
+}
+
+void URocketLauncherComponent::LoadRocketClip()
+{
+	//check if the current ammo is less than the clip size
+	if (CurrentAmmo >= ClipSize)
+	{
+		//print a message to the screen
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Full Clip"));
+
+		//set the last reload time
+		LastReloadTime = GetWorld()->GetTimeSeconds();
+
+		//prevent further execution
+		return;
+	}
+
+	
+	//the last reload time plus the reload time is less than the current time
+	const float LocReloadTime = LastReloadTime + ReloadTime;
+
+	//check the reload time
+	if (LocReloadTime > GetWorld()->GetTimeSeconds())
+	{
+		//prevent further execution
+		return;
+	}
+
+	//increment the current ammo
+	CurrentAmmo++;
+
+	//set the last reload time
+	LastReloadTime = GetWorld()->GetTimeSeconds();
 }
