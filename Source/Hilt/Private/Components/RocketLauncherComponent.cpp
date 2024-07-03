@@ -83,6 +83,15 @@ void URocketLauncherComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	}
 }
 
+void URocketLauncherComponent::BeginPlay()
+{
+	//call the parent implementation
+	Super::BeginPlay();
+
+	//set the current ammo to the starting ammo
+	CurrentAmmo = StartingAmmo;
+}
+
 void URocketLauncherComponent::LoadRocketClip()
 {
 	//check if the current ammo is less than the clip size
