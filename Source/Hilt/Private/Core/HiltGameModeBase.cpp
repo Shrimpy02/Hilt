@@ -7,6 +7,7 @@
 #include "NPC/Enemies/BaseEnemy.h"
 
 // Other Includes
+#include "Components/RocketLauncherComponent.h"
 #include "Components/Camera/PlayerCameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -75,7 +76,7 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->SetActorLocation(spawnPoint->GetActorLocation());
 							PlayerCharacter->SetActorRotation(spawnPoint->GetActorRotation());
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
-							
+							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 						}
 			}
 		}
