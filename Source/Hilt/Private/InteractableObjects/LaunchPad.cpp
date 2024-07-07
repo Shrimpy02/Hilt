@@ -93,7 +93,7 @@ void ALaunchPad::ThrowActor(AActor* _actor)
 	{
 		APlayerCharacter* Player = Cast<APlayerCharacter>(_actor);
 		if (Player)
-			Player->PlayerMovementComponent->AddImpulse(CalcThrowDirection() * DefaultThrowStrength);
+			Player->PlayerMovementComponent->AddImpulse(CalcThrowDirection() * DefaultThrowStrength, true);
 
 		ThrewAnActor();
 	}

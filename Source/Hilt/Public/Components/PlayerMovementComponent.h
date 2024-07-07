@@ -22,6 +22,9 @@ class UPlayerMovementComponent : public UCharacterMovementComponent
 
 public:
 
+	//event declaration(s)
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerImpulse, FVector, Impulse, bool, bVelocityChange);
+
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	APlayerCharacter* PlayerPawn = nullptr;
@@ -132,6 +135,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500.f;
 
+	//whether the player has gone far enough above the ground to be considered not bunny hopping
+	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
+	bool bMightBeBunnyJumping = true;
+
 	//whether or not last jump was a directional jump
 	bool bLastJumpWasDirectional = false;
 
@@ -141,9 +148,9 @@ public:
 	//the current slide speed (from either landing or starting a slide)
 	float CurrentSlideSpeed = 0.f;
 
-	//whether the player has gone far enough above the ground to be considered not bunny hopping
-	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
-	bool bMightBeBunnyJumping = true;
+	//blueprint event(s)
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerImpulse OnPlayerImpulse;
 
 	//constructor
 	UPlayerMovementComponent();
@@ -174,6 +181,7 @@ public:
 	virtual FVector GetAirControl(float DeltaTime, float TickAirControl, const FVector& FallAcceleration) override;
 	virtual void StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc) override;
 	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
+	virtual void AddImpulse(FVector Impulse, bool bVelocityChange) override;
 
 	virtual float GetMaxSpeed() const override;
 	virtual float GetMaxAcceleration() const override;

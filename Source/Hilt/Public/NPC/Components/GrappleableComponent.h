@@ -17,7 +17,7 @@ class UGrappleableComponent : public USceneComponent
 public:
 
 	//eventtype(s)
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartGrapple, AActor*, GrapplingActor, const FHitResult&, HitResult);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGrapple, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCollisionGrapple, AActor*, GrapplingActor, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
 
@@ -42,7 +42,7 @@ public:
 
 	//function called when the grappling actor starts grappling to this actor
 	UFUNCTION(BlueprintCallable)
-	virtual void OnStartGrapple(AActor* OtherActor, const FHitResult& HitResult);
+	virtual void OnStartGrapple(const FHitResult& HitResult);
 
 	//function called when the grappling actor rope collides with this actor
 	UFUNCTION(BlueprintCallable)
