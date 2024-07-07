@@ -747,15 +747,15 @@ FVector URopeComponent::GetRopeDirection(const int RopeDirectionChecks) const
 			ReturnVec += LocGrappleDirection;
 		}
 
-		////normalize the return vector
-		//ReturnVec.Normalize();
+		//normalize the return vector
+		ReturnVec.Normalize();
 
 		//return the return vector
 		return ReturnVec;
 	}
 
 	//get the direction from the first rope point to the second rope point
- 	return (RopePoints[1].GetWL() - RopePoints[0].GetWL())/*.GetSafeNormal()*/;
+ 	return (RopePoints[1].GetWL() - RopePoints[0].GetWL()).GetSafeNormal();
 }
 
 float URopeComponent::GetRopeLength() const
