@@ -5,7 +5,7 @@ UGrappleableComponent::UGrappleableComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UGrappleableComponent::OnStartGrapple(AActor* OtherActor, const FHitResult& HitResult)
+void UGrappleableComponent::OnStartGrapple(const FHitResult& HitResult)
 {
 	//get the hit location as relative to this actor
 	const FVector HitLocation = GetComponentTransform().InverseTransformPosition(HitResult.Location);
@@ -14,7 +14,7 @@ void UGrappleableComponent::OnStartGrapple(AActor* OtherActor, const FHitResult&
 	SetRelativeLocation(HitLocation);
 
 	//broadcast the event
-	OnStartGrappleEvent.Broadcast(OtherActor, HitResult);
+	OnStartGrappleEvent.Broadcast(HitResult);
 }
 
 void UGrappleableComponent::OnCollisionGrapple(AActor* OtherActor, const FHitResult& HitResult)

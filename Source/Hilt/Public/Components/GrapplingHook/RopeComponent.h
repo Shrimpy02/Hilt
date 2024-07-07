@@ -264,7 +264,7 @@ public:
 
 	//function to activate the rope
 	UFUNCTION()
-	void ActivateRope(AActor* OtherActor, const FHitResult& HitResult);
+	void ActivateRope(const FHitResult& HitResult);
 
 	/**
 	 * Getters
