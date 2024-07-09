@@ -276,6 +276,26 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 		ReturnVec *= Value;
 	}
 
+	//check if we have a valid GrappleMovementSpeedCurve
+	if (GrappleMovementSpeedCurve)
+	{
+		//get the grapple velocity movement input curve value
+		const float Value = GrappleMovementSpeedCurve->GetFloatValue(ReturnVec.GetClampedToMaxSize(PlayerMovementComponent->SpeedLimit).Size() / PlayerMovementComponent->SpeedLimit);
+
+		//multiply the return vector
+		ReturnVec *= Value;
+	}
+
+	//check if we have a valid GrappleMovementDirectionCurve
+	if (GrappleMovementDirectionCurve)
+	{
+		//get the grapple direction movement input curve value
+		const float Value = GrappleMovementDirectionCurve->GetFloatValue(FVector::DotProduct(ReturnVec.GetSafeNormal(), PlayerMovementComponent->Velocity.GetSafeNormal()));
+
+		//multiply the return vector
+		ReturnVec *= Value;
+	}
+
 	//return the return vector
 	return ReturnVec;
 }

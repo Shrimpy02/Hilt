@@ -31,15 +31,15 @@ public:
 
 	//the max movement speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
-	float MaxFallSpeed = 2000.f;
+	float MaxFallSpeed = 2000;
 
 	//the minimum speed to launch the character off of a collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
-	float MinCollisionLaunchSpeed = 2000.f;
+	float MinCollisionLaunchSpeed = 2000;
 
 	//the maximum speed to launch the character off of a collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
-	float MaxCollisionLaunchSpeed = 4000.f;
+	float MaxCollisionLaunchSpeed = 4000;
 
 	//the dot product to use for what is considered a head on collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
@@ -75,11 +75,11 @@ public:
 
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float SpeedLimit = 4000.f;
+	float SpeedLimit = 4000;
 
 	//the minimum speed before the character will be able to do a super jump
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float MinSpeedForBoostedJump = 2000.f;
+	float MinSpeedForBoostedJump = 2000;
 
 	//whether or not the player is currently forced to be under the speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -87,33 +87,37 @@ public:
 
 	//the built up excess speed from applying the speed limit
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	float ExcessSpeed = 0.f;
+	float ExcessSpeed = 0;
 
 	//the max excess speed that can be built up
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float MaxExcessSpeed = 1000.f;
+	float MaxExcessSpeed = 1000;
 
 	//the degredation rate of the excess speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float ExcessSpeedDegredationRate = 10.f;
+	float ExcessSpeedDegredationRate = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Walking")
-	float MaxWalkingAcceleration = 1000.f;
+	float MaxWalkingAcceleration = 1000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling")
-	float AvoidBunnyJumpTraceDistance = 1000.f;
+	float AvoidBunnyJumpTraceDistance = 1000;
 
 	//whether or not the player is currently sliding
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
 	bool bIsSliding = false;
 
-	//the minimum speed that must be maintained to continue sliding
+	//the minimum speewd that must be maintained to continue sliding
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
-	float MinSlideSpeed = 2000.f;
+	float MinSlideSpeed = 0;
 
-	////the acceleration to apply when sliding
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
-	//float SlideAcceleration = 1000.f;
+	//the speed to add to the player when starting a slide
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
+	float MinSlideStartSpeed = 1000;
+
+	//the rotation rate to apply when sliding
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
+	FRotator SlideRotationRate = FRotator(0, 30, 0);
 
 	//whether or not the player is brake sliding
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding|BrakeSliding")
@@ -123,17 +127,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding|BrakeSliding")
 	float BrakeSlidingDotProduct = 0.8f;
 
+	//whether or not the player can super jump
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SuperJump")
+	bool bCanSuperJump = true;
+
 	//the amount of force to apply in the direction the player is looking when jumping
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float DirectionalJumpForce = 3000.f;
+	float DirectionalJumpForce = 3000;
 
 	//the amount of boost to give to the character while a directional jump is providing force
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float DirectionalJumpGlideForce = 500.f;
+	float DirectionalJumpGlideForce = 500;
 
 	//the amount of boost to apply when boosting a jump
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float JumpBoostAmount = 500.f;
+	float JumpBoostAmount = 500;
 
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
@@ -146,7 +154,7 @@ public:
 	FVector LastDirectionalJumpDirection = FVector::UpVector;
 
 	//the current slide speed (from either landing or starting a slide)
-	float CurrentSlideSpeed = 0.f;
+	float CurrentSlideSpeed = 0;
 
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
@@ -167,6 +175,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void StopSlide();
 
+	//function to get whether or not the player is currently sliding
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsSliding() const;
+
 	//override functions
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -182,7 +194,8 @@ public:
 	virtual void StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc) override;
 	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
 	virtual void AddImpulse(FVector Impulse, bool bVelocityChange) override;
-
+	static float GetAxisDeltaRotation(float InAxisRotationRate, float DeltaTime);
+	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
 	virtual float GetMaxSpeed() const override;
 	virtual float GetMaxAcceleration() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
