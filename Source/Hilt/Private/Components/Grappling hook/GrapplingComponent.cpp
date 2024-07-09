@@ -204,6 +204,9 @@ void UGrapplingComponent::StopGrapple()
 
 	//set borientrotationtoMovement to true
 	PlayerMovementComponent->bOrientRotationToMovement = true;
+
+	//stop any potential perch
+	PlayerMovementComponent->StopPerch();
 }
 
 void UGrapplingComponent::StartGrappleCheck()
