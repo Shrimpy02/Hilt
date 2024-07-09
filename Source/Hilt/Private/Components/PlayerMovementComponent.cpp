@@ -539,7 +539,7 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 {
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
-	if (Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0)
+	if (Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0 && bCanSuperJump)
 	{
 		//get the direction of the jump
 		LastDirectionalJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();

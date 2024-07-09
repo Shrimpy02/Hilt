@@ -129,7 +129,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	UCurveFloat* GrappleDistanceCurve = nullptr;
 
-	//the float curve used to modify the grapple velocity based on the player's velocity when using wasd
+	//the float curve used to modify the grapple velocity based on the player's velocity when in addtovelocity mode
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	UCurveFloat* GrappleVelocityCurve = nullptr;
 
@@ -140,6 +140,14 @@ public:
 	//the float curve to use when applying the grapple wasd movement using the rope length divided by the max grapple distance (1 = max distance, 0 = 0 distance, clamped to 0-1)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementDistanceInputCurve = nullptr;
+
+	//the float curve to modify the grapple wasd movement based on the player's velocity magnitu
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleMovementSpeedCurve = nullptr;
+
+	//the float curve modify the grapple wasd movement based on the player's velocity direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleMovementDirectionCurve = nullptr;
 
 	//the friction to use when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")

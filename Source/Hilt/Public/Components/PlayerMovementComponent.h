@@ -127,6 +127,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding|BrakeSliding")
 	float BrakeSlidingDotProduct = 0.8f;
 
+	//whether or not the player can super jump
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SuperJump")
+	bool bCanSuperJump = true;
+
 	//the amount of force to apply in the direction the player is looking when jumping
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float DirectionalJumpForce = 3000;
