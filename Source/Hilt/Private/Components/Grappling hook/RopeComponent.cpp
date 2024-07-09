@@ -641,10 +641,10 @@ void URopeComponent::DeactivateRope()
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef (non-const reference is required for the OtherActor parameter)
-void URopeComponent::ActivateRope(AActor* OtherActor, const FHitResult& HitResult)
+void URopeComponent::ActivateRope(const FHitResult& HitResult)
 {
 	//set the grappleable component
-	this->GrappleableComponent = OtherActor->FindComponentByClass<UGrappleableComponent>();
+	this->GrappleableComponent = HitResult.GetActor()->FindComponentByClass<UGrappleableComponent>();
 
 	//set the active state to true
 	bIsRopeActive = true;
@@ -755,7 +755,7 @@ FVector URopeComponent::GetRopeDirection(const int RopeDirectionChecks) const
 	}
 
 	//get the direction from the first rope point to the second rope point
-	return (RopePoints[1].GetWL() - RopePoints[0].GetWL()).GetSafeNormal();
+ 	return (RopePoints[1].GetWL() - RopePoints[0].GetWL()).GetSafeNormal();
 }
 
 float URopeComponent::GetRopeLength() const
