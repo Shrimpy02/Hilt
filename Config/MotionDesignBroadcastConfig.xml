@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ObjectFileDocument Version="1.0">
+  <Record>
+    <Field Name="AvaBroadcast">
+      <Record>
+        <Field Name="CurrentProfile" Value="Profile" />
+        <Field Name="ChannelNames">
+          <Array Size="1">
+            <ArrayElement Value="Channel_0" />
+          </Array>
+        </Field>
+        <Field Name="Profiles">
+          <Record>
+            <Field Name="KeysToRemove">
+              <Array Size="0" />
+            </Field>
+            <Field Name="Entries">
+              <Array Size="1">
+                <ArrayElement>
+                  <Record>
+                    <Field Name="Key" Value="Profile" />
+                    <Field Name="Value">
+                      <Record>
+                        <Field Name="Channels">
+                          <AttributedValue>
+                            <Attribute Name="Type" Value="ArrayProperty(StructProperty(AvaBroadcastOutputChannel(/Script/AvalancheMedia)))" />
+                            <Attribute Name="PropertyExtensions" Value="0" />
+                            <AttributedValueValue>
+                              <Array Size="1">
+                                <ArrayElement>
+                                  <Record>
+                                    <Field Name="ChannelIndex">
+                                      <AttributedValue>
+                                        <Attribute Name="Type" Value="IntProperty" />
+                                        <Attribute Name="PropertyExtensions" Value="0" />
+                                        <AttributedValueValue Value="0" />
+                                      </AttributedValue>
+                                    </Field>
+                                    <Field Name="MediaOutputs">
+                                      <AttributedValue>
+                                        <Attribute Name="Type" Value="ArrayProperty(ObjectProperty)" />
+                                        <Attribute Name="PropertyExtensions" Value="0" />
+                                        <AttributedValueValue>
+                                          <Array Size="0" />
+                                        </AttributedValueValue>
+                                      </AttributedValue>
+                                    </Field>
+                                    <Field Name="MediaOutputInfos">
+                                      <AttributedValue>
+                                        <Attribute Name="Type" Value="ArrayProperty(StructProperty(AvaBroadcastMediaOutputInfo(/Script/AvalancheMedia)))" />
+                                        <Attribute Name="PropertyExtensions" Value="0" />
+                                        <AttributedValueValue>
+                                          <Array Size="0" />
+                                        </AttributedValueValue>
+                                      </AttributedValue>
+                                    </Field>
+                                    <Field Name="QualitySettings">
+                                      <AttributedValue>
+                                        <Attribute Name="Type" Value="StructProperty(AvaViewportQualitySettings(/Script/Avalanche))" />
+                                        <Attribute Name="PropertyExtensions" Value="0" />
+                                        <AttributedValueValue>
+                                          <Record>
+                                            <Field Name="Features">
+                                              <AttributedValue>
+                                                <Attribute Name="Type" Value="ArrayProperty(StructProperty(AvaViewportQualitySettingsFeature(/Script/Avalanche)))" />
+                                                <Attribute Name="PropertyExtensions" Value="0" />
+                                                <AttributedValueValue>
+                                                  <Array Size="36">
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="AmbientCubemap" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="AmbientOcclusion" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="AntiAliasing" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="EyeAdaptation" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="CapsuleShadows" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="ContactShadows" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="DepthOfField" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="DirectLighting" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="DisableOcclusionQueries" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="DistanceFieldAO" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="DynamicShadows" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="GlobalIllumination" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="IndirectLightingCache" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LensFlares" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LightShafts" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenDetailTraces" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenFarFieldTraces" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenGlobalIllumination" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenGlobalTraces" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenReflections" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenReuseShadowMaps" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenScreenSpaceDirectionalOcclusion" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="LumenSecondaryBounces" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="MotionBlur" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="PrecomputedVisibility" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="RayTracedDistanceFieldShadows" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="ReflectionEnvironment" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="ScreenSpaceAO" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="ScreenSpaceReflections" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="SeparateTranslucency" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="0" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="SubsurfaceScattering" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="TemporalAA" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="TexturedLightProfiles" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="Translucency" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="VolumetricFog" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                    <ArrayElement>
+                                                      <Record>
+                                                        <Field Name="Name">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="StrProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="VolumetricLightmap" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                        <Field Name="Enabled">
+                                                          <AttributedValue>
+                                                            <Attribute Name="Type" Value="BoolProperty" />
+                                                            <Attribute Name="PropertyExtensions" Value="0" />
+                                                            <AttributedValueValue Value="1" />
+                                                          </AttributedValue>
+                                                        </Field>
+                                                      </Record>
+                                                    </ArrayElement>
+                                                  </Array>
+                                                </AttributedValueValue>
+                                              </AttributedValue>
+                                            </Field>
+                                          </Record>
+                                        </AttributedValueValue>
+                                      </AttributedValue>
+                                    </Field>
+                                  </Record>
+                                </ArrayElement>
+                              </Array>
+                            </AttributedValueValue>
+                          </AttributedValue>
+                        </Field>
+                      </Record>
+                    </Field>
+                  </Record>
+                </ArrayElement>
+              </Array>
+            </Field>
+          </Record>
+        </Field>
+        <Field Name="ChannelTypes">
+          <Record>
+            <Field Name="KeysToRemove">
+              <Array Size="0" />
+            </Field>
+            <Field Name="Entries">
+              <Array Size="0" />
+            </Field>
+          </Record>
+        </Field>
+        <Field Name="PinnedChannels">
+          <Record>
+            <Field Name="KeysToRemove">
+              <Array Size="0" />
+            </Field>
+            <Field Name="Entries">
+              <Array Size="0" />
+            </Field>
+          </Record>
+        </Field>
+      </Record>
+    </Field>
+  </Record>
+</ObjectFileDocument>
