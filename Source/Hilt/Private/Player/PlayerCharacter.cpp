@@ -147,6 +147,15 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 	//get the right vector from the control rotation
 	const FVector PlayerDirectionYaw_Left_Right = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Y);
 
+	//check if we're not sliding
+	if (PlayerMovementComponent->IsSliding())
+	{
+		//add left/right movement input
+		AddMovementInput(GetActorRightVector(), VectorDirection.X);
+
+		return;
+	}
+	
 	//add forward/backwards movement input
 	AddMovementInput(PlayerDirectionYaw_Forward_Backward, VectorDirection.Y);
 
