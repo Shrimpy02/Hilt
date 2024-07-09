@@ -223,6 +223,9 @@ void APlayerCharacter::DoJump(const FInputActionValue& Value)
 {
 	//call the jump function
 	Jump();
+
+	//stop any potential perching
+	PlayerMovementComponent->StopPerch();
 }
 
 void APlayerCharacter::StopTheJumping(const FInputActionValue& Value)
