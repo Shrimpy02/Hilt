@@ -46,7 +46,7 @@ class UGrapplingComponent : public UActorComponent
 public:
 
 	//events for the grappling
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartGrapple, AActor*, OtherActor, const FHitResult&, HitResult);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGrapple, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWhileGrappled, float, DeltaTime);
 
@@ -129,6 +129,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	UCurveFloat* GrappleDistanceCurve = nullptr;
 
+	//the float curve used to modify the grapple velocity based on the player's velocity when using wasd
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleVelocityCurve = nullptr;
+
 	//the float curve to use when applying the grapple wasd movement using the dot product of the character's up vector (so a 90 degree angle off of the the vector pointing to the grappling point) and the velocity that will be added from this input (-1 = opposite direction, 0 = perpendicular(90 degrees), 1 = same direction)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementAngleInputCurve = nullptr;
@@ -193,7 +197,7 @@ public:
 
 	//start grappling function
 	UFUNCTION(BlueprintCallable)
-	void StartGrapple(AActor* OtherActor, const FHitResult& HitResult);
+	void StartGrapple(const FHitResult& HitResult);
 
 	//stop grappling function
 	UFUNCTION(BlueprintCallable)
@@ -229,10 +233,6 @@ public:
 	/**
 	 * Getters
 	*/
-
-	//function to get the direction of the grapple (not blueprint callable due to it possibly being expensive for performance)
-	UFUNCTION()
-	FVector GetGrappleDirection() const;
 
 	//function to get the grapple interp struct to use
 	UFUNCTION(BlueprintCallable)

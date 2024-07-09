@@ -249,7 +249,7 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 	if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
 	{
 		//check if the surface normal is close to the opposite of the grapple direction
-		if (float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection); LocDot > -0.8)
+		if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), LocDot));
 
@@ -318,6 +318,15 @@ void UPlayerMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
 
 	//delegate to the parent implementation
 	Super::PhysFalling(deltaTime, Iterations);
+}
+
+void UPlayerMovementComponent::AddImpulse(FVector Impulse, bool bVelocityChange)
+{
+	//call the parent implementation
+	Super::AddImpulse(Impulse, bVelocityChange);
+
+	//broadcast the blueprint event
+	OnPlayerImpulse.Broadcast(Impulse, bVelocityChange);
 }
 
 float UPlayerMovementComponent::GetMaxSpeed() const
