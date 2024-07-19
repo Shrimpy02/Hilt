@@ -76,29 +76,6 @@ bool UPlayerMovementComponent::IsSliding() const
 	return bIsSliding && IsWalking() && !IsFalling();
 }
 
-void UPlayerMovementComponent::StartPerch()
-{
-	//stop grappling
-	PlayerPawn->GrappleComponent->StopGrapple();
-
-	//set the perched variable to true
-	bIsPerched = true;
-
-	//set the velocity to zero
-	Velocity = FVector::ZeroVector;
-}
-
-void UPlayerMovementComponent::StopPerch()
-{
-	//set the perched variable to false
-	bIsPerched = false;
-}
-
-bool UPlayerMovementComponent::IsPerched() const
-{
-	return bIsPerched && !PlayerPawn->GrappleComponent->bIsGrappling;
-}
-
 void UPlayerMovementComponent::BeginPlay()
 {
 	//call the parent implementation
@@ -118,13 +95,6 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	//clamp the excess speed
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
-
-	//check if we're perched
-	if (IsPerched())
-	{
-		//set the velocity to zero
-		Velocity = FVector::ZeroVector;
-	}
 }
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
@@ -149,12 +119,6 @@ void UPlayerMovementComponent::Launch(FVector const& LaunchVel)
 
 FVector UPlayerMovementComponent::ConsumeInputVector()
 {
-	//check if we don't have a valid player pawn or we're perched
-	if (!PlayerPawn || IsPerched())
-	{
-		return FVector::ZeroVector;
-	}
-
 	//Store the input vector
 	const FVector ReturnVec = Super::ConsumeInputVector();
 
@@ -285,12 +249,6 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 
 float UPlayerMovementComponent::GetGravityZ() const
 {
-	//check if we don't have a valid player pawn or we're perched
-	if (!PlayerPawn || bIsPerched)
-	{
-		return 0;
-	}
-
 	//check if the player is grappling and we're not applying gravity when grappling
 	if (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->bApplyGravityWhenGrappling)
 	{
@@ -459,13 +417,6 @@ float UPlayerMovementComponent::GetMaxAcceleration() const
 
 void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta)
 {
-	//check if we're grappling
-	if (PlayerPawn->GrappleComponent->bIsGrappling && PlayerPawn->GrappleComponent->GrappleMode == InterpVelocity)
-	{
-		//start perching
-		StartPerch();
-	}
-
 	//check if the surface normal should be considered a floor
 	if (Hit.ImpactNormal.Z >= GetWalkableFloorZ())
 	{
