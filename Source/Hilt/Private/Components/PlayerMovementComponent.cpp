@@ -119,6 +119,12 @@ void UPlayerMovementComponent::Launch(FVector const& LaunchVel)
 
 FVector UPlayerMovementComponent::ConsumeInputVector()
 {
+	//check if we don't have a valid player pawn or we're perched
+	if (!PlayerPawn)
+	{
+		return FVector::ZeroVector;
+	}
+
 	//Store the input vector
 	const FVector ReturnVec = Super::ConsumeInputVector();
 
@@ -249,6 +255,12 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 
 float UPlayerMovementComponent::GetGravityZ() const
 {
+	//check if we don't have a valid player pawn or we're perched
+	if (!PlayerPawn)
+	{
+		return 0;
+	}
+
 	//check if the player is grappling and we're not applying gravity when grappling
 	if (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->bApplyGravityWhenGrappling)
 	{
