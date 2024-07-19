@@ -135,10 +135,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float DirectionalJumpForce = 3000;
 
-	//the amount of boost to give to the character while a directional jump is providing force
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float DirectionalJumpGlideForce = 500;
-
 	//the amount of boost to apply when boosting a jump
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500;
@@ -146,10 +142,6 @@ public:
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;
-
-	//whether or not the player is currently perched on a wall
-	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
-	bool bIsPerched = false;
 
 	//whether or not last jump was a directional jump
 	bool bLastJumpWasDirectional = false;
@@ -182,18 +174,6 @@ public:
 	//function to get whether or not the player is currently sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsSliding() const;
-
-	//function to start perching
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void StartPerch();
-
-	//function to stop perching
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void StopPerch();
-
-	//function to get whether or not the player is currently perched
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool IsPerched() const;
 
 	//override functions
 	virtual void BeginPlay() override;
