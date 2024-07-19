@@ -135,10 +135,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float DirectionalJumpForce = 3000;
 
-	//the amount of boost to give to the character while a directional jump is providing force
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float DirectionalJumpGlideForce = 500;
-
 	//the amount of boost to apply when boosting a jump
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500;

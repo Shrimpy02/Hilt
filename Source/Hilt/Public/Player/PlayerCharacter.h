@@ -41,6 +41,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class URopeComponent* RopeComponent;
 
+	//the secondary skeletal mesh for the rope component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class USkeletalMeshComponent* RopeMesh;
+
 	//input data asset to use for setting up input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UInputDataAsset* InputDataAsset;
