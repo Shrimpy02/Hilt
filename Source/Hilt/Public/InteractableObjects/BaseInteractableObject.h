@@ -64,7 +64,7 @@ public:
 	virtual bool IsActive();
 
 	UFUNCTION()
-	void ToggleGrappleOn(AActor* GrapplingActor, const FHitResult& HitResult);
+	void ToggleGrappleOn(const FHitResult& HitResult);
 
 	UFUNCTION()
 	void ToggleGrappleOff();

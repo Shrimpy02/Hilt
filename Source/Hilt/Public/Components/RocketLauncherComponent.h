@@ -55,7 +55,6 @@ public:
 	//the rocket explosion class to spawn when the rocket hits something
 	UPROPERTY(EditAnywhere, Category = "Rocket Launcher")
 	TSubclassOf<AActor> RocketExplosionClass;
-
 	
 	//override(s)
 	virtual AActor* FireProjectile(FVector Direction) override;

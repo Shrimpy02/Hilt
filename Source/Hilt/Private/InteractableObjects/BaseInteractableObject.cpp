@@ -108,7 +108,7 @@ bool ABaseInteractableObject::IsActive()
 	return Tags.Contains(HiltTags::ObjectActiveTag) ? true : false;
 }
 
-void ABaseInteractableObject::ToggleGrappleOn(AActor* GrapplingActor, const FHitResult& HitResult)
+void ABaseInteractableObject::ToggleGrappleOn(const FHitResult& HitResult)
 {
 	isBeingGrappled = true;
 	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Grapple on"));

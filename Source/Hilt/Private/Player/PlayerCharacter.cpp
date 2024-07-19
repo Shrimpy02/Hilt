@@ -120,14 +120,17 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 		//get the up vector from the control rotation
 		const FVector PlayerDirectionYaw_Upwards_Downwards = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Z);
 
+		//get the rope direction
+		const FVector RopeDirection = RopeComponent->GetRopeDirection(0).GetSafeNormal();
+
 		//get the X axis for the movement input
-		const FVector MovementXAxis = FVector::CrossProduct(PlayerDirectionYaw_Upwards_Downwards.GetSafeNormal(), GrappleComponent->GetGrappleDirection()).GetSafeNormal();
+		const FVector MovementXAxis = FVector::CrossProduct(PlayerDirectionYaw_Upwards_Downwards.GetSafeNormal(), RopeDirection).GetSafeNormal();
 
 		//get the right vector from the control rotation
 		const FVector PlayerDirectionYaw_Left_Right = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Y);
 
 		//get the X axis for the movement input
-		const FVector MovementYAxis = FVector::CrossProduct((PlayerDirectionYaw_Left_Right * -1).GetSafeNormal(), GrappleComponent->GetGrappleDirection()).GetSafeNormal();
+		const FVector MovementYAxis = FVector::CrossProduct((PlayerDirectionYaw_Left_Right * -1).GetSafeNormal(), RopeDirection).GetSafeNormal();
 
 		//add upwards/downwards movement input
 		AddMovementInput(MovementYAxis, VectorDirection.Y);
@@ -144,6 +147,15 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 	//get the right vector from the control rotation
 	const FVector PlayerDirectionYaw_Left_Right = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Y);
 
+	//check if we're not sliding
+	if (PlayerMovementComponent->IsSliding())
+	{
+		//add left/right movement input
+		AddMovementInput(GetActorRightVector(), VectorDirection.X);
+
+		return;
+	}
+	
 	//add forward/backwards movement input
 	AddMovementInput(PlayerDirectionYaw_Forward_Backward, VectorDirection.Y);
 
@@ -211,6 +223,9 @@ void APlayerCharacter::DoJump(const FInputActionValue& Value)
 {
 	//call the jump function
 	Jump();
+
+	//stop any potential perching
+	PlayerMovementComponent->StopPerch();
 }
 
 void APlayerCharacter::StopTheJumping(const FInputActionValue& Value)
