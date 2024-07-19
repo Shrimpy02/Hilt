@@ -119,17 +119,6 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	//clamp the excess speed
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
 
-	//check if we're sliding
-	if (IsSliding())
-	{
-		//check if the velocity is less than the minimum slide speed
-		if (Velocity.Size() < MinSlideSpeed)
-		{
-			//stop sliding
-			StopSlide();
-		}
-	}
-
 	//check if we're perched
 	if (IsPerched())
 	{
@@ -140,14 +129,8 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
 {
-	FVector Result = Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);
-
-	//check if jump is providing force
-	if (GetCharacterOwner()->JumpForceTimeRemaining > 0 && bLastJumpWasDirectional)
-	{
-		//add the directional jump glide force to the result
-		Result += LastDirectionalJumpDirection * DirectionalJumpGlideForce * DeltaTime;
-	}
+	//get the result from the parent implementation
+	const FVector Result = Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);
 
 	//check if we're applying the speed limit
 	if (bIsSpeedLimited)
@@ -576,15 +559,15 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 {
-	//check if we're sliding
-	if (IsSliding())
-	{
-		//set the velocity to the camera direction
-		Velocity = GetOwner()->GetActorForwardVector() * Velocity.Size();
-	}
+	////check if we're sliding
+	//if (IsSliding())
+	//{
+	//	//set the velocity to the camera direction
+	//	Velocity = GetOwner()->GetActorForwardVector() * Velocity.Size();
+	//}
 
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
-	if (Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0 && bCanSuperJump)
+	if ((Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0 && bCanSuperJump) || IsSliding())
 	{
 		//get the direction of the jump
 		LastDirectionalJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();
@@ -598,16 +581,26 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		//check if the dot product is less than or equal to 0
 		if (DotProduct <= 0)
 		{
-			//set the velocity
-			Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
+			////set the velocity
+			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
+			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce;
+
+			//print on screen debug message
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Yellow, TEXT("Super Jump 1"));
 
 			////call the blueprint event
 			//OnCorrectedDirectionalJump.Broadcast(LastDirectionalJumpDirection, Velocity.GetSafeNormal());
 		}
 		else
 		{
-			//set the velocity
-			Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
+			////set the velocity
+			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
+			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce;
+
+			//print on screen debug message
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Yellow, TEXT("Super Jump 2"));
 
 			////call the blueprint event
 			//OnDirectionalJump.Broadcast(LastDirectionalJumpDirection);

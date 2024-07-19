@@ -80,7 +80,14 @@ FVector FRopePoint::GetWL() const
 	//check if we're using a component for this rope point
 	if (Component->IsValidLowLevelFast())
 	{
-		//default to the relative location transformed by the attached actor's transform
+		//check if the component has a socket named "GrapplingHookSocket" and that the component is visible
+		if (Component->DoesSocketExist("GrapplingHookSocket") && Component->IsVisible())
+		{
+			//default to the relative location transformed by the attached actor's transform
+			return Component->GetSocketLocation("GrapplingHookSocket");
+		}
+
+		//default to components location
 		return Component->GetComponentLocation();
 	}
 
@@ -139,6 +146,19 @@ URopeComponent::URopeComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	bAutoActivate = true;
 	UActorComponent::SetComponentTickEnabled(true);
+}
+
+void URopeComponent::BeginPlay()
+{
+	//call the parent implementation
+	Super::BeginPlay();
+
+	//cast the owner to a player character
+	if (APlayerCharacter* LocPlayerCharacter = Cast<APlayerCharacter>(GetOwner()))
+	{
+		//set the player character
+		PlayerCharacter = LocPlayerCharacter;
+	}
 }
 
 void URopeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -651,7 +671,7 @@ void URopeComponent::ActivateRope(const FHitResult& HitResult)
 
 	//set the rope points
 	RopePoints = { FRopePoint(GetOwner(), GetComponentLocation()), FRopePoint(HitResult) };
-	RopePoints[0].Component = this;
+	RopePoints[0].Component = PlayerCharacter->RopeMesh;
 
 	//get the direction from the first rope point to the second rope point
 	const FVector Direction = RopePoints[1].GetWL() - RopePoints[0].GetWL();
