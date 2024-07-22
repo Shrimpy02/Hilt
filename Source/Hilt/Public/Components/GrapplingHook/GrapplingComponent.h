@@ -46,7 +46,7 @@ class UGrapplingComponent : public UActorComponent
 public:
 
 	//events for the grappling
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartGrapple, AActor*, OtherActor, const FHitResult&, HitResult);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGrapple, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWhileGrappled, float, DeltaTime);
 
@@ -74,6 +74,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsGrappling = false;
 
+	//whether or not we're using debug mode
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	bool bUseDebugMode = false;
+
 	//the current grapple mode
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<EGrapplingMode> GrappleMode = AddToVelocity;
@@ -96,10 +100,6 @@ public:
 	//the movement input modifier to use when processing the grapple movement input curve
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float GrappleMovementInputModifier = 20;
-
-	//grappledown input modifier to use when processing the grapple movement input curve
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float GrappleDownInputModifier = 1;
 
 	//the air control you have when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -129,6 +129,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	UCurveFloat* GrappleDistanceCurve = nullptr;
 
+	//the float curve used to modify the grapple velocity based on the player's velocity when in addtovelocity mode
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleVelocityCurve = nullptr;
+
 	//the float curve to use when applying the grapple wasd movement using the dot product of the character's up vector (so a 90 degree angle off of the the vector pointing to the grappling point) and the velocity that will be added from this input (-1 = opposite direction, 0 = perpendicular(90 degrees), 1 = same direction)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementAngleInputCurve = nullptr;
@@ -136,6 +140,22 @@ public:
 	//the float curve to use when applying the grapple wasd movement using the rope length divided by the max grapple distance (1 = max distance, 0 = 0 distance, clamped to 0-1)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Movement")
 	UCurveFloat* GrappleMovementDistanceInputCurve = nullptr;
+
+	//the float curve to modify the grapple wasd movement based on the player's velocity magnitu
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleMovementSpeedCurve = nullptr;
+
+	//the float curve modify the grapple wasd movement based on the player's velocity direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleMovementDirectionCurve = nullptr;
+
+	//the friction to use when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleFriction = 0.5f;
+
+	//the number of points to search for when checking the direction of the rope
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	int GrappleDirectionChecks = 15;
 
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -185,7 +205,7 @@ public:
 
 	//start grappling function
 	UFUNCTION(BlueprintCallable)
-	void StartGrapple(AActor* OtherActor, const FHitResult& HitResult);
+	void StartGrapple(const FHitResult& HitResult);
 
 	//stop grappling function
 	UFUNCTION(BlueprintCallable)
@@ -198,6 +218,10 @@ public:
 	//function to process the grapple input
 	UFUNCTION(BlueprintCallable)
 	FVector ProcessGrappleInput(FVector MovementInput);
+
+	//function for the rope to pull the player
+	UFUNCTION(BlueprintCallable)
+	void PullPlayer(FVector Vector);
 
 private:
 
@@ -217,10 +241,6 @@ public:
 	/**
 	 * Getters
 	*/
-
-	//function to get the direction of the grapple
-	UFUNCTION(BlueprintCallable)
-	FVector GetGrappleDirection() const;
 
 	//function to get the grapple interp struct to use
 	UFUNCTION(BlueprintCallable)

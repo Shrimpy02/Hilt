@@ -63,7 +63,10 @@ public:
 	virtual void AddLevelPresence();
 	virtual bool IsActive();
 
-	void ToggleGrappleOn(AActor* GrapplingActor, const FHitResult& HitResult);
+	UFUNCTION()
+	void ToggleGrappleOn(const FHitResult& HitResult);
+
+	UFUNCTION()
 	void ToggleGrappleOff();
 
 	// VFX ------------------------------
