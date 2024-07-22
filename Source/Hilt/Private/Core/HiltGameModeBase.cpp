@@ -75,7 +75,10 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->SetActorLocation(spawnPoint->GetActorLocation());
 							PlayerCharacter->SetActorRotation(spawnPoint->GetActorRotation());
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
-							
+
+							// Set the camera rotation
+							FRotator NewCameraRotation = spawnPoint->GetActorRotation();
+							PC->SetControlRotation(NewCameraRotation);
 						}
 			}
 		}
