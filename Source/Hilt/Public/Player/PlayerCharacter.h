@@ -29,10 +29,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	class UPlayerMovementComponent* PlayerMovementComponent;
 
-	//the terrain gun component that handles the shoting of the terrain projectile, and turning that projectile into terrain
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UTerrainGunComponent* TerrainGunComponent;
-
 	//the rocket launcher component that handles the shooting of the rocket projectile
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class URocketLauncherComponent* RocketLauncherComponent;
@@ -44,6 +40,10 @@ public:
 	//the rope component that handles the rope that connects the player to the grappling hook
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class URopeComponent* RopeComponent;
+
+	//the secondary skeletal mesh for the rope component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class USkeletalMeshComponent* RopeMesh;
 
 	//input data asset to use for setting up input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -96,10 +96,6 @@ public:
 	//function to toggle pausing of the game
 	UFUNCTION()
 	void PauseGame(const FInputActionValue& Value);
-
-	//function to fire the terrain gun
-	UFUNCTION()
-	void FireTerrainGun(const FInputActionValue& Value);
 
 	//function to fire the rocket launcher
 	UFUNCTION()
