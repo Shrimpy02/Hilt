@@ -2,7 +2,9 @@
 #include "Core/HiltTags.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Components/PlayerMovementComponent.h"
+#include "Components/Camera/PlayerCameraComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
+#include "Player/PlayerCharacter.h"
 
 FGrappleInterpStruct::FGrappleInterpStruct(const float InPullSpeed, const float InPullAccel, const EInterpToTargetType InInterpMode): InInterpMode(InInterpMode), PullSpeed(InPullSpeed), PullAccel(InPullAccel)
 {
@@ -22,8 +24,8 @@ void UGrapplingComponent::BeginPlay()
 	//get the rope component
 	RopeComponent = GetOwner()->FindComponentByClass<URopeComponent>();
 
-	//get the player movement component
-	PlayerMovementComponent = GetOwner()->FindComponentByClass<UPlayerMovementComponent>();
+	//get the owner as a player character
+	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 
 	//setup start and stop grapple events for the rope component
 	OnStartGrapple.AddDynamic(RopeComponent, &URopeComponent::ActivateRope);
@@ -55,10 +57,10 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		ApplyPullForce(DeltaTime);
 
 		//check that we're not grounded
-		if (!PlayerMovementComponent->IsMovingOnGround() && -GrappleDirection.GetSafeNormal().Z < PlayerMovementComponent->GetWalkableFloorZ())
+		if (!PlayerCharacter->PlayerMovementComponent->IsMovingOnGround() && -GrappleDirection.GetSafeNormal().Z < PlayerCharacter->PlayerMovementComponent->GetWalkableFloorZ())
 		{
 			//set borientrotationtoMovement to false
-			PlayerMovementComponent->bOrientRotationToMovement = false;
+			PlayerCharacter->PlayerMovementComponent->bOrientRotationToMovement = false;
 
 			//set the rotation of the character to the grapple direction
 			GetOwner()->SetActorRotation(GrappleDirection.Rotation());
@@ -66,7 +68,7 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		else
 		{
 			//set borientrotationtoMovement to true
-			PlayerMovementComponent->bOrientRotationToMovement = true;
+			PlayerCharacter->PlayerMovementComponent->bOrientRotationToMovement = true;
 		}
 	}
 	else
@@ -88,7 +90,7 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 	if (!bUseDebugMode)
 	{
 		//set the movement mode to falling to prevent us from being stuck on the ground
-		PlayerMovementComponent->SetMovementMode(MOVE_Falling);
+		PlayerCharacter->PlayerMovementComponent->SetMovementMode(MOVE_Falling);
 	}
 
 	//check if the other actor is valid
@@ -134,6 +136,9 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 	//check if the other actor has a grappleable component
 	if (GrappleableComponent = HitResult.GetActor()->GetComponentByClass<UGrappleableComponent>(); GrappleableComponent->IsValidLowLevelFast())
 	{
+		//set bisgrappled to true
+		GrappleableComponent->bIsGrappled = true;
+
 		//bind the events to this component
 		OnStartGrapple.AddDynamic(GrappleableComponent, &UGrappleableComponent::OnStartGrapple);
 		OnStopGrapple.AddDynamic(GrappleableComponent, &UGrappleableComponent::OnStopGrapple);
@@ -186,6 +191,9 @@ void UGrapplingComponent::StopGrapple()
 	//check if we have a grappleable component
 	if (GrappleableComponent->IsValidLowLevelFast())
 	{
+		//set bisgrappled to false
+		GrappleableComponent->bIsGrappled = false;
+
 		//unbind the events from this component
 		OnStartGrapple.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::OnStartGrapple);
 		OnStopGrapple.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::OnStopGrapple);
@@ -193,7 +201,7 @@ void UGrapplingComponent::StopGrapple()
 	}
 
 	//reset the owner's rotation
-	GetOwner()->SetActorRotation(PlayerMovementComponent->Velocity.Rotation());
+	GetOwner()->SetActorRotation(PlayerCharacter->PlayerMovementComponent->Velocity.Rotation());
 
 	//check if we should disable gravity when grappling
 	if (bDisableGravityWhenGrappling)
@@ -203,7 +211,7 @@ void UGrapplingComponent::StopGrapple()
 	}
 
 	//set borientrotationtoMovement to true
-	PlayerMovementComponent->bOrientRotationToMovement = true;
+	PlayerCharacter->PlayerMovementComponent->bOrientRotationToMovement = true;
 }
 
 void UGrapplingComponent::StartGrappleCheck()
@@ -228,6 +236,22 @@ void UGrapplingComponent::StartGrappleCheck()
 FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 {
 	GrappleInput = MovementInput;
+
+	//check if the grapple input is zero
+	if (GrappleInput.IsNearlyZero())
+	{
+		//check if the input vector is nearly zero
+		SetGrappleMode(InterpVelocity);
+	}
+	else if (!GrappleableComponent->IsValidLowLevelFast())
+	{
+		//set the grapple mode to add to velocity
+		SetGrappleMode(AddToVelocity);
+	}
+	else if (!GrappleableComponent->bCanChangeGrappleMode)
+	{
+		return MovementInput;
+	}
 
 	////print the grapple input to the screen
 	//GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, FString::Printf(TEXT("GrappleInput: %s"), *GrappleInput.ToString()));
@@ -257,7 +281,13 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	if (GrappleMovementAngleInputCurve)
 	{
 		//get the dot product of the current grapple direction and the return vector
-		const float DotProduct = FVector::DotProduct(GetOwner()->GetActorUpVector(), MovementInput.GetSafeNormal());
+		const float DotProduct = FVector::DotProduct(PlayerCharacter->GetActorUpVector(),MovementInput.GetSafeNormal());
+
+		////print the dot product to the screen
+		//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
+
+		////draw a debug arrow in the direction of the movement input
+		//DrawDebugDirectionalArrow(GetWorld(), GetOwner()->GetActorLocation(), GetOwner()->GetActorLocation() + MovementInput * 100, 100, FColor::Red, false, 0, 0, 1);
 
 		//get the grapple angle movement input curve value
 		const float Value = GrappleMovementAngleInputCurve->GetFloatValue(DotProduct);
@@ -280,7 +310,7 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	if (GrappleMovementSpeedCurve)
 	{
 		//get the grapple velocity movement input curve value
-		const float Value = GrappleMovementSpeedCurve->GetFloatValue(ReturnVec.GetClampedToMaxSize(PlayerMovementComponent->SpeedLimit).Size() / PlayerMovementComponent->SpeedLimit);
+		const float Value = GrappleMovementSpeedCurve->GetFloatValue(ReturnVec.GetClampedToMaxSize(PlayerCharacter->PlayerMovementComponent->SpeedLimit).Size() / PlayerCharacter->PlayerMovementComponent->SpeedLimit);
 
 		//multiply the return vector
 		ReturnVec *= Value;
@@ -290,7 +320,7 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	if (GrappleMovementDirectionCurve)
 	{
 		//get the grapple direction movement input curve value
-		const float Value = GrappleMovementDirectionCurve->GetFloatValue(FVector::DotProduct(ReturnVec.GetSafeNormal(), PlayerMovementComponent->Velocity.GetSafeNormal()));
+		const float Value = GrappleMovementDirectionCurve->GetFloatValue(FVector::DotProduct(ReturnVec.GetSafeNormal(), PlayerCharacter->PlayerMovementComponent->Velocity.GetSafeNormal()));
 
 		//multiply the return vector
 		ReturnVec *= Value;
@@ -318,13 +348,13 @@ void UGrapplingComponent::PullPlayer(FVector Vector)
 		if (GrappleMode == AddToVelocity)
 		{
 			//add the grapple vector to the character's velocity
-			PlayerMovementComponent->Velocity += Vector;
+			PlayerCharacter->PlayerMovementComponent->Velocity += Vector;
 		}
 		//check if the grapple mode is set to InterpVelocity
 		else if (GrappleMode == InterpVelocity)
 		{
 			//interpolate the velocity
-			PlayerMovementComponent->Velocity = PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), Vector, GetWorld()->GetDeltaSeconds(), GetGrappleInterpStruct().PullAccel), GetWorld()->GetDeltaSeconds());
+			PlayerCharacter->PlayerMovementComponent->Velocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), Vector, GetWorld()->GetDeltaSeconds(), GetGrappleInterpStruct().PullAccel), GetWorld()->GetDeltaSeconds());
 		}
 	}
 }
@@ -339,16 +369,16 @@ void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVeloc
 	{
 		case InterpTo:
 			//interpolate the velocity
-			GrappleVelocity = PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel), DeltaTime);
+			GrappleVelocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel), DeltaTime);
 			break;
 		case InterpStep:
 			//interpolate the velocity
-			GrappleVelocity = PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel), DeltaTime);
+			GrappleVelocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel), DeltaTime);
 			break;
 
 		default /* constant */:
 			//interpolate the velocity
-			GrappleVelocity = PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpConstantTo(GetOwner()->GetVelocity(),  LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel), DeltaTime);
+			GrappleVelocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpConstantTo(GetOwner()->GetVelocity(),  LocGrappleDirection * GrappleInterpStruct.PullSpeed, DeltaTime, GrappleInterpStruct.PullAccel), DeltaTime);
 			break;
 	}
 
@@ -427,7 +457,7 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			if (GrappleVelocityCurve)
 			{
 				//get the grapple velocity curve value
-				const float VelocityValue = GrappleVelocityCurve->GetFloatValue(GrappleVelocity.GetClampedToMaxSize(PlayerMovementComponent->SpeedLimit).Size() / PlayerMovementComponent->SpeedLimit);
+				const float VelocityValue = GrappleVelocityCurve->GetFloatValue(GrappleVelocity.GetClampedToMaxSize(PlayerCharacter->PlayerMovementComponent->SpeedLimit).Size() / PlayerCharacter->PlayerMovementComponent->SpeedLimit);
 				
 				//multiply the grapple velocity by the grapple velocity curve value
 				GrappleVelocity *= VelocityValue;
@@ -440,12 +470,12 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			AbsoluteGrappleDotProduct = GetAbsoluteGrappleDotProduct(GrappleVelocity);
 
 			//apply the grapple velocity
-			PlayerMovementComponent->Velocity = PlayerMovementComponent->ApplySpeedLimit(PlayerMovementComponent->Velocity + GrappleVelocity, DeltaTime);
+			PlayerCharacter->PlayerMovementComponent->Velocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(PlayerCharacter->PlayerMovementComponent->Velocity + GrappleVelocity, DeltaTime);
 
 		break;
 		case InterpVelocity:
 			//do the interpolation
-			DoInterpGrapple(DeltaTime, PlayerMovementComponent->Velocity, GetGrappleInterpStruct());
+			DoInterpGrapple(DeltaTime, PlayerCharacter->PlayerMovementComponent->Velocity, GetGrappleInterpStruct());
 		break;
 	}
 }
