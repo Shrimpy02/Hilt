@@ -17,6 +17,7 @@ UPlayerMovementComponent::UPlayerMovementComponent()
 	AirControl = 2;
 	GravityScale = 4;
 	bApplyGravityWhileJumping = false;
+	bOrientRotationToMovement = true;
 	//FallingLateralFriction = 4;
 
 	BrakingDecelerationWalking = 1536;
@@ -54,15 +55,19 @@ FVector UPlayerMovementComponent::ApplySpeedLimit(const FVector& InVelocity, con
 void UPlayerMovementComponent::StartSlide()
 {
 	//check if our velocity is less than the minimum slide start speed
-	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling())
+	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling() && !IsSliding())
 	{
 		//set the velocity to the minimum slide start speed
 		Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
 	}
+	else if (IsSliding())
+	{
+		//set the velocity to the current slide speed
+		Velocity = Velocity.GetSafeNormal() * CurrentSlideSpeed;
+	}
 
 	//set slide variables
 	bIsSliding = true;
-	bIsBrakeSliding = false;
 	CurrentSlideSpeed = Velocity.Size();
 }
 
@@ -97,6 +102,49 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
 }
 
+FVector UPlayerMovementComponent::GetSlideSurfaceDirection()
+{
+	//get the normal of the surface we're sliding on
+	const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
+
+	//get the direction of gravity along the slide surface
+	const FVector GravitySurfaceDirection = FVector::VectorPlaneProject(GetGravityDirection(), SlideNormal).GetSafeNormal();
+
+	return GravitySurfaceDirection;
+}
+
+void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
+{
+	//check if we're sliding
+	if (IsSliding())
+	{
+		//rotate the character to the velocity direction
+		GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
+
+		//get the normal of the surface we're sliding on
+		const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
+
+		const FVector GravitySurfaceDirection = GetSlideSurfaceDirection();
+
+		//get the dot product of the gravity direction and the slide direction
+		const float DotProduct = 1 - FVector::DotProduct(SlideNormal, -GetGravityDirection());
+
+		//get the sign of the dot product of the gravity surface direction and the velocity
+		const float Sign = FMath::Sign(FVector::DotProduct(Velocity, GravitySurfaceDirection));
+		
+		//add the increase in speed to the current slide speed
+		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+
+		//add the slide gravity to the velocity
+		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
+		
+		//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), DotProduct));
+	}
+
+	//call the parent implementation
+	Super::PhysWalking(deltaTime, Iterations);
+}
+
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
 {
 	//get the result from the parent implementation
@@ -127,18 +175,6 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 
 	//Store the input vector
 	const FVector ReturnVec = Super::ConsumeInputVector();
-
-	//check if the input vector is nearly zero
-	if (ReturnVec.IsNearlyZero())
-	{
-		//set the grapple mode to set velocity
-		PlayerPawn->GrappleComponent->SetGrappleMode(InterpVelocity);
-	}
-	else
-	{
-		//set the grapple mode to add to velocity
-		PlayerPawn->GrappleComponent->SetGrappleMode(AddToVelocity);
-	}
 
 	//check if we're grappling
 	if(PlayerPawn->GrappleComponent->bIsGrappling)
@@ -196,16 +232,10 @@ void UPlayerMovementComponent::ApplyVelocityBraking(float DeltaTime, float Frict
 		Friction = WalkingBrakingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 	}
 	//check if we're sliding and walking
-	else if (IsSliding() && !bIsBrakeSliding)
+	else if (IsSliding())
 	{
 		//set the friction to 0
 		Friction = 0;
-	}
-	//check if we're sliding and walking and we're brake sliding
-	else if (IsSliding() && bIsBrakeSliding)
-	{
-		//set the friction to the value of the brake sliding friction curve
-		Friction = BrakeSlidingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 	}
 
 	//call the parent implementation
@@ -215,7 +245,7 @@ void UPlayerMovementComponent::ApplyVelocityBraking(float DeltaTime, float Frict
 void UPlayerMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration)
 {
 	//check if we're sliding and walking and we're not brake sliding
-	if (IsSliding() && !bIsBrakeSliding)
+	if (IsSliding())
 	{
 		//set the friction to the value of the sliding friction
 		Friction = SlidingGroundFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
@@ -240,14 +270,10 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 		//check if the surface normal is close to the opposite of the grapple direction
 		if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), LocDot));
-
 			//return false
 			return false;
 		}
 	}
-
-	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Dot: 0"));
 
 	//default to the parent implementation
 	return Super::IsValidLandingSpot(CapsuleLocation, Hit);
@@ -331,10 +357,8 @@ FRotator UPlayerMovementComponent::GetDeltaRotation(float DeltaTime) const
 	//check if we're sliding and walking
 	if (IsSliding())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Slide Rotation"));
-
 		//use the slide rotation rate instead of the regular rotation rate
-		return FRotator(GetAxisDeltaRotation(SlideRotationRate.Pitch, DeltaTime), GetAxisDeltaRotation(SlideRotationRate.Yaw, DeltaTime), GetAxisDeltaRotation(SlideRotationRate.Roll, DeltaTime));
+		return FRotator(GetAxisDeltaRotation(0, DeltaTime), GetAxisDeltaRotation(SlideTurningRateCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed()), DeltaTime), GetAxisDeltaRotation(0, DeltaTime));
 	}
 
 
@@ -530,7 +554,7 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 	//}
 
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
-	if ((Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0 && bCanSuperJump) || IsSliding())
+	if (/*(Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0 && bCanSuperJump) ||*/ IsSliding())
 	{
 		//get the direction of the jump
 		LastDirectionalJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();
@@ -548,12 +572,6 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
 			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
 			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce;
-
-			//print on screen debug message
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Yellow, TEXT("Super Jump 1"));
-
-			////call the blueprint event
-			//OnCorrectedDirectionalJump.Broadcast(LastDirectionalJumpDirection, Velocity.GetSafeNormal());
 		}
 		else
 		{
@@ -561,12 +579,6 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
 			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
 			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce;
-
-			//print on screen debug message
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Yellow, TEXT("Super Jump 2"));
-
-			////call the blueprint event
-			//OnDirectionalJump.Broadcast(LastDirectionalJumpDirection);
 		}
 
 		//set the last jump was directional to true
