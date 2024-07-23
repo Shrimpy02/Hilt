@@ -61,14 +61,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	UCurveFloat* SlidingGroundFrictionCurve = nullptr;
 
-	//the float curve to use for friction when brake sliding based on the speed of the player (0 = min speed, 1 = max speed)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* BrakeSlidingFrictionCurve = nullptr;
-
-	////the float curve to use for max acceleration when sliding based on the speed of the player (0 = min speed, 1 = max speed)
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	//UCurveFloat* MaxSlideAccelerationCurve = nullptr;
-
 	//the float curve to use for applying braking deceleration when falling (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* FallingBrakingDecelerationCurve = nullptr;
@@ -107,25 +99,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
 	bool bIsSliding = false;
 
-	//the minimum speewd that must be maintained to continue sliding
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
-	float MinSlideSpeed = 0;
-
 	//the speed to add to the player when starting a slide
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	float MinSlideStartSpeed = 1000;
 
-	//the rotation rate to apply when sliding
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
-	FRotator SlideRotationRate = FRotator(0, 30, 0);
+	//the curve for the gravity to apply when sliding based on the dot product of the surface normal and the gravity direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideGravityCurve = nullptr;
 
-	//whether or not the player is brake sliding
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding|BrakeSliding")
-	bool bIsBrakeSliding = false;
-
-	//the dot product value that the dot product of the player's velocity and the player's input vector must be lower than to start sliding (is multiplied by -1)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding|BrakeSliding")
-	float BrakeSlidingDotProduct = 0.8f;
+	//the curve for the turning rate to use when sliding based on the speed of the player (0 = min speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideTurningRateCurve = nullptr;
 
 	//whether or not the player can super jump
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SuperJump")
@@ -175,9 +159,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsSliding() const;
 
+	//function to get the direction the player is currently sliding
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	FVector GetSlideSurfaceDirection();
+
 	//override functions
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;

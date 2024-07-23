@@ -195,7 +195,7 @@ public:
 
 	//reference to the player movement component
 	UPROPERTY()
-	class UPlayerMovementComponent* PlayerMovementComponent = nullptr;
+	class APlayerCharacter* PlayerCharacter = nullptr;
 
 	//constructor
 	UGrapplingComponent();

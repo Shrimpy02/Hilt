@@ -25,6 +25,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGrappleInterpStruct GrappleInterpStruct = FGrappleInterpStruct();
 
+	//whether or not the player can change grapple modes when grappling to this object
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanChangeGrappleMode = true;
+
+	//whether or not the player is currently grappling to this object
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsGrappled = false;
+
 	//constructor
 	UGrappleableComponent();
 
