@@ -99,10 +99,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
 	bool bIsSliding = false;
 
-	//the minimum speewd that must be maintained to continue sliding
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
-	float MinSlideSpeed = 0;
-
 	//the speed to add to the player when starting a slide
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	float MinSlideStartSpeed = 1000;
@@ -162,6 +158,10 @@ public:
 	//function to get whether or not the player is currently sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsSliding() const;
+
+	//function to get the direction the player is currently sliding
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	FVector GetSlideSurfaceDirection();
 
 	//override functions
 	virtual void BeginPlay() override;

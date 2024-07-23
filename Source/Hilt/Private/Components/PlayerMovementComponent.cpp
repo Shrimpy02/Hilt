@@ -17,6 +17,7 @@ UPlayerMovementComponent::UPlayerMovementComponent()
 	AirControl = 2;
 	GravityScale = 4;
 	bApplyGravityWhileJumping = false;
+	bOrientRotationToMovement = true;
 	//FallingLateralFriction = 4;
 
 	BrakingDecelerationWalking = 1536;
@@ -54,10 +55,15 @@ FVector UPlayerMovementComponent::ApplySpeedLimit(const FVector& InVelocity, con
 void UPlayerMovementComponent::StartSlide()
 {
 	//check if our velocity is less than the minimum slide start speed
-	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling())
+	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling() && !IsSliding())
 	{
 		//set the velocity to the minimum slide start speed
 		Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
+	}
+	else if (IsSliding())
+	{
+		//set the velocity to the current slide speed
+		Velocity = Velocity.GetSafeNormal() * CurrentSlideSpeed;
 	}
 
 	//set slide variables
@@ -96,27 +102,43 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
 }
 
+FVector UPlayerMovementComponent::GetSlideSurfaceDirection()
+{
+	//get the normal of the surface we're sliding on
+	const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
+
+	//get the direction of gravity along the slide surface
+	const FVector GravitySurfaceDirection = FVector::VectorPlaneProject(GetGravityDirection(), SlideNormal).GetSafeNormal();
+
+	return GravitySurfaceDirection;
+}
+
 void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 {
 	//check if we're sliding
 	if (IsSliding())
 	{
+		//rotate the character to the velocity direction
+		GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
+
 		//get the normal of the surface we're sliding on
 		const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
 
-		//get the direction of the slide
-		const FVector SlideDirection = FVector::CrossProduct(SlideNormal, -GetGravityDirection());
+		const FVector GravitySurfaceDirection = GetSlideSurfaceDirection();
 
 		//get the dot product of the gravity direction and the slide direction
 		const float DotProduct = 1 - FVector::DotProduct(SlideNormal, -GetGravityDirection());
 
-		//print the dot product to the screen
+		//get the sign of the dot product of the gravity surface direction and the velocity
+		const float Sign = FMath::Sign(FVector::DotProduct(Velocity, GravitySurfaceDirection));
+		
+		//add the increase in speed to the current slide speed
+		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+
+		//add the slide gravity to the velocity
+		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
+		
 		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), DotProduct));
-
-		//draw a debug arrow in the direction of the slide
-		DrawDebugDirectionalArrow(GetWorld(), GetOwner()->GetActorLocation(), GetOwner()->GetActorLocation() + SlideDirection * 100, 100 * DotProduct, FColor::Red, false, 0, 0, 2);
-
-		//
 	}
 
 	//call the parent implementation
