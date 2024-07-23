@@ -138,7 +138,7 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 		//add the slide gravity to the velocity
 		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
 		
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), DotProduct));
+		//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), DotProduct));
 	}
 
 	//call the parent implementation
@@ -270,14 +270,10 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 		//check if the surface normal is close to the opposite of the grapple direction
 		if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), LocDot));
-
 			//return false
 			return false;
 		}
 	}
-
-	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Dot: 0"));
 
 	//default to the parent implementation
 	return Super::IsValidLandingSpot(CapsuleLocation, Hit);
@@ -576,9 +572,6 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
 			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
 			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce;
-
-			//print on screen debug message
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Yellow, TEXT("Super Jump 1"));
 		}
 		else
 		{
@@ -586,9 +579,6 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
 			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
 			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce;
-
-			//print on screen debug message
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Yellow, TEXT("Super Jump 2"));
 		}
 
 		//set the last jump was directional to true
