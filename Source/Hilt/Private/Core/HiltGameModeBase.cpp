@@ -77,6 +77,10 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->SetActorRotation(spawnPoint->GetActorRotation());
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
+
+							// Set the camera rotation
+							FRotator NewCameraRotation = spawnPoint->GetActorRotation();
+							PC->SetControlRotation(NewCameraRotation);
 						}
 			}
 		}
