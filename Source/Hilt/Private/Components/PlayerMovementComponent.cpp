@@ -118,8 +118,8 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 	//check if we're sliding
 	if (IsSliding())
 	{
-		//rotate the character to the velocity direction
-		GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
+		////rotate the character to the velocity direction
+		//GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
 
 		//get the normal of the surface we're sliding on
 		const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
@@ -357,8 +357,11 @@ FRotator UPlayerMovementComponent::GetDeltaRotation(float DeltaTime) const
 	//check if we're sliding and walking
 	if (IsSliding())
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Speed / Max: %f"), Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)));
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Curve: %f"), SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit))));
+
 		//use the slide rotation rate instead of the regular rotation rate
-		return FRotator(GetAxisDeltaRotation(0, DeltaTime), GetAxisDeltaRotation(SlideTurningRateCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed()), DeltaTime), GetAxisDeltaRotation(0, DeltaTime));
+		return FRotator(GetAxisDeltaRotation(0, DeltaTime), GetAxisDeltaRotation(SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)), DeltaTime), GetAxisDeltaRotation(0, DeltaTime));
 	}
 
 
