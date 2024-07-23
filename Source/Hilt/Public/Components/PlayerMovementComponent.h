@@ -143,10 +143,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;
 
-	//whether or not the player is currently perched on a wall
-	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
-	bool bIsPerched = false;
-
 	//whether or not last jump was a directional jump
 	bool bLastJumpWasDirectional = false;
 
@@ -178,18 +174,6 @@ public:
 	//function to get whether or not the player is currently sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsSliding() const;
-
-	//function to start perching
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void StartPerch();
-
-	//function to stop perching
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void StopPerch();
-
-	//function to get whether or not the player is currently perched
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool IsPerched() const;
 
 	//override functions
 	virtual void BeginPlay() override;
