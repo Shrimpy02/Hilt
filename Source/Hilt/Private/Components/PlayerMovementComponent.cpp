@@ -17,6 +17,7 @@ UPlayerMovementComponent::UPlayerMovementComponent()
 	AirControl = 2;
 	GravityScale = 4;
 	bApplyGravityWhileJumping = false;
+	bOrientRotationToMovement = true;
 	//FallingLateralFriction = 4;
 
 	BrakingDecelerationWalking = 1536;
@@ -54,15 +55,19 @@ FVector UPlayerMovementComponent::ApplySpeedLimit(const FVector& InVelocity, con
 void UPlayerMovementComponent::StartSlide()
 {
 	//check if our velocity is less than the minimum slide start speed
-	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling())
+	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling() && !IsSliding())
 	{
 		//set the velocity to the minimum slide start speed
 		Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
 	}
+	else if (IsSliding())
+	{
+		//set the velocity to the current slide speed
+		Velocity = Velocity.GetSafeNormal() * CurrentSlideSpeed;
+	}
 
 	//set slide variables
 	bIsSliding = true;
-	bIsBrakeSliding = false;
 	CurrentSlideSpeed = Velocity.Size();
 }
 
@@ -74,29 +79,6 @@ void UPlayerMovementComponent::StopSlide()
 bool UPlayerMovementComponent::IsSliding() const
 {
 	return bIsSliding && IsWalking() && !IsFalling();
-}
-
-void UPlayerMovementComponent::StartPerch()
-{
-	//stop grappling
-	PlayerPawn->GrappleComponent->StopGrapple();
-
-	//set the perched variable to true
-	bIsPerched = true;
-
-	//set the velocity to zero
-	Velocity = FVector::ZeroVector;
-}
-
-void UPlayerMovementComponent::StopPerch()
-{
-	//set the perched variable to false
-	bIsPerched = false;
-}
-
-bool UPlayerMovementComponent::IsPerched() const
-{
-	return bIsPerched && !PlayerPawn->GrappleComponent->bIsGrappling;
 }
 
 void UPlayerMovementComponent::BeginPlay()
@@ -118,36 +100,55 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	//clamp the excess speed
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
+}
 
+FVector UPlayerMovementComponent::GetSlideSurfaceDirection()
+{
+	//get the normal of the surface we're sliding on
+	const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
+
+	//get the direction of gravity along the slide surface
+	const FVector GravitySurfaceDirection = FVector::VectorPlaneProject(GetGravityDirection(), SlideNormal).GetSafeNormal();
+
+	return GravitySurfaceDirection;
+}
+
+void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
+{
 	//check if we're sliding
 	if (IsSliding())
 	{
-		//check if the velocity is less than the minimum slide speed
-		if (Velocity.Size() < MinSlideSpeed)
-		{
-			//stop sliding
-			StopSlide();
-		}
+		////rotate the character to the velocity direction
+		//GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
+
+		//get the normal of the surface we're sliding on
+		const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
+
+		const FVector GravitySurfaceDirection = GetSlideSurfaceDirection();
+
+		//get the dot product of the gravity direction and the slide direction
+		const float DotProduct = 1 - FVector::DotProduct(SlideNormal, -GetGravityDirection());
+
+		//get the sign of the dot product of the gravity surface direction and the velocity
+		const float Sign = FMath::Sign(FVector::DotProduct(Velocity, GravitySurfaceDirection));
+		
+		//add the increase in speed to the current slide speed
+		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+
+		//add the slide gravity to the velocity
+		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
+		
+		//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), DotProduct));
 	}
 
-	//check if we're perched
-	if (IsPerched())
-	{
-		//set the velocity to zero
-		Velocity = FVector::ZeroVector;
-	}
+	//call the parent implementation
+	Super::PhysWalking(deltaTime, Iterations);
 }
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
 {
-	FVector Result = Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);
-
-	//check if jump is providing force
-	if (GetCharacterOwner()->JumpForceTimeRemaining > 0 && bLastJumpWasDirectional)
-	{
-		//add the directional jump glide force to the result
-		Result += LastDirectionalJumpDirection * DirectionalJumpGlideForce * DeltaTime;
-	}
+	//get the result from the parent implementation
+	const FVector Result = Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);
 
 	//check if we're applying the speed limit
 	if (bIsSpeedLimited)
@@ -167,25 +168,13 @@ void UPlayerMovementComponent::Launch(FVector const& LaunchVel)
 FVector UPlayerMovementComponent::ConsumeInputVector()
 {
 	//check if we don't have a valid player pawn or we're perched
-	if (!PlayerPawn || IsPerched())
+	if (!PlayerPawn)
 	{
 		return FVector::ZeroVector;
 	}
 
 	//Store the input vector
 	const FVector ReturnVec = Super::ConsumeInputVector();
-
-	//check if the input vector is nearly zero
-	if (ReturnVec.IsNearlyZero())
-	{
-		//set the grapple mode to set velocity
-		PlayerPawn->GrappleComponent->SetGrappleMode(InterpVelocity);
-	}
-	else
-	{
-		//set the grapple mode to add to velocity
-		PlayerPawn->GrappleComponent->SetGrappleMode(AddToVelocity);
-	}
 
 	//check if we're grappling
 	if(PlayerPawn->GrappleComponent->bIsGrappling)
@@ -243,16 +232,10 @@ void UPlayerMovementComponent::ApplyVelocityBraking(float DeltaTime, float Frict
 		Friction = WalkingBrakingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 	}
 	//check if we're sliding and walking
-	else if (IsSliding() && !bIsBrakeSliding)
+	else if (IsSliding())
 	{
 		//set the friction to 0
 		Friction = 0;
-	}
-	//check if we're sliding and walking and we're brake sliding
-	else if (IsSliding() && bIsBrakeSliding)
-	{
-		//set the friction to the value of the brake sliding friction curve
-		Friction = BrakeSlidingFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 	}
 
 	//call the parent implementation
@@ -262,7 +245,7 @@ void UPlayerMovementComponent::ApplyVelocityBraking(float DeltaTime, float Frict
 void UPlayerMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration)
 {
 	//check if we're sliding and walking and we're not brake sliding
-	if (IsSliding() && !bIsBrakeSliding)
+	if (IsSliding())
 	{
 		//set the friction to the value of the sliding friction
 		Friction = SlidingGroundFrictionCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
@@ -287,14 +270,10 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 		//check if the surface normal is close to the opposite of the grapple direction
 		if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Dot: %f"), LocDot));
-
 			//return false
 			return false;
 		}
 	}
-
-	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Dot: 0"));
 
 	//default to the parent implementation
 	return Super::IsValidLandingSpot(CapsuleLocation, Hit);
@@ -303,7 +282,7 @@ bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation
 float UPlayerMovementComponent::GetGravityZ() const
 {
 	//check if we don't have a valid player pawn or we're perched
-	if (!PlayerPawn || bIsPerched)
+	if (!PlayerPawn)
 	{
 		return 0;
 	}
@@ -378,10 +357,11 @@ FRotator UPlayerMovementComponent::GetDeltaRotation(float DeltaTime) const
 	//check if we're sliding and walking
 	if (IsSliding())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Slide Rotation"));
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Speed / Max: %f"), Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)));
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Curve: %f"), SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit))));
 
 		//use the slide rotation rate instead of the regular rotation rate
-		return FRotator(GetAxisDeltaRotation(SlideRotationRate.Pitch, DeltaTime), GetAxisDeltaRotation(SlideRotationRate.Yaw, DeltaTime), GetAxisDeltaRotation(SlideRotationRate.Roll, DeltaTime));
+		return FRotator(GetAxisDeltaRotation(0, DeltaTime), GetAxisDeltaRotation(SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)), DeltaTime), GetAxisDeltaRotation(0, DeltaTime));
 	}
 
 
@@ -476,13 +456,6 @@ float UPlayerMovementComponent::GetMaxAcceleration() const
 
 void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta)
 {
-	//check if we're grappling
-	if (PlayerPawn->GrappleComponent->bIsGrappling && PlayerPawn->GrappleComponent->GrappleMode == InterpVelocity)
-	{
-		//start perching
-		StartPerch();
-	}
-
 	//check if the surface normal should be considered a floor
 	if (Hit.ImpactNormal.Z >= GetWalkableFloorZ())
 	{
@@ -576,15 +549,15 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 {
-	//check if we're sliding
-	if (IsSliding())
-	{
-		//set the velocity to the camera direction
-		Velocity = GetOwner()->GetActorForwardVector() * Velocity.Size();
-	}
+	////check if we're sliding
+	//if (IsSliding())
+	//{
+	//	//set the velocity to the camera direction
+	//	Velocity = GetOwner()->GetActorForwardVector() * Velocity.Size();
+	//}
 
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
-	if (Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0 && bCanSuperJump)
+	if (/*(Velocity.Length() >= MinSpeedForBoostedJump && !IsFalling() &&  GetCharacterOwner()->JumpCurrentCount == 0 && ExcessSpeed > 0 && bCanSuperJump) ||*/ IsSliding())
 	{
 		//get the direction of the jump
 		LastDirectionalJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();
@@ -598,19 +571,17 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		//check if the dot product is less than or equal to 0
 		if (DotProduct <= 0)
 		{
-			//set the velocity
-			Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
-
-			////call the blueprint event
-			//OnCorrectedDirectionalJump.Broadcast(LastDirectionalJumpDirection, Velocity.GetSafeNormal());
+			////set the velocity
+			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
+			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + Velocity.GetSafeNormal() * DirectionalJumpForce, DELTA);
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce;
 		}
 		else
 		{
-			//set the velocity
-			Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
-
-			////call the blueprint event
-			//OnDirectionalJump.Broadcast(LastDirectionalJumpDirection);
+			////set the velocity
+			//Velocity = ApplySpeedLimit(Velocity + FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
+			//Velocity = FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity + LastDirectionalJumpDirection * DirectionalJumpForce, DELTA);
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce;
 		}
 
 		//set the last jump was directional to true

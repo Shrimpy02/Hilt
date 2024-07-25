@@ -220,11 +220,17 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "Rope", meta=(AllowPrivateAccess))
 	bool bIsRopeActive = false;
 
+	//storage for the player character
+	UPROPERTY(BlueprintReadOnly, Category = "Rope", meta = (AllowPrivateAccess))
+	class APlayerCharacter* PlayerCharacter = nullptr;
+
 public:
 
 	//constructor
 	URopeComponent();
 
+	//overrides
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void DestroyComponent(bool bPromoteChildren) override;
 

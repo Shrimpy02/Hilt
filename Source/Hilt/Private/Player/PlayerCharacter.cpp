@@ -33,11 +33,13 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	RocketLauncherComponent = CreateDefaultSubobject<URocketLauncherComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
 	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
+	RopeMesh = CreateDefaultSubobject<USkeletalMeshComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeMesh));
 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());
 	Camera->SetupAttachment(CameraArm);
-	RopeComponent->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
+	RopeMesh->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
+	RopeComponent->SetupAttachment(RopeMesh, FName("GrapplingHookSocket"));
 	RocketLauncherComponent->SetupAttachment(GetRootComponent());
 
 	////set relative location and rotation for the mesh
@@ -223,9 +225,6 @@ void APlayerCharacter::DoJump(const FInputActionValue& Value)
 {
 	//call the jump function
 	Jump();
-
-	//stop any potential perching
-	PlayerMovementComponent->StopPerch();
 }
 
 void APlayerCharacter::StopTheJumping(const FInputActionValue& Value)
