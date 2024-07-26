@@ -153,7 +153,9 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 	if (PlayerMovementComponent->IsSliding())
 	{
 		//add left/right movement input
-		AddMovementInput(GetActorRightVector(), VectorDirection.X);
+		AddMovementInput(FVector::CrossProduct(Camera->GetForwardVector(), -GetActorUpVector()), VectorDirection.X);
+		//GetActorRightVector()
+		//add left/right movement input
 
 		return;
 	}
