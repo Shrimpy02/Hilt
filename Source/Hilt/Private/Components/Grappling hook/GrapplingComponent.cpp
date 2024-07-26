@@ -516,7 +516,7 @@ float UGrapplingComponent::GetPullSpeed() const
 	{
 		//todo : implement this and replace placeholder code
 		//get the difference between the current speed of the owner and the interpolated speed
-		return GetOwner()->GetVelocity().Size() - GetGrappleInterpStruct().PullSpeed;
+		return GetGrappleInterpStruct().PullSpeed;
 	}
 
 	//return 0

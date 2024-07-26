@@ -118,8 +118,8 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 	//check if we're sliding
 	if (IsSliding())
 	{
-		////rotate the character to the velocity direction
-		//GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
+		//rotate the character to the velocity direction
+		GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
 
 		//get the normal of the surface we're sliding on
 		const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
@@ -130,8 +130,17 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 		const float DotProduct = 1 - FVector::DotProduct(SlideNormal, -GetGravityDirection());
 
 		//get the sign of the dot product of the gravity surface direction and the velocity
-		const float Sign = FMath::Sign(FVector::DotProduct(Velocity, GravitySurfaceDirection));
-		
+		float Sign = FMath::Sign(FVector::DotProduct(Velocity, GravitySurfaceDirection));
+
+		//check if the sign is 0
+		if (Sign == 0)
+		{
+			//set the sign to 1
+			Sign = 1;
+		}
+
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Sign: %f"), Sign));
+
 		//add the increase in speed to the current slide speed
 		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
 
@@ -143,6 +152,25 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 
 	//call the parent implementation
 	Super::PhysWalking(deltaTime, Iterations);
+}
+
+void UPlayerMovementComponent::PerformMovement(float DeltaTime)
+{
+	//check if we're sliding
+	if (IsSliding() && PlayerPawn->CurrentMoveDirection != FVector2D::ZeroVector)
+	{
+		//get the delta rotation
+		const FRotator DeltaRotation = GetDeltaRotation(DeltaTime) * FMath::Sign(PlayerPawn->CurrentMoveDirection.X);
+
+		//rotate the velocity by the delta rotation
+		Velocity = DeltaRotation.RotateVector(Velocity);
+
+		//print the player's movement input to the screen
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Movement Input: %s"), *PlayerPawn->CurrentMoveDirection.ToString()));
+	}
+
+	//call the parent implementation
+	Super::PerformMovement(DeltaTime);
 }
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
@@ -183,21 +211,12 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 		return PlayerPawn->GrappleComponent->ProcessGrappleInput(ReturnVec).GetClampedToMaxSize(GetMaxSpeed());	
 	}
 
-	////check if we're sliding
-	//if (IsSliding())
-	//{
-	//	//check if the dot product of the input vector and the velocity is less than the brake sliding dot product
-	//	if (FVector::DotProduct(ReturnVec, Velocity.GetSafeNormal()) < -BrakeSlidingDotProduct)
-	//	{
-	//		//set brake sliding to true
-	//		bIsBrakeSliding = true;
-	//	}
-	//	else
-	//	{
-	//		//set brake sliding to false
-	//		bIsBrakeSliding = false;
-	//	}
-	//}
+	//check if we're sliding
+	if (IsSliding())
+	{
+		//return zero vector
+		return FVector::ZeroVector;
+	}
 
 	//return the parent implementation
 	return ReturnVec;
@@ -357,10 +376,18 @@ FRotator UPlayerMovementComponent::GetDeltaRotation(float DeltaTime) const
 	//check if we're sliding and walking
 	if (IsSliding())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Speed / Max: %f"), Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)));
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Curve: %f"), SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit))));
+		////print the slide speed to the screen
+		//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Speed / Max: %f"), Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)));
 
-		//use the slide rotation rate instead of the regular rotation rate
+		////print
+		//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Slide Curve: %f"), SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit))));
+
+		//store the rotation rate
+		FRotator LocRotationRate = FRotator(GetAxisDeltaRotation(0, DeltaTime), GetAxisDeltaRotation(SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)), DeltaTime), GetAxisDeltaRotation(0, DeltaTime));
+
+		//print the rotation rate to the screen
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Rotation Rate: %f"), LocRotationRate.Yaw /DeltaTime));
+		
 		return FRotator(GetAxisDeltaRotation(0, DeltaTime), GetAxisDeltaRotation(SlideTurningRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), SpeedLimit)), DeltaTime), GetAxisDeltaRotation(0, DeltaTime));
 	}
 
