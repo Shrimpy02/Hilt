@@ -167,6 +167,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
+	virtual void PerformMovement(float DeltaTime) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;

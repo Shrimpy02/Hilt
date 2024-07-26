@@ -74,5 +74,5 @@ public:
 
 	//function for whether or not the grappling actor should be able to change grapple modes
 	UFUNCTION(BlueprintCallable)
-	virtual bool CanChangeGrappleMode() const { return true; }
+	virtual bool CanChangeGrappleMode() const { return bCanChangeGrappleMode; }
 };
