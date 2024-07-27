@@ -107,10 +107,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* SlideGravityCurve = nullptr;
 
-	//the curve for the turning rate to use when sliding based on the speed of the player (0 = min speed, 1 = max speed)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* SlideTurningRateCurve = nullptr;
-
 	//whether or not the player can super jump
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SuperJump")
 	bool bCanSuperJump = true;
@@ -122,6 +118,10 @@ public:
 	//the amount of boost to apply when boosting a jump
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500;
+
+	//the amount of score to add for a super jump
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
+	float SuperJumpScoreAmount = 100;
 
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")

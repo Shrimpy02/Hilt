@@ -5,6 +5,7 @@
 #include "Components/Camera/PlayerCameraComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
 #include "Player/PlayerCharacter.h"
+#include "Player/ScoreComponent.h"
 
 FGrappleInterpStruct::FGrappleInterpStruct(const float InPullSpeed, const float InPullAccel, const EInterpToTargetType InInterpMode): InInterpMode(InInterpMode), PullSpeed(InPullSpeed), PullAccel(InPullAccel)
 {
@@ -152,6 +153,8 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 		GetOwner()->FindComponentByClass<UPrimitiveComponent>()->SetEnableGravity(false);
 	}
 
+	GrappleStartTime = GetWorld()->GetTimeSeconds();
+
 	//call the OnStartGrapple event
 	OnStartGrapple.Broadcast(HitResult);
 }
@@ -184,6 +187,16 @@ void UGrapplingComponent::StopGrapple()
 
 	//update bIsGrappling
 	bIsGrappling = false;
+
+	//check if the grapplescorecurve is valid
+	if (GrappleScoreCurve)
+	{
+		//get the grapple score curve value
+		const float Value = GrappleScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - GrappleStartTime);
+
+		//add the grapple score curve value to the player's score
+		PlayerCharacter->ScoreComponent->AddScore(Value);
+	}
 
 	//call the OnStopGrapple event
 	OnStopGrapple.Broadcast();
@@ -275,7 +288,7 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	}
 
 	//storage for the return vector
-	FVector ReturnVec = MovementInput * GrappleMovementInputModifier;
+	FVector ReturnVec = MovementInput * GrappleMovementInputModifier * PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrapplingInputModifier;
 
 	//check if we have valid angle input curve, and that we're not using debug mode
 	if (GrappleMovementAngleInputCurve)
@@ -328,35 +341,6 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 
 	//return the return vector
 	return ReturnVec;
-}
-
-void UGrapplingComponent::PullPlayer(FVector Vector)
-{
-	//TODO: check all this code and make sure it's correct
-
-	//check if we're using debug mode
-	if (bUseDebugMode)
-	{
-		//return early
-		return;
-	}
-
-	//check if we're grappling
-	if (bIsGrappling)
-	{
-		//check if the grapple mode is set to AddToVelocity
-		if (GrappleMode == AddToVelocity)
-		{
-			//add the grapple vector to the character's velocity
-			PlayerCharacter->PlayerMovementComponent->Velocity += Vector;
-		}
-		//check if the grapple mode is set to InterpVelocity
-		else if (GrappleMode == InterpVelocity)
-		{
-			//interpolate the velocity
-			PlayerCharacter->PlayerMovementComponent->Velocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(FMath::VInterpTo(GetOwner()->GetVelocity(), Vector, GetWorld()->GetDeltaSeconds(), GetGrappleInterpStruct().PullAccel), GetWorld()->GetDeltaSeconds());
-		}
-	}
 }
 
 void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct)
@@ -509,14 +493,14 @@ float UGrapplingComponent::GetPullSpeed() const
 	if (GrappleMode == AddToVelocity)
 	{
 		//return the pull speed from the objective grapple interp struct
-		return GetGrappleInterpStruct().PullSpeed;
+		return GetGrappleInterpStruct().PullSpeed * PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleSpeedMultiplier;
 	}
 	//check if we're in the InterpVelocity grapple mode
 	if (GrappleMode == InterpVelocity)
 	{
-		//todo : implement this and replace placeholder code
-		//get the difference between the current speed of the owner and the interpolated speed
-		return GetGrappleInterpStruct().PullSpeed;
+		//todo check if this works
+		//return the pull speed from the objective grapple interp struct
+		return GetGrappleInterpStruct().PullSpeed * PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleSpeedMultiplier;
 	}
 
 	//return 0

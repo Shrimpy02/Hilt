@@ -149,6 +149,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	UCurveFloat* GrappleMovementDirectionCurve = nullptr;
 
+	//the float curve to use for calculating the score to give from the grapple (0 = no time, > 0 = time)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleScoreCurve = nullptr;
+
 	//the friction to use when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleFriction = 0.5f;
@@ -180,6 +184,10 @@ public:
 	//the grapple direction we're using
 	UPROPERTY(BlueprintReadOnly)
 	FVector GrappleDirection = FVector::ZeroVector;
+
+	//the time that the last grapple started
+	UPROPERTY(BlueprintReadOnly)
+	float GrappleStartTime = 0;
 
 	//whether or not we can grapple right now
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
@@ -218,10 +226,6 @@ public:
 	//function to process the grapple input
 	UFUNCTION(BlueprintCallable)
 	FVector ProcessGrappleInput(FVector MovementInput);
-
-	//function for the rope to pull the player
-	UFUNCTION(BlueprintCallable)
-	void PullPlayer(FVector Vector);
 
 private:
 
