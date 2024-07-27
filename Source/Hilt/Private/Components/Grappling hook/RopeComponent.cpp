@@ -221,8 +221,6 @@ void URopeComponent::EnforceConstraints()
 					//check for collisions and update the start point
 					if(CheckForCollisions(Constraint.GetEndPoint(), NewPosition, *Constraint.StartPoint))
 					{
-						//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Collision detected 2"));
-
 						//add the collision point to the array (if it's not already in the array)
 						CollisionPoints.AddUnique(Constraint.StartPoint);
 					}
@@ -237,8 +235,6 @@ void URopeComponent::EnforceConstraints()
 					//check for collisions and update the end point
 					if(CheckForCollisions(Constraint.GetStartPoint(), NewPosition, *Constraint.EndPoint))
 					{
-						//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Collision detected 3"));
-
 						//add the collision point to the array (if it's not already in the array)
 						CollisionPoints.AddUnique(Constraint.EndPoint);
 					}
@@ -381,12 +377,6 @@ void URopeComponent::VerletIntegration(const float DeltaTime)
 		////calculate the new position of the verlet point (taken from https://stackoverflow.com/questions/32709599/the-time-corrected-verlet-numerical-integration-formula)
 		//FVector NewPosition = X + (X - X0) * DT / DT0 + A * DT * (DT + DT0) / 2;
 
-		////check for collisions and update the rope point
-		//if(CheckForCollisions(RopePoint.GetWL(), NewPosition, RopePoint))
-		//{
-		//	//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Collision detected 1"));
-		//}
-
 		//code for velocity-verlet integration
 
 		//calculate the new position of the verlet point
@@ -401,8 +391,6 @@ void URopeComponent::VerletIntegration(const float DeltaTime)
 		//check for collisions and update the rope point
 		if (CheckForCollisions(RopePoint, NewPosition, RopePoint.GetWL(), NewVelocity, NewAcceleration))
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Collision detected 1"));
-
 			//add the collision point to the array (if it's not already in the array)
 			CollisionPoints.AddUnique(&RopePoint);
 		}
@@ -515,10 +503,8 @@ void URopeComponent::CheckCollisionPoints()
 				//continue to the next rope point
 				continue;
 			}
-
-			////print whether the hit started penetrating and whether the hit was a blocking hit
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Start Penetrating: %d, Blocking Hit: %d"), Surrounding.bStartPenetrating, Surrounding.bBlockingHit));
 		}
+
 		//check that we're not using verlet integration
 		if (!bUseVerletIntegration)
 		{
@@ -607,9 +593,6 @@ void URopeComponent::RenderRope()
 	//check if we don't have a valid Niagara system to render
 	if (!NiagaraSystem->IsValidLowLevelFast())
 	{
-		//draw debug message
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Draw debug is false, and we don't have a valid niagara system"));
-
 		//return to prevent further execution
 		return;
 	}

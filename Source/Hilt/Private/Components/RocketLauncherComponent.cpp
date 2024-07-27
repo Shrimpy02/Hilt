@@ -18,9 +18,6 @@ AActor* URocketLauncherComponent::FireProjectile(FVector Direction)
 	//check if we have any ammo
 	if (CurrentAmmo <= 0)
 	{
-		//print a message to the screen
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Out of ammo"));
-
 		//return nullptr
 		return nullptr;
 	}
@@ -28,9 +25,6 @@ AActor* URocketLauncherComponent::FireProjectile(FVector Direction)
 	//check if the last fire time is less than the reload time
 	if (GetWorld()->GetTimeSeconds() - LastFireTime < LoadTime)
 	{
-		//print a message to the screen
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Reloading"));
-
 		//return nullptr
 		return nullptr;
 	}
@@ -50,9 +44,6 @@ void URocketLauncherComponent::OnProjectileHit(AActor* Projectile, AActor* Other
 	//check if we should ignore the owner when checking for collisions
 	if (bIgnoreOwnerCollisions && OtherActor == GetOwner())
 	{
-		//print a message to the screen
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Projectile hit owner"));
-
 		//prevent further execution of this function
 		return;
 	}
@@ -97,9 +88,6 @@ void URocketLauncherComponent::LoadRocketClip()
 	//check if the current ammo is less than the clip size
 	if (CurrentAmmo >= ClipSize)
 	{
-		//print a message to the screen
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Full Clip"));
-
 		//set the last reload time
 		LastReloadTime = GetWorld()->GetTimeSeconds();
 

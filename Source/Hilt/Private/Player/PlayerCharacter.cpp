@@ -11,6 +11,7 @@
 #include "Components/RocketLauncherComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
 #include "Core/HiltGameModeBase.h"
+#include "Player/ScoreComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UPlayerMovementComponent>(CharacterMovementComponentName))
 {
@@ -34,6 +35,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
 	RopeMesh = CreateDefaultSubobject<USkeletalMeshComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeMesh));
+	ScoreComponent = CreateDefaultSubobject<UScoreComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, ScoreComponent));
 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());

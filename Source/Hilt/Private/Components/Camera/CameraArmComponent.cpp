@@ -5,8 +5,8 @@
 UCameraArmComponent::UCameraArmComponent(const FObjectInitializer& ObjectInitializer)
 {
 	//set the default values
-	CameraLagMaxDistance = 800;
-	ProbeSize = 120;
+	//CameraLagMaxDistance = 800;
+	//ProbeSize = 120;
 }
 
 void UCameraArmComponent::BeginPlay()
@@ -32,9 +32,6 @@ void UCameraArmComponent::BeginPlay()
 		{
 			//add a default value to the map
 			CamZoomInterps.Add(FCameraZoomStruct());
-
-			//print a warning
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("The LerpArray in the CameraArmComponent is empty!"));
 		}
 
 		//set the timer handle
