@@ -2,6 +2,10 @@
 
 #include "Components/RocketLauncherComponent.h"
 
+#include "Components/GrapplingHook/GrapplingComponent.h"
+#include "NPC/Components/GrappleableComponent.h"
+#include "Player/PlayerCharacter.h"
+
 URocketLauncherComponent::URocketLauncherComponent()
 {
 	//enable ticking
@@ -15,6 +19,24 @@ URocketLauncherComponent::URocketLauncherComponent()
 
 AActor* URocketLauncherComponent::FireProjectile(FVector Direction)
 {
+	//check if we're allowing alternative actions
+	if (bAllowAlternativeActions)
+	{
+		//check if the player is grappled and the grappleable component is valid
+		if (PlayerCharacter->GrappleComponent->bIsGrappling && PlayerCharacter->GrappleComponent->GrappleableComponent->IsValidLowLevel())
+		{
+			//check if we should use the alternative action
+			if (PlayerCharacter->GrappleComponent->GrappleableComponent->bUseAlternativeAction)
+			{
+				//call the grappleable component's alternative action
+				PlayerCharacter->GrappleComponent->GrappleableComponent->AlternativeActionEvent.Broadcast(PlayerCharacter);
+
+				//prevent further execution of this function
+				return nullptr;
+			}
+		}
+	}
+
 	//check if we have any ammo
 	if (CurrentAmmo <= 0)
 	{

@@ -236,6 +236,9 @@ private:
 	void DoGrappleTrace(FHitResult& GrappleHit, float MaxDistance) const;
 	void DoGrappleTrace(TArray<FHitResult>& Array, float MaxDistance) const;
 
+	//function to check for force modifiers based on the grappleable component of the target we're grappling to
+	void CheckTargetForceModifiers(FVector& BaseVel);
+
 	//function to apply the pull force to the player
 	void ApplyPullForce(float DeltaTime);
 

@@ -263,16 +263,11 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 		//check if the input vector is nearly zero
 		SetGrappleMode(InterpVelocity);
 	}
-	else if (!GrappleableComponent->IsValidLowLevelFast())
+	else
 	{
 		//set the grapple mode to add to velocity
 		SetGrappleMode(AddToVelocity);
 	}
-	else if (!GrappleableComponent->bCanChangeGrappleMode)
-	{
-		return MovementInput;
-	}
-
 	//check that the player is grappling
 	if (!bIsGrappling || bUseDebugMode)
 	{
@@ -352,6 +347,9 @@ void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVeloc
 			break;
 	}
 
+	//check for potential modifiers to the grapple velocity from the grappleable component
+	CheckTargetForceModifiers(GrappleVelocity);
+
 	//calculate the grapple dot product
 	GrappleDotProduct = GetGrappleDotProduct(GrappleVelocity);
 
@@ -425,6 +423,22 @@ void UGrapplingComponent::DoGrappleTrace(TArray<FHitResult>& Array, float MaxDis
 	}
 }
 
+void UGrapplingComponent::CheckTargetForceModifiers(FVector& BaseVel)
+{
+	//check if we have a valid grappleable component
+	if (GrappleableComponent->IsValidLowLevelFast())
+	{
+		//get the percentage of the grapple velocity that should be applied to the player (from the grappleable component)
+		const float Percentage = GrappleableComponent->GrappleReelForcePercentage;
+
+		//apply the grapple velocity to the owner of the grappleable component
+		Cast<UPrimitiveComponent>(GrappleableComponent->GetOwner()->GetRootComponent())->AddForce(BaseVel * -1 * Percentage, NAME_None, true);
+
+		//apply the grapple velocity to the player
+		BaseVel = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(BaseVel * (1 - Percentage * GrappleableComponent->GrappleReelForceMultiplierPlayer), DELTA);
+	}
+}
+
 void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 {
 	//check if we're using debug mode
@@ -436,6 +450,8 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 
 	//storage for the velocity that will be applied from the grapple
 	FVector GrappleVelocity = /*RopeComponent->GetRopeDirection(0)*/ GrappleDirection.GetSafeNormal() * GetPullSpeed() * DeltaTime;
+
+	FVector BaseVel;
 
 	//check how we should set the velocity
 	// ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
@@ -478,8 +494,13 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			//calculate the absolute grapple dot product
 			AbsoluteGrappleDotProduct = GetAbsoluteGrappleDotProduct(GrappleVelocity);
 
+			BaseVel = PlayerCharacter->PlayerMovementComponent->Velocity + GrappleVelocity, DeltaTime;
+
+			//apply potential modifiers to the grapple velocity from the grappleable component
+			CheckTargetForceModifiers(BaseVel);
+
 			//apply the grapple velocity
-			PlayerCharacter->PlayerMovementComponent->Velocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(PlayerCharacter->PlayerMovementComponent->Velocity + GrappleVelocity, DeltaTime);
+			PlayerCharacter->PlayerMovementComponent->Velocity = BaseVel;
 
 		break;
 		case InterpVelocity:
