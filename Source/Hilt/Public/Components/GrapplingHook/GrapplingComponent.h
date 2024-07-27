@@ -234,6 +234,7 @@ private:
 
 	//function to do the grapple trace with a given max distance
 	void DoGrappleTrace(FHitResult& GrappleHit, float MaxDistance) const;
+	void DoGrappleTrace(TArray<FHitResult>& Array, float MaxDistance) const;
 
 	//function to apply the pull force to the player
 	void ApplyPullForce(float DeltaTime);

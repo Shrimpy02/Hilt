@@ -41,16 +41,14 @@ void UScoreComponent::SubtractScore(const float Value)
 	Score -= Value;
 }
 
+void UScoreComponent::ResetScore()
+{
+	Score = 0;
+}
+
 FScoreValues UScoreComponent::GetCurrentScoreValues() const
 {
-	//check if the score values array is valid
-	if (ScoreValues.IsValidIndex(FMath::Floor(Score)))
-	{
-		//return the first score values
-		return ScoreValues[FMath::Floor(Score)];
-	}
-
-	//return an empty score values struct
-	return FScoreValues();
+	//return the score values at the current score
+	return ScoreValues[FMath::Min(ScoreValues.Num() - 1, FMath::Floor(Score))];
 }
 

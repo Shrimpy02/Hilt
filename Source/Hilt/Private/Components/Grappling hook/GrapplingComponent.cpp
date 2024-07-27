@@ -229,19 +229,26 @@ void UGrapplingComponent::StopGrapple()
 
 void UGrapplingComponent::StartGrappleCheck()
 {
+	//todo
 	//check if we can grapple and we're not already grappling
 	if (CanGrapple() && !bIsGrappling)
 	{
 		//do a line trace to see if the player is aiming at something within grapple range
-		FHitResult GrappleHit;
+		TArray<FHitResult> GrappleHits;
 
-		DoGrappleTrace(GrappleHit, MaxGrappleCheckDistance);
+		DoGrappleTrace(GrappleHits, MaxGrappleCheckDistance);
 
 		//check if the line trace hit something
-		if (GrappleHit.bBlockingHit)
+		if (!GrappleHits.IsEmpty())
 		{
+			//check if the distance between the trace start and the hit location is less than the distance between the trace start and the player character
+			if (FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].ImpactPoint) < FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].TraceStart))
+			{
+				return;
+			}
+
 			//start grappling
-			StartGrapple(GrappleHit);
+			StartGrapple(GrappleHits[0]);
 		}
 	}
 }
@@ -266,21 +273,6 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 		return MovementInput;
 	}
 
-	////print the grapple input to the screen
-	//GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, FString::Printf(TEXT("GrappleInput: %s"), *GrappleInput.ToString()));
-
-	////check if the z value of the grapple input is less than 0
-	//if (GrappleInput.Z < 0)
-	//{
-	//	//print downwards to the screen
-	//	GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Green, FString::Printf(TEXT("Downwards")));
-	//}
-	//else
-	//{
-	//	//print upwards to the screen
-	//	GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, FString::Printf(TEXT("Not Downwards")));
-	//}
-
 	//check that the player is grappling
 	if (!bIsGrappling || bUseDebugMode)
 	{
@@ -295,12 +287,6 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 	{
 		//get the dot product of the current grapple direction and the return vector
 		const float DotProduct = FVector::DotProduct(PlayerCharacter->GetActorUpVector(),MovementInput.GetSafeNormal());
-
-		////print the dot product to the screen
-		//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
-
-		////draw a debug arrow in the direction of the movement input
-		//DrawDebugDirectionalArrow(GetWorld(), GetOwner()->GetActorLocation(), GetOwner()->GetActorLocation() + MovementInput * 100, 100, FColor::Red, false, 0, 0, 1);
 
 		//get the grapple angle movement input curve value
 		const float Value = GrappleMovementAngleInputCurve->GetFloatValue(DotProduct);
@@ -398,6 +384,45 @@ void UGrapplingComponent::DoGrappleTrace(FHitResult& GrappleHit, const float Max
 	//do the line trace
 	GetWorld()->LineTraceSingleByChannel(GrappleHit, CameraLocation, End, RopeComponent->CollisionChannel, GrappleCollisionParams);
 	//GetWorld()->SweepSingleByChannel(GrappleHit, CameraLocation + Rotation * 10, End, FQuat::Identity, RopeComponent->CollisionChannel, CollisionShape, GrappleCollisionParams);
+}
+
+void UGrapplingComponent::DoGrappleTrace(TArray<FHitResult>& Array, float MaxDistance) const
+{
+	//storage for camera location and rotation
+	FVector CameraLocation;
+	FRotator CameraRotation;
+
+	//set the camera location and rotation
+	GetOwner()->GetNetOwningPlayer()->GetPlayerController(GetWorld())->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+	//get the forward vector of the camera rotation
+	const FVector Rotation = CameraRotation.Quaternion().GetForwardVector();
+
+	//get the end point of the line trace
+	const FVector End = CameraLocation + Rotation * MaxDistance;
+
+	//the collision parameters to use for the line trace
+	const FCollisionQueryParams GrappleCollisionParams = RopeComponent->GetCollisionParams();
+
+	TArray<FHitResult> TempArray;
+
+	//do the line trace
+	GetWorld()->LineTraceMultiByChannel(TempArray, CameraLocation, End, RopeComponent->CollisionChannel, GrappleCollisionParams);
+
+	for (const FHitResult& GrappleHit : TempArray)
+	{
+		//get the distance from the line trace start to the hit location
+		const float Distance = FVector::Dist(GetOwner()->GetActorLocation(), GrappleHit.ImpactPoint);
+
+		//check if the distance between the trace start and the hit location is less than the distance between the trace start and the player character
+		if (Distance < FVector::Dist(GetOwner()->GetActorLocation(), GrappleHit.TraceStart) || GrappleHit.bStartPenetrating)
+		{
+			continue;
+		}
+
+		//add the hit to the returned hits
+		Array.Add(GrappleHit);
+	}
 }
 
 void UGrapplingComponent::ApplyPullForce(float DeltaTime)
@@ -526,27 +551,28 @@ float UGrapplingComponent::GetAbsoluteGrappleDotProduct(FVector GrappleVelocity)
 
 bool UGrapplingComponent::CanGrapple() const
 {
+	//storage for the hit results
+	TArray<FHitResult> GrappleHits;
+
 	//do a line trace to see if the player is aiming at something within grapple range
-	FHitResult GrappleHit;
+	DoGrappleTrace(GrappleHits, MaxGrappleDistance);
 
-	DoGrappleTrace(GrappleHit, MaxGrappleDistance);
+	////check if the line trace didn't hit anything
+	//if (!GrappleHit.bBlockingHit)
+	//{
+	//	//return false
+	//	return false;
+	//}
 
-	//check if the line trace didn't hit anything
-	if (!GrappleHit.bBlockingHit)
-	{
-		//return false
-		return false;
-	}
-
-	//check if the line trace hit something ungrappleable
-	if (GrappleHit.GetActor()->ActorHasTag(HiltTags::NoGrappleTag) || GrappleHit.GetComponent()->ComponentHasTag(HiltTags::NoGrappleTag))
-	{
-		//return false
-		return false;
-	}
+	////check if the line trace hit something ungrappleable
+	//if (GrappleHit.GetActor()->ActorHasTag(HiltTags::NoGrappleTag) || GrappleHit.GetComponent()->ComponentHasTag(HiltTags::NoGrappleTag))
+	//{
+	//	//return false
+	//	return false;
+	//}
 
 	//return true
-	return true;
+	return !GrappleHits.IsEmpty();
 }
 
 float UGrapplingComponent::GetRemainingGrappleDistance() const

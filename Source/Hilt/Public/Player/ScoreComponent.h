@@ -24,7 +24,7 @@ struct FScoreValues
 	float SpeedLimitModifier = 1;
 
 	//the sliding turn rate curve to use
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Curves")
 	UCurveFloat* SlidingTurnRateCurve = nullptr;
 };
 
@@ -63,6 +63,10 @@ public:
 	//function to subtract from the player's score
 	UFUNCTION(BlueprintCallable)
 	void SubtractScore(float Value);
+
+	//function to reset the player's score
+	UFUNCTION(BlueprintCallable)
+	void ResetScore();
 
 	//function to get the current score values
 	UFUNCTION(BlueprintCallable)
