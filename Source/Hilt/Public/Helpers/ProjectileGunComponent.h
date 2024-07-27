@@ -42,8 +42,19 @@ class UProjectileGunComponent : public USceneComponent
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIgnoreOwnerCollisions = true;
 
+	//whether or not to allow alternative actions when the player is firing the projectile while grappled
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bAllowAlternativeActions = true;
+
+	//storage for the owner of this component as a player character
+	UPROPERTY(BlueprintReadOnly)
+	class APlayerCharacter* PlayerCharacter = nullptr;
+
 	//constructor
 	UProjectileGunComponent();
+
+	//override(s)
+	virtual void BeginPlay() override;
 
 	UFUNCTION()
 	virtual void SetInitialProjectileSpeed(FVector Direction, UProjectileMovementComponent* ProjectileMovementComponent);
