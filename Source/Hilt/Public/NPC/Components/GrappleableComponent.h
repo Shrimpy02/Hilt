@@ -22,9 +22,13 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlternativeAction, APlayerCharacter*, PlayerCharacter);
 
-	//the interp struct for the grapple
+	//the interp struct for the player when grappling to this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FGrappleInterpStruct GrappleInterpStruct = FGrappleInterpStruct();
+	FGrappleInterpStruct GrappleInterpStructPlayer = FGrappleInterpStruct();
+
+	//the interp struct for the object when the player is grappling to it
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGrappleInterpStruct GrappleInterpStructThis = FGrappleInterpStruct();
 
 	//whether or not to use the grapple interp struct for this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -91,7 +95,7 @@ public:
 
 	//function for getting the grapple interp struct for the object grappling
 	UFUNCTION(BlueprintCallable)
-	virtual FGrappleInterpStruct GetGrappleInterpStruct() const { return GrappleInterpStruct; }
+	virtual FGrappleInterpStruct GetGrappleInterpStruct() const { return GrappleInterpStructPlayer; }
 
 	//function for whether or not the grappling actor should be able to change grapple modes
 	UFUNCTION(BlueprintCallable)
