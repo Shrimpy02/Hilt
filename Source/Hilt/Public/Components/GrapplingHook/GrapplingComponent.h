@@ -48,7 +48,6 @@ public:
 	//events for the grappling
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGrapple, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWhileGrappled, float, DeltaTime);
 
 	//the rope component to use
 	UPROPERTY(BlueprintReadOnly, Category = "Rope")
@@ -65,10 +64,6 @@ public:
 	//stop grappling event
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnStopGrapple OnStopGrapple;
-
-	//while grappling event
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FWhileGrappled WhileGrappled;
 
 	//whether or not we're grappling
 	UPROPERTY(BlueprintReadOnly)
@@ -93,9 +88,6 @@ public:
 	//whether or not to disable gravity when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
 	bool bDisableGravityWhenGrappling = true;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collisions")
-	ECollisionShape::Type CanGrappleCollisionShape = ECollisionShape::Sphere;
 	
 	//the movement input modifier to use when processing the grapple movement input curve
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")

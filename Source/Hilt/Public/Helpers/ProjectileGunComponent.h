@@ -26,14 +26,6 @@ class UProjectileGunComponent : public USceneComponent
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AActor> ProjectileClass = nullptr;
 
-	//event to handle when the projectile is fired
-	UPROPERTY(BlueprintAssignable)
-	FOnProjectileFired OnProjectileFired;
-
-	//event to handle when the projectile hits something
-	UPROPERTY(BlueprintAssignable)
-	FOnProjectileCollision OnProjectileCollision;
-
 	//whether or not to add the owner's velocity to the projectile's velocity when firing the projectile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bAddOwnerVelocity = true;
@@ -49,6 +41,14 @@ class UProjectileGunComponent : public USceneComponent
 	//storage for the owner of this component as a player character
 	UPROPERTY(BlueprintReadOnly)
 	class APlayerCharacter* PlayerCharacter = nullptr;
+
+	//event to handle when the projectile is fired
+	UPROPERTY(BlueprintAssignable)
+	FOnProjectileFired OnProjectileFired;
+
+	//event to handle when the projectile hits something
+	UPROPERTY(BlueprintAssignable)
+	FOnProjectileCollision OnProjectileCollision;
 
 	//constructor
 	UProjectileGunComponent();

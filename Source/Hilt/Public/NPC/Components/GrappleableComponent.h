@@ -85,10 +85,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void OnStopGrapple();
 
-	//function that is called while this actor is being grappled to (this is called every frame while attached to the rope) (returns the actor on the other end of the rope (if there is one))
-	UFUNCTION(BlueprintCallable)
-	virtual void WhileGrappled(float DeltaTime);
-
 	//function for whether or not we should use the grapple interp struct of this object
 	UFUNCTION(BlueprintCallable)
 	virtual bool ShouldUseGrappleInterpStruct() const { return bUseGrappleInterpStruct; }
