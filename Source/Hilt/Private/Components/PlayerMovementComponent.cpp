@@ -64,14 +64,27 @@ void UPlayerMovementComponent::StartSlide()
 		Velocity = Velocity.GetSafeNormal() * CurrentSlideSpeed;
 	}
 
-	//set slide variables
-	bIsSliding = true;
+	//set the current slide speed
 	CurrentSlideSpeed = Velocity.Size();
+
+	//check if we're not already sliding
+	if (!bIsSliding)
+	{
+		//call the blueprint event
+		OnPlayerStartSlide.Broadcast();
+	}
+
+	//set the sliding variable
+	bIsSliding = true;
 }
 
 void UPlayerMovementComponent::StopSlide()
 {
+	//set the sliding variable
 	bIsSliding = false;
+
+	//call the blueprint event
+	OnPlayerStopSlide.Broadcast();
 }
 
 bool UPlayerMovementComponent::IsSliding() const
@@ -438,19 +451,9 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 
 float UPlayerMovementComponent::GetMaxAcceleration() const
 {
-	////check if we're sliding and walking
-	//if (bIsSliding && IsWalking())
-	//{
-	//	//return slide acceleration
-	//	return MaxSlideAccelerationCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed()) * MaxAcceleration;
-	//}
-
 	//check if we're walking and we have a valid curve
 	if ((IsWalking() /*&& MaxWalkingAccelerationCurve*/ && !IsSliding()) || bMightBeBunnyJumping && IsFalling())
 	{
-		////return the max walking acceleration
-		//return MaxWalkingAccelerationCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
-
 		//return max walking acceleration
 		return MaxWalkingAcceleration;
 	}
@@ -484,15 +487,6 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 
 		return;
 	}
-
-	////check if we're outside the distance to the grapple point to stop grappling
-	//if (FVector::Dist(GetOwner()->GetActorLocation(), PlayerPawn->GrappleComponent->RopeComponent->GetRopeEnd()) > PlayerPawn->GrappleComponent->GrappleHitDistance)
-	//{
-	//	//delegate to the parent implementation
-	//	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
-
-	//	return;
-	//}
 
 	//get the bounciness of the physics material
 	const float Bounciness = Hitbox->BodyInstance.GetSimplePhysicalMaterial()->Restitution;
@@ -557,21 +551,14 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 {
-	////check if we're sliding
-	//if (IsSliding())
-	//{
-	//	//set the velocity to the camera direction
-	//	Velocity = GetOwner()->GetActorForwardVector() * Velocity.Size();
-	//}
-
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
 	if (IsSliding())
 	{
 		//get the direction of the jump
-		LastDirectionalJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();
+		LastSuperJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();
 
 		//get the dot product of the camera forward vector and the velocity
-		const float DotProduct = FVector::DotProduct(LastDirectionalJumpDirection, CurrentFloor.HitResult.ImpactNormal);
+		const float DotProduct = FVector::DotProduct(LastSuperJumpDirection, CurrentFloor.HitResult.ImpactNormal);
 
 		//set the movement mode to falling
 		SetMovementMode(MOVE_Falling);
@@ -580,19 +567,24 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		if (DotProduct <= 0)
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * DirectionalJumpForce;
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * SuperJumpForce;
 		}
 		else
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastDirectionalJumpDirection * DirectionalJumpForce;
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastSuperJumpDirection * SuperJumpForce;
 		}
 
 		//add the score to the player's score
 		PlayerPawn->ScoreComponent->AddScore(SuperJumpScoreAmount);
 
-		//set the last jump was directional to true
-		bLastJumpWasDirectional = true;
+		//call the blueprint event
+		OnPlayerSuperJump.Broadcast();
+	}
+	else
+	{
+		//call the blueprint event
+		OnPlayerNormalJump.Broadcast();	
 	}
 
 	//default to the parent implementation

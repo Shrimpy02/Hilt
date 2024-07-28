@@ -51,9 +51,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		//assign the grapple direction
 		GrappleDirection = RopeComponent->GetRopeDirection(GrappleDirectionChecks).GetSafeNormal();
 
-		//call the WhileGrappled event
-		WhileGrappled.Broadcast(DeltaTime);
-
 		//apply the pull force
 		ApplyPullForce(DeltaTime);
 
@@ -143,7 +140,6 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 		//bind the events to this component
 		OnStartGrapple.AddDynamic(GrappleableComponent, &UGrappleableComponent::OnStartGrapple);
 		OnStopGrapple.AddDynamic(GrappleableComponent, &UGrappleableComponent::OnStopGrapple);
-		WhileGrappled.AddDynamic(GrappleableComponent, &UGrappleableComponent::WhileGrappled);
 	}
 
 	//check if we should disable gravity when grappling
@@ -210,7 +206,6 @@ void UGrapplingComponent::StopGrapple()
 		//unbind the events from this component
 		OnStartGrapple.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::OnStartGrapple);
 		OnStopGrapple.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::OnStopGrapple);
-		WhileGrappled.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::WhileGrappled);
 	}
 
 	//reset the owner's rotation
@@ -348,7 +343,7 @@ void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVeloc
 	}
 
 	//check for potential modifiers to the grapple velocity from the grappleable component
-	CheckTargetForceModifiers(GrappleVelocity);
+	CheckTargetForceModifiers(GrappleVelocity, DeltaTime);
 
 	//calculate the grapple dot product
 	GrappleDotProduct = GetGrappleDotProduct(GrappleVelocity);
@@ -423,7 +418,7 @@ void UGrapplingComponent::DoGrappleTrace(TArray<FHitResult>& Array, float MaxDis
 	}
 }
 
-void UGrapplingComponent::CheckTargetForceModifiers(FVector& BaseVel)
+void UGrapplingComponent::CheckTargetForceModifiers(FVector& BaseVel, float DeltaTime) const
 {
 	//check if we have a valid grappleable component
 	if (GrappleableComponent->IsValidLowLevelFast())
@@ -432,10 +427,10 @@ void UGrapplingComponent::CheckTargetForceModifiers(FVector& BaseVel)
 		const float Percentage = GrappleableComponent->GrappleReelForcePercentage;
 
 		//apply the grapple velocity to the owner of the grappleable component
-		Cast<UPrimitiveComponent>(GrappleableComponent->GetOwner()->GetRootComponent())->AddForce(BaseVel * -1 * Percentage, NAME_None, true);
+		Cast<UPrimitiveComponent>(GrappleableComponent->GetOwner()->GetRootComponent())->SetAllPhysicsLinearVelocity(Percentage * FMath::VInterpTo(GrappleableComponent->GetOwner()->GetVelocity(), -GrappleDirection * GrappleableComponent->GrappleInterpStructThis.PullSpeed, DeltaTime, GrappleableComponent->GrappleInterpStructThis.PullAccel), false);
 
 		//apply the grapple velocity to the player
-		BaseVel = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(BaseVel * (1 - Percentage * GrappleableComponent->GrappleReelForceMultiplierPlayer), DELTA);
+		BaseVel *= (1 - Percentage) * GrappleableComponent->GrappleReelForceMultiplierPlayer;
 	}
 }
 
@@ -497,7 +492,7 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			BaseVel = PlayerCharacter->PlayerMovementComponent->Velocity + GrappleVelocity, DeltaTime;
 
 			//apply potential modifiers to the grapple velocity from the grappleable component
-			CheckTargetForceModifiers(BaseVel);
+			CheckTargetForceModifiers(BaseVel, DeltaTime);
 
 			//apply the grapple velocity
 			PlayerCharacter->PlayerMovementComponent->Velocity = BaseVel;
