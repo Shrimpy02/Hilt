@@ -51,9 +51,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		//assign the grapple direction
 		GrappleDirection = RopeComponent->GetRopeDirection(GrappleDirectionChecks).GetSafeNormal();
 
-		//call the WhileGrappled event
-		WhileGrappled.Broadcast(DeltaTime);
-
 		//apply the pull force
 		ApplyPullForce(DeltaTime);
 
@@ -143,7 +140,6 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 		//bind the events to this component
 		OnStartGrapple.AddDynamic(GrappleableComponent, &UGrappleableComponent::OnStartGrapple);
 		OnStopGrapple.AddDynamic(GrappleableComponent, &UGrappleableComponent::OnStopGrapple);
-		WhileGrappled.AddDynamic(GrappleableComponent, &UGrappleableComponent::WhileGrappled);
 	}
 
 	//check if we should disable gravity when grappling
@@ -210,7 +206,6 @@ void UGrapplingComponent::StopGrapple()
 		//unbind the events from this component
 		OnStartGrapple.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::OnStartGrapple);
 		OnStopGrapple.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::OnStopGrapple);
-		WhileGrappled.RemoveDynamic(GrappleableComponent, &UGrappleableComponent::WhileGrappled);
 	}
 
 	//reset the owner's rotation

@@ -24,6 +24,10 @@ public:
 
 	//event declaration(s)
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerImpulse, FVector, Impulse, bool, bVelocityChange);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStartSlide);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStopSlide);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerSuperJump);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerNormalJump);
 
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
@@ -113,7 +117,7 @@ public:
 
 	//the amount of force to apply in the direction the player is looking when jumping
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float DirectionalJumpForce = 3000;
+	float SuperJumpForce = 3000;
 
 	//the amount of boost to apply when boosting a jump
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
@@ -127,11 +131,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;
 
-	//whether or not last jump was a directional jump
-	bool bLastJumpWasDirectional = false;
-
 	//the direction of the last directional jump
-	FVector LastDirectionalJumpDirection = FVector::UpVector;
+	FVector LastSuperJumpDirection = FVector::UpVector;
 
 	//the current slide speed (from either landing or starting a slide)
 	float CurrentSlideSpeed = 0;
@@ -139,6 +140,18 @@ public:
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerImpulse OnPlayerImpulse;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStartSlide OnPlayerStartSlide;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStopSlide OnPlayerStopSlide;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerSuperJump OnPlayerSuperJump;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerNormalJump OnPlayerNormalJump;
 
 	//constructor
 	UPlayerMovementComponent();
