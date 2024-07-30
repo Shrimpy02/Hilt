@@ -38,9 +38,9 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	//call the parent implementation
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//set all grappling variables to their default values
-	GrappleDotProduct = 0.f;
-	AbsoluteGrappleDotProduct = 0.f;
+	////set all grappling variables to their default values
+	//GrappleDotProduct = 0.f;
+	//AbsoluteGrappleDotProduct = 0.f;
 
 	//update the can grapple variable
 	CanGrappleVar = CanGrapple();

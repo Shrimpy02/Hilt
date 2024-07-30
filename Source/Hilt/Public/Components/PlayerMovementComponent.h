@@ -128,10 +128,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500;
 
-	//the amount of score to add for a super jump
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float SuperJumpScoreAmount = 100;
-
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;

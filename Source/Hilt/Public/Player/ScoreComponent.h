@@ -39,10 +39,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	float Score = 0;
 
-	//the max score the player can have
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
-	float MaxScore = 100;
-
 	//the float curve to use for the player's score degradation over time (1 = 100% of the score, 0 = 0% of the score)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* ScoreDegradationCurve = nullptr;
