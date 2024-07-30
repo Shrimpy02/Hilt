@@ -175,9 +175,6 @@ void UGrapplingComponent::StopGrapple()
 		GrappleTarget->OnDestroyed.RemoveDynamic(this, &UGrapplingComponent::OnGrappleTargetDestroyed);
 	}
 
-	//update the grapple direction (done immediately to for the animation blueprint)
-	GrappleDirection = FVector::ZeroVector;
-
 	//check if the rope component is valid
 	if (RopeComponent->IsValidLowLevelFast())
 	{
