@@ -2,6 +2,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Player/PlayerCharacter.h"
 
+//maybe add a setting
+
 UCameraArmComponent::UCameraArmComponent(const FObjectInitializer& ObjectInitializer)
 {
 	//set the default values
@@ -47,7 +49,6 @@ void UCameraArmComponent::BeginPlay()
 
 void UCameraArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime)
 {
-
 	//check if the player character is valid
 	if (!PlayerCharacter->IsValidLowLevelFast())
 	{

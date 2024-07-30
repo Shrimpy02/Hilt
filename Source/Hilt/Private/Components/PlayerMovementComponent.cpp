@@ -124,6 +124,40 @@ FVector UPlayerMovementComponent::GetSlideSurfaceDirection()
 	return GravitySurfaceDirection;
 }
 
+bool UPlayerMovementComponent::IsWalkable2(const FHitResult& Hit) const
+{
+	if (!Hit.IsValidBlockingHit())
+	{
+		// No hit, or starting in penetration
+		return false;
+	}
+
+	// Never walk up vertical surfaces.
+	const FVector GravityRelativeImpactNormal = RotateWorldToGravity(Hit.ImpactNormal);
+	if (GravityRelativeImpactNormal.Z < UE_KINDA_SMALL_NUMBER)
+	{
+		return false;
+	}
+
+	float TestWalkableZ = GetWalkableFloorZ() ;
+
+	// See if this component overrides the walkable floor z.
+	const UPrimitiveComponent* HitComponent = Hit.Component.Get();
+	if (HitComponent)
+	{
+		const FWalkableSlopeOverride& SlopeOverride = HitComponent->GetWalkableSlopeOverride();
+		TestWalkableZ = SlopeOverride.ModifyWalkableFloorZ(TestWalkableZ);
+	}
+
+	// Can't walk on this surface if it is too steep.
+	if (GravityRelativeImpactNormal.Z - CollisionNormalSubtract < TestWalkableZ)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 {
 	//check if we're sliding
@@ -179,14 +213,15 @@ void UPlayerMovementComponent::PerformMovement(float DeltaTime)
 
 void UPlayerMovementComponent::HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta)
 {
-	//print debug message to the screen
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("HandleWalkingOffLedge"));
-
 	//call the parent implementation
 	Super::HandleWalkingOffLedge(PreviousFloorImpactNormal, PreviousFloorContactNormal, PreviousLocation, TimeDelta);
 
-	//call the blueprint event
-	OnPlayerStartFall.Broadcast(PreviousFloorImpactNormal, PreviousFloorContactNormal, PreviousLocation);
+	//check if previous floor impact normal and previous floor contact normal are not both zero vectors
+	if (PreviousFloorImpactNormal != FVector::ZeroVector && PreviousFloorContactNormal != FVector::ZeroVector)
+	{
+		//call the blueprint event
+		OnPlayerStartFall.Broadcast(PreviousFloorImpactNormal, PreviousFloorContactNormal, PreviousLocation);
+	}
 }
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
@@ -476,47 +511,55 @@ float UPlayerMovementComponent::GetMaxAcceleration() const
 
 void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta)
 {
+	//todo add a bit of launch upwards when sliding
+
 	//check if the surface normal should be considered a floor
-	if (Hit.ImpactNormal.Z >= GetWalkableFloorZ())
+	if (IsWalkable2(Hit)) 
 	{
 		//rotate the character to the floor
-		GetCharacterOwner()->SetActorRotation(FRotationMatrix::MakeFromX(Hit.ImpactNormal).Rotator());
+		GetCharacterOwner()->SetActorRotation(FRotationMatrix::MakeFromX(Hit.Normal).Rotator());
 
-		//delegate to the parent implementation
-		Super::HandleImpact(Hit, TimeSlice, MoveDelta);
+		//set the movement mode to walking
+		SetMovementMode(MOVE_Walking);
 
-		return;
-	}
-
-	//get our hitbox
-	const UCapsuleComponent* Hitbox = GetCharacterOwner()->GetCapsuleComponent();
-
-	//check if we don't have a physics material or if we have invalid curves or if we're not grappling
-	if (!Hitbox->BodyInstance.GetSimplePhysicalMaterial() || !CollisionLaunchSpeedCurve->IsValidLowLevelFast() || !PlayerPawn->GrappleComponent->bIsGrappling)
-	{
-		//delegate to the parent implementation
-		Super::HandleImpact(Hit, TimeSlice, MoveDelta);
+		//stop grappling
+		PlayerPawn->GrappleComponent->StopGrapple();
 
 		return;
 	}
 
-	//get the bounciness of the physics material
-	const float Bounciness = Hitbox->BodyInstance.GetSimplePhysicalMaterial()->Restitution;
+	////get our hitbox
+	//const UCapsuleComponent* Hitbox = GetCharacterOwner()->GetCapsuleComponent();
 
-	//check if the bounciness is less than or equal to 0
-	if (Bounciness <= 0)
-	{
-		//delegate to the parent implementation
-		Super::HandleImpact(Hit, TimeSlice, MoveDelta);
+	////check if we don't have a physics material or if we have invalid curves or if we're not grappling
+	//if (!Hitbox->BodyInstance.GetSimplePhysicalMaterial() || !CollisionLaunchSpeedCurve->IsValidLowLevelFast() || !(PlayerPawn->GrappleComponent->bIsGrappling || IsSliding()) || (Velocity2D < CollisionSpeedThreshold && IsFalling()))
+	//{
+	//	//delegate to the parent implementation
+	//	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
 
-		return;
-	}
+	//	return;
+	//}
+
+	////get the bounciness of the physics material
+	//const float Bounciness = Hitbox->BodyInstance.GetSimplePhysicalMaterial()->Restitution;
+
+	////check if the bounciness is less than or equal to 0
+	//if (Bounciness <= 0)
+	//{
+	//	//delegate to the parent implementation
+	//	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
+
+	//	return;
+	//}
 
 	//check if the dot product of the velocity and the impact normal is less than the negative of the head on collision dot
-	if (FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal) < -HeadOnCollisionDot)
+	if (FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal) < HeadOnCollisionDot && (IsFalling() && Velocity.Size2D() > CollisionSpeedThreshold) || IsSliding() || PlayerPawn->GrappleComponent->bIsGrappling)
 	{
+		//print the dot product
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Dot Product: %f"), FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal)));
+
 		//calculate the launch velocity
-		const FVector UnclampedLaunchVelocity = Hit.ImpactNormal * Bounciness * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+		const FVector UnclampedLaunchVelocity = Hit.ImpactNormal * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 
 		//stop grappling
 		PlayerPawn->GrappleComponent->StopGrapple();
@@ -579,12 +622,12 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		if (DotProduct <= 0)
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + Velocity.GetSafeNormal() * SuperJumpForce;
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity.GetSafeNormal() * SuperJumpForce, DELTA);
 		}
 		else
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + LastSuperJumpDirection * SuperJumpForce;
+			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(LastSuperJumpDirection * SuperJumpForce, DELTA);
 		}
 
 		//add the score to the player's score
