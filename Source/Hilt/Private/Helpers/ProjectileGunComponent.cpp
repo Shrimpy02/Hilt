@@ -1,9 +1,21 @@
 #include "Helpers/ProjectileGunComponent.h"
 
+#include "Components/GrapplingHook/GrapplingComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "NPC/Components/GrappleableComponent.h"
+#include "Player/PlayerCharacter.h"
 
 UProjectileGunComponent::UProjectileGunComponent()
 {
+}
+
+void UProjectileGunComponent::BeginPlay()
+{
+	//call the parent implementation
+	Super::BeginPlay();
+
+	//cast the owner to a player character
+	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 }
 
 void UProjectileGunComponent::SetInitialProjectileSpeed(const FVector Direction, UProjectileMovementComponent* ProjectileMovementComponent)

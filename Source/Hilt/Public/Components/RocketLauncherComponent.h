@@ -51,7 +51,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Rocket Launcher")
 	bool bEnableReloading = false;
 
-
 	//the rocket explosion class to spawn when the rocket hits something
 	UPROPERTY(EditAnywhere, Category = "Rocket Launcher")
 	TSubclassOf<AActor> RocketExplosionClass;

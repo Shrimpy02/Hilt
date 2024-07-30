@@ -24,6 +24,11 @@ public:
 
 	//event declaration(s)
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerImpulse, FVector, Impulse, bool, bVelocityChange);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStartSlide);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStopSlide);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerSuperJump);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerNormalJump);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStartFall, const FVector&, PreviousFloorImpactNormal, const FVector&, PreviousFloorContactNormal, const FVector&, PreviousLocation);
 
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
@@ -107,31 +112,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* SlideGravityCurve = nullptr;
 
-	//the curve for the turning rate to use when sliding based on the speed of the player (0 = min speed, 1 = max speed)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* SlideTurningRateCurve = nullptr;
-
 	//whether or not the player can super jump
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SuperJump")
 	bool bCanSuperJump = true;
 
 	//the amount of force to apply in the direction the player is looking when jumping
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
-	float DirectionalJumpForce = 3000;
+	float SuperJumpForce = 3000;
 
 	//the amount of boost to apply when boosting a jump
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500;
 
+	//the amount of score to add for a super jump
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
+	float SuperJumpScoreAmount = 100;
+
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;
 
-	//whether or not last jump was a directional jump
-	bool bLastJumpWasDirectional = false;
-
 	//the direction of the last directional jump
-	FVector LastDirectionalJumpDirection = FVector::UpVector;
+	FVector LastSuperJumpDirection = FVector::UpVector;
 
 	//the current slide speed (from either landing or starting a slide)
 	float CurrentSlideSpeed = 0;
@@ -139,6 +141,21 @@ public:
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerImpulse OnPlayerImpulse;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStartSlide OnPlayerStartSlide;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStopSlide OnPlayerStopSlide;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerSuperJump OnPlayerSuperJump;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerNormalJump OnPlayerNormalJump;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStartFall OnPlayerStartFall;
 
 	//constructor
 	UPlayerMovementComponent();
@@ -168,6 +185,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
 	virtual void PerformMovement(float DeltaTime) override;
+	virtual void HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;

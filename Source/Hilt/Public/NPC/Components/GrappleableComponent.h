@@ -20,14 +20,39 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGrapple, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCollisionGrapple, AActor*, GrapplingActor, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlternativeAction, APlayerCharacter*, PlayerCharacter);
 
-	//the interp struct for the grapple
+	//the interp struct for the player when grappling to this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FGrappleInterpStruct GrappleInterpStruct = FGrappleInterpStruct();
+	FGrappleInterpStruct GrappleInterpStructPlayer = FGrappleInterpStruct();
+
+	//the interp struct for the object when the player is grappling to it
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGrappleInterpStruct GrappleInterpStructThis = FGrappleInterpStruct();
+
+	//whether or not to use the grapple interp struct for this object
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bUseGrappleInterpStruct = false;
 
 	//whether or not the player can change grapple modes when grappling to this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanChangeGrappleMode = true;
+
+	//the percentage of grapple reel force is applied to this object instead of the player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GrappleReelForcePercentage = 0;
+
+	//the multiplier for the grapple reel force applied to this object
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GrappleReelForceMultiplierThis = 1.0f;
+
+	//the multiplier for the grapple reel force applied to the player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GrappleReelForceMultiplierPlayer = 1.0f;
+
+	//whether or not to use the alternative action when grappling to this object
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bUseAlternativeAction = false;
 
 	//whether or not the player is currently grappling to this object
 	UPROPERTY(BlueprintReadOnly)
@@ -48,6 +73,10 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnStopGrapple OnStopGrappleEvent;
 
+	//event called when the player should do an alternative action while grappling to this object
+	UPROPERTY(BlueprintAssignable)
+	FOnAlternativeAction AlternativeActionEvent;
+
 	//function called when the grappling actor starts grappling to this actor
 	UFUNCTION(BlueprintCallable)
 	virtual void OnStartGrapple(const FHitResult& HitResult);
@@ -60,17 +89,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void OnStopGrapple();
 
-	//function that is called while this actor is being grappled to (this is called every frame while attached to the rope) (returns the actor on the other end of the rope (if there is one))
-	UFUNCTION(BlueprintCallable)
-	virtual void WhileGrappled(float DeltaTime);
-
 	//function for whether or not we should use the grapple interp struct of this object
 	UFUNCTION(BlueprintCallable)
-	virtual bool ShouldUseGrappleInterpStruct() const { return false; }
+	virtual bool ShouldUseGrappleInterpStruct() const { return bUseGrappleInterpStruct; }
 
 	//function for getting the grapple interp struct for the object grappling
 	UFUNCTION(BlueprintCallable)
-	virtual FGrappleInterpStruct GetGrappleInterpStruct() const { return GrappleInterpStruct; }
+	virtual FGrappleInterpStruct GetGrappleInterpStruct() const { return GrappleInterpStructPlayer; }
 
 	//function for whether or not the grappling actor should be able to change grapple modes
 	UFUNCTION(BlueprintCallable)
