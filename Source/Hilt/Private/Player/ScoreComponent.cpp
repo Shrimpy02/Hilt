@@ -34,11 +34,13 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 void UScoreComponent::AddScore(const float Value)
 {
 	Score += Value;
+	FMath::Clamp(Score, 0.f, ScoreValues.Num() - 1);
 }
 
 void UScoreComponent::SubtractScore(const float Value)
 {
 	Score -= Value;
+	FMath::Clamp(Score, 0.f, ScoreValues.Num() - 1);
 }
 
 void UScoreComponent::ResetScore()
