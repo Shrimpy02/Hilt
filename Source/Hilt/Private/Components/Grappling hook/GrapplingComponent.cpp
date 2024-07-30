@@ -68,10 +68,14 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			//set borientrotationtoMovement to true
 			PlayerCharacter->PlayerMovementComponent->bOrientRotationToMovement = true;
 		}
+
+		//check if we should stop grappling
+		StopGrappleCheck();
 	}
 	else
 	{
-		GrappleDirection = FVector::ZeroVector;
+		////set the grapple direction to zero if we're not grappling
+		//GrappleDirection = FVector::ZeroVector;
 	}
 }
 
@@ -171,9 +175,6 @@ void UGrapplingComponent::StopGrapple()
 		GrappleTarget->OnDestroyed.RemoveDynamic(this, &UGrapplingComponent::OnGrappleTargetDestroyed);
 	}
 
-	//update the grapple direction (done immediately to for the animation blueprint)
-	GrappleDirection = FVector::ZeroVector;
-
 	//check if the rope component is valid
 	if (RopeComponent->IsValidLowLevelFast())
 	{
@@ -237,7 +238,7 @@ void UGrapplingComponent::StartGrappleCheck()
 		if (!GrappleHits.IsEmpty())
 		{
 			//check if the distance between the trace start and the hit location is less than the distance between the trace start and the player character
-			if (FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].ImpactPoint) < FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].TraceStart))
+			if (FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].ImpactPoint) - GrappleCheckWiggleRoom < FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].TraceStart))
 			{
 				return;
 			}
@@ -245,6 +246,16 @@ void UGrapplingComponent::StartGrappleCheck()
 			//start grappling
 			StartGrapple(GrappleHits[0]);
 		}
+	}
+}
+
+void UGrapplingComponent::StopGrappleCheck()
+{
+	//check if we're close to the end of the rope
+	if (FVector::Dist(GetOwner()->GetActorLocation(), RopeComponent->GetRopeEnd()) < GrappleStopDistance)
+	{
+		//stop grappling
+		StopGrapple();
 	}
 }
 

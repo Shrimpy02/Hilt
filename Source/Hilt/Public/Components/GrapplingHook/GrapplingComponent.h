@@ -113,6 +113,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
 	float MaxGrappleCheckDistance = 18000;
 
+	//the amount of wiggle room to give the can grapple check
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
+	float GrappleCheckWiggleRoom = 100;
+
 	//the float curve to use when applying the grapple velocity using the dot product of the character's velocity and the velocity that was added from grappling last frame (-1 = opposite direction, 0 = perpendicular(90 degrees), 1 = same direction)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	UCurveFloat* GrappleAngleCurve = nullptr;
@@ -152,6 +156,10 @@ public:
 	//the number of points to search for when checking the direction of the rope
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	int GrappleDirectionChecks = 15;
+
+	//the distance threshold to use when checking if we should stop grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleStopDistance = 100;
 
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -214,6 +222,10 @@ public:
 	//function to check if we can grapple and start the grapple if we can
 	UFUNCTION(BlueprintCallable)
 	void StartGrappleCheck();
+
+	//function to check if we should stop grappling
+	UFUNCTION(BlueprintCallable)
+	void StopGrappleCheck();
 
 	//function to process the grapple input
 	UFUNCTION(BlueprintCallable)
