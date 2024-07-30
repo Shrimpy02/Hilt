@@ -28,6 +28,7 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStopSlide);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerSuperJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerNormalJump);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStartFall, const FVector&, PreviousFloorImpactNormal, const FVector&, PreviousFloorContactNormal, const FVector&, PreviousLocation);
 
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
@@ -153,6 +154,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerNormalJump OnPlayerNormalJump;
 
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStartFall OnPlayerStartFall;
+
 	//constructor
 	UPlayerMovementComponent();
 
@@ -181,6 +185,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
 	virtual void PerformMovement(float DeltaTime) override;
+	virtual void HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
