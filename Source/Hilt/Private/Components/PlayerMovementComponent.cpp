@@ -627,9 +627,6 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(LastSuperJumpDirection * SuperJumpForce, DELTA);
 		}
 
-		//add the score to the player's score
-		PlayerPawn->ScoreComponent->AddScore(SuperJumpScoreAmount);
-
 		//call the blueprint event
 		OnPlayerSuperJump.Broadcast();
 	}
