@@ -89,7 +89,7 @@ void UPlayerMovementComponent::StopSlide()
 
 bool UPlayerMovementComponent::IsSliding() const
 {
-	return bIsSliding && IsWalking() && !IsFalling();
+	return bIsSliding && IsWalking() && !IsFalling() && !PlayerPawn->GrappleComponent->bIsGrappling;
 }
 
 void UPlayerMovementComponent::BeginPlay()
@@ -175,6 +175,18 @@ void UPlayerMovementComponent::PerformMovement(float DeltaTime)
 
 	//call the parent implementation
 	Super::PerformMovement(DeltaTime);
+}
+
+void UPlayerMovementComponent::HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta)
+{
+	//print debug message to the screen
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("HandleWalkingOffLedge"));
+
+	//call the parent implementation
+	Super::HandleWalkingOffLedge(PreviousFloorImpactNormal, PreviousFloorContactNormal, PreviousLocation, TimeDelta);
+
+	//call the blueprint event
+	OnPlayerStartFall.Broadcast(PreviousFloorImpactNormal, PreviousFloorContactNormal, PreviousLocation);
 }
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
