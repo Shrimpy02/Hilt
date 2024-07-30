@@ -555,9 +555,6 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 	//check if the dot product of the velocity and the impact normal is less than the negative of the head on collision dot
 	if (FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal) < HeadOnCollisionDot && (IsFalling() && Velocity.Size2D() > CollisionSpeedThreshold) || IsSliding() || PlayerPawn->GrappleComponent->bIsGrappling)
 	{
-		//print the dot product
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Dot Product: %f"), FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal)));
-
 		//calculate the launch velocity
 		const FVector UnclampedLaunchVelocity = Hit.ImpactNormal * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 
@@ -629,9 +626,6 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 			//set the velocity
 			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(LastSuperJumpDirection * SuperJumpForce, DELTA);
 		}
-
-		//add the score to the player's score
-		PlayerPawn->ScoreComponent->AddScore(SuperJumpScoreAmount);
 
 		//call the blueprint event
 		OnPlayerSuperJump.Broadcast();
