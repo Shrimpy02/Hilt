@@ -48,7 +48,15 @@ public:
 
 	//the dot product to use for what is considered a head on collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
-	float HeadOnCollisionDot = 0.3f;
+	float HeadOnCollisionDot = -0.3f;
+	
+	//the float value to subtract from normals when calculating whether or not a collision should be a collision
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
+	float CollisionNormalSubtract = 0.1f;
+
+	//the speed threshold to use for when to apply a collision launch (applied in 2D using the XY plane)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
+	float CollisionSpeedThreshold = 1000;
 
 	//the float curve to use when applying the collision launch speed based on the speed of the player (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
@@ -73,10 +81,6 @@ public:
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float SpeedLimit = 4000;
-
-	//the minimum speed before the character will be able to do a super jump
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float MinSpeedForBoostedJump = 2000;
 
 	//whether or not the player is currently forced to be under the speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -179,6 +183,9 @@ public:
 	//function to get the direction the player is currently sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	FVector GetSlideSurfaceDirection();
+
+	//own function to check if a hit is walkable
+	bool IsWalkable2(const FHitResult& Hit) const;
 
 	//override functions
 	virtual void BeginPlay() override;
