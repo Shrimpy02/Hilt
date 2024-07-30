@@ -17,10 +17,10 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	if (ScoreDegradationCurve)
 	{
 		//get the degradation value from the curve
-		const float DegradationValue = ScoreDegradationCurve->GetFloatValue(Score / MaxScore);
+		const float DegradationValue = ScoreDegradationCurve->GetFloatValue(Score / ScoreValues.Num());
 
 		//degrade the score
-		Score -= MaxScore * DegradationValue * DeltaTime;
+		Score -= DegradationValue * DeltaTime;
 
 		//check if the score is less than 0
 		if (Score < 0)
