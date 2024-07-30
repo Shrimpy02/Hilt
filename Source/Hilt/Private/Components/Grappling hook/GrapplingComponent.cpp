@@ -74,8 +74,8 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	}
 	else
 	{
-		//set the grapple direction to zero if we're not grappling
-		GrappleDirection = FVector::ZeroVector;
+		////set the grapple direction to zero if we're not grappling
+		//GrappleDirection = FVector::ZeroVector;
 	}
 }
 

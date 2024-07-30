@@ -48,7 +48,7 @@ public:
 
 	//the dot product to use for what is considered a head on collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
-	float HeadOnCollisionDot = 0.3f;
+	float HeadOnCollisionDot = -0.3f;
 	
 	//the float value to subtract from normals when calculating whether or not a collision should be a collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
