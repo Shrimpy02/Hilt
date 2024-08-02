@@ -115,7 +115,7 @@ public:
 
 	//the amount of wiggle room to give the can grapple check
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
-	float GrappleCheckWiggleRoom = 100;
+	float GrappleCheckWiggleRoom = 1000;
 
 	//the float curve to use when applying the grapple velocity using the dot product of the character's velocity and the velocity that was added from grappling last frame (-1 = opposite direction, 0 = perpendicular(90 degrees), 1 = same direction)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -230,6 +230,10 @@ public:
 	//function to process the grapple input
 	UFUNCTION(BlueprintCallable)
 	FVector ProcessGrappleInput(FVector MovementInput);
+
+	//whether or not we should use normal movement
+	UFUNCTION(BlueprintCallable)
+	bool ShouldUseNormalMovement() const;
 
 private:
 
