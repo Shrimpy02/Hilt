@@ -119,7 +119,7 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 	const FRotator YawPlayerRotation(0.f, ControlPlayerRotationYaw.Yaw, 0.f);
 
 	//check if we're grappling
-	if (GrappleComponent->bIsGrappling && !GrappleComponent->bUseDebugMode)
+	if (GrappleComponent->bIsGrappling && !GrappleComponent->ShouldUseNormalMovement())
 	{
 		//get the up vector from the control rotation
 		const FVector PlayerDirectionYaw_Upwards_Downwards = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Z);

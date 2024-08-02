@@ -86,8 +86,17 @@ void UCameraArmComponent::InterpCameraZoom()
 	}
 	else
 	{
-		//set the speed regularly
-		Speed = GetOwner()->GetVelocity().Length();
+		//get the difference betwen the 2d speed and the 3d speed
+		const float SpeedDifference = GetOwner()->GetVelocity().Size2D() - GetOwner()->GetVelocity().Length();
+
+		//print the speed difference to the screen
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Speed Difference: %f"), SpeedDifference));
+
+		//set the speed to the 2d speed + the speed difference multiplied by the z velocity multiplier
+		Speed = GetOwner()->GetVelocity().Size2D() + SpeedDifference * ZVelocityMultiplier;
+
+		//print the difference between the 2d speed and the 3d speed
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Speed Diff: %f"), Speed - GetOwner()->GetVelocity().Size()));
 	}
 
 	//check if current interp index is above 0
