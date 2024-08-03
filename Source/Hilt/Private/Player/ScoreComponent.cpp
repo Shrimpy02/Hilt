@@ -3,7 +3,7 @@
 
 #include "Player/ScoreComponent.h"
 
-#include "Components/PlayerMovementComponent.h"
+#include "Components/GrapplingHook/GrapplingComponent.h"
 #include "Player/PlayerCharacter.h"
 
 // Sets default values for this component's properties
@@ -27,8 +27,8 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	//call the parent tick function
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//check if the score degradation curve is valid
-	if (ScoreDegradationCurve && LastScoreGainTime + GetCurrentScoreValues().ScoreDecayDelay < GetWorld()->GetTimeSeconds())
+	//check if the score degradation curve is valid and the last score gain time + the score decay delay is less than the current time and that we're not grappling
+	if (ScoreDegradationCurve && LastScoreGainTime + GetCurrentScoreValues().ScoreDecayDelay < GetWorld()->GetTimeSeconds() && !PlayerCharacter->GrappleComponent->bIsGrappling)
 	{
 		//get the degradation value from the curve
 		const float DegradationValue = ScoreDegradationCurve->GetFloatValue(Score / ScoreValues.Num());
