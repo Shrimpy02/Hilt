@@ -103,6 +103,16 @@ void UPlayerMovementComponent::StopSlide()
 		PlayerPawn->ScoreComponent->StartDegredationTimer();
 	}
 
+	//check if we have a valid slide score curve
+	if (SlideScoreCurve->IsValidLowLevelFast())
+	{
+		//get the slide score value
+		const float SlideScore = SlideScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - SlideStartTime);
+
+		//add the slide score to the player's score
+		PlayerPawn->ScoreComponent->AddScore(SlideScore);
+	}
+
 	//set the sliding variable
 	bIsSliding = false;
 
@@ -134,17 +144,6 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	//clamp the excess speed
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
-
-	//check if we're sliding
-	if (IsSliding())
-	{
-		//check if the slide start time + SlideScoreDecayStopDelay is less than the current time
-		if (SlideStartTime + SlideScoreDecayStopDelay < GetWorld()->GetTimeSeconds())
-		{
-			//stop the score degredation timer
-			PlayerPawn->ScoreComponent->StopDegredationTimer();
-		}
-	}
 }
 
 FVector UPlayerMovementComponent::GetSlideSurfaceDirection()
@@ -189,6 +188,23 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 
 		//add the slide gravity to the velocity
 		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
+
+		//check if the slide start time + SlideScoreDecayStopDelay is less than the current time
+		if (SlideStartTime + SlideScoreDecayStopDelay < GetWorld()->GetTimeSeconds())
+		{
+			//stop the score degredation timer
+			PlayerPawn->ScoreComponent->StopDegredationTimer();
+		}
+
+		//check if we have a valid slide score curve
+		if (SlideScoreCurve->IsValidLowLevelFast())
+		{
+			//get the slide score value
+			const float SlideScore = SlideScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - SlideStartTime);
+
+			//update the pending slide score
+			PendingSlideScore = SlideScore;
+		}
 	}
 
 	//call the parent implementation
