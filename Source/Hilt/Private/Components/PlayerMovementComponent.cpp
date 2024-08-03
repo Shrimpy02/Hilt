@@ -494,7 +494,7 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 	if (IsFalling())
 	{
 		//storage for the max speed to use
-		float MaxSpeedToUse = MaxFallSpeed;
+		float MaxSpeedToUse = MaxFallSpeed * PlayerPawn->ScoreComponent->GetCurrentScoreValues().FallSpeedMultiplier;
 
 		//check if we might be bunny jumping
 		if (bMightBeBunnyJumping)
@@ -614,8 +614,8 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 		//clamp the launch velocity and launch the character
 		GetCharacterOwner()->LaunchCharacter(UnclampedLaunchVelocity.GetClampedToSize(MinCollisionLaunchSpeed, MaxCollisionLaunchSpeed), true, true);
 
-		//reset the player's score
-		PlayerPawn->ScoreComponent->ResetScore();
+		//subtract the score
+		PlayerPawn->ScoreComponent->SubtractScore(CollisionScoreLoss);
 
 		//return to prevent further execution
 		return;

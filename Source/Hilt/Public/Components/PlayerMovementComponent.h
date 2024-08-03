@@ -62,6 +62,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	float SlideCollisionLaunchExtraForce = 500;
 
+	//the amount of score to subtract when you collide
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
+	float CollisionScoreLoss = 1;
+
 	//the float curve to use when applying the collision launch speed based on the speed of the player (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
@@ -131,15 +135,15 @@ public:
 	UCurveFloat* SlideGravityCurve = nullptr;
 
 	//whether or not the player can super jump
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SuperJump")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
 	bool bCanSuperJump = true;
 
 	//the amount of force to apply in the direction the player is looking when jumping
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
 	float SuperJumpForce = 3000;
 
 	//the amount of boost to apply when boosting a jump
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
 	float JumpBoostAmount = 500;
 
 	//whether the player has gone far enough above the ground to be considered not bunny hopping

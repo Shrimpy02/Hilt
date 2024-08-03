@@ -39,6 +39,10 @@ struct FScoreValues
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ScoreLossMultiplier = 1;
 
+	//the falling speed multiplier
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FallSpeedMultiplier = 1;
+
 	//the sliding turn rate curve to use
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Curves")
 	UCurveFloat* SlidingTurnRateCurve = nullptr;
