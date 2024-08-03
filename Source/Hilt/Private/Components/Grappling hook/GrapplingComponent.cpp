@@ -227,7 +227,7 @@ void UGrapplingComponent::StopGrapple()
 	GetOwner()->SetActorRotation(PlayerCharacter->PlayerMovementComponent->Velocity.Rotation());
 
 	//check if we should reenable gravity
-	if (bApplyGravityWhenGrappling)
+	if (!bApplyGravityWhenGrappling)
 	{
 		//enable gravity
 		PlayerCharacter->GetCapsuleComponent()->SetEnableGravity(true);
