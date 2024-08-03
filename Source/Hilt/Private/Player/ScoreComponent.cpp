@@ -29,7 +29,7 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//check if the score degradation curve is valid and the last score gain time + the score decay delay is less than the current time and that we're not falling and we're walking
-	if (ScoreDegradationCurve && LastScoreGainTime + GetCurrentScoreValues().ScoreDecayDelay < GetWorld()->GetTimeSeconds() && !PlayerCharacter->PlayerMovementComponent->IsFalling() && PlayerCharacter->PlayerMovementComponent->IsWalking())
+	if (ScoreDegradationCurve && LastScoreGainTime + GetCurrentScoreValues().ScoreDecayDelay < GetWorld()->GetTimeSeconds() && bShouldDegrade)
 	{
 		//get the degradation value from the curve
 		const float DegradationValue = ScoreDegradationCurve->GetFloatValue(Score / ScoreValues.Num());
@@ -57,6 +57,9 @@ void UScoreComponent::AddScore(const float Value)
 	//set the last score gain time
 	LastScoreGainTime = GetWorld()->GetTimeSeconds();
 
+	//set bShouldDegrade to false
+	bShouldDegrade = false;
+
 	////check if the default score addition value is different from the current score
 	//if (DefaultScoreAdditionValue != Score)
 	//{
@@ -73,6 +76,11 @@ void UScoreComponent::SubtractScore(const float Value)
 	//apply the score subtraction value
 	Score = FMath::Clamp(Score - Value * GetCurrentScoreValues().ScoreLossMultiplier, 0.f, ScoreValues.Num() - 1);
 
+	//set the last score gain time to -infinity
+	LastScoreGainTime = -INFINITY;
+
+	//set bShouldDegrade to true
+	bShouldDegrade = true;
 
 	////check if the default score subtraction value is different from the current score
 	//if (DefaultScoreSubtractionValue != Score)
@@ -85,6 +93,25 @@ void UScoreComponent::SubtractScore(const float Value)
 void UScoreComponent::ResetScore()
 {
 	Score = 0;
+}
+
+void UScoreComponent::StartDegredationTimer()
+{
+	//check if we're already degrading
+	if (!bShouldDegrade)
+	{
+		LastScoreGainTime = GetWorld()->GetTimeSeconds();
+		bShouldDegrade = true;
+	}
+}
+
+void UScoreComponent::StopDegredationTimer()
+{
+	//check if we're degrading
+	if (bShouldDegrade)
+	{
+		bShouldDegrade = false;
+	}
 }
 
 FScoreValues UScoreComponent::GetCurrentScoreValues() const

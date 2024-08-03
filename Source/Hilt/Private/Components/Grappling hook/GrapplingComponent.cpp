@@ -81,6 +81,13 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			PendingScore = Value;
 		}
 
+		//check if the grapple start time + GrappleScoreDecayStopDelay is less than the current time
+		if (GrappleStartTime + GrappleScoreDecayStopDelay < GetWorld()->GetTimeSeconds())
+		{
+			//stop the score degredation timer
+			PlayerCharacter->ScoreComponent->StopDegredationTimer();
+		}
+
 		//check if we should stop grappling
 		StopGrappleCheck();
 	}
@@ -99,6 +106,9 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 		//stop grappling
 		StopGrapple();
 	}
+
+	//stop any degredation timers
+	PlayerCharacter->ScoreComponent->StopDegredationTimer();
 
 	//check if the other actor is valid
 	if (HitResult.GetActor()->IsValidLowLevelFast())

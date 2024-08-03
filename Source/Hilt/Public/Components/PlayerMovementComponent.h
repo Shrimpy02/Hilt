@@ -146,6 +146,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
 	float JumpBoostAmount = 500;
 
+	//the amount of time to wait before stopping the score degradation when sliding
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
+	float SlideScoreDecayStopDelay = 0.5;
+
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;
@@ -155,6 +159,9 @@ public:
 
 	//the current slide speed (from either landing or starting a slide)
 	float CurrentSlideSpeed = 0;
+
+	//storage for the time we started sliding
+	float SlideStartTime = 0;
 
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
