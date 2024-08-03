@@ -78,6 +78,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* WalkingBrakingFrictionCurve = nullptr;
 
+	//the float curve to use for adding score when stopping a slide based on the time spend sliding
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideScoreCurve = nullptr;
+
+	//the pending score for the slide
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|SlideJump")
+	float PendingSlideScore = 0;
+
 	//the ground friction to apply when sliding
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	UCurveFloat* SlidingGroundFrictionCurve = nullptr;
