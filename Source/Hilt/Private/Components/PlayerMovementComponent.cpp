@@ -73,9 +73,6 @@ void UPlayerMovementComponent::StartSlide()
 
 		//set the slide start time
 		SlideStartTime = GetWorld()->GetTimeSeconds();
-
-		//print message to the screen
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Slide Started"));
 	}
 	else if (IsSliding())
 	{
@@ -675,9 +672,6 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 
 		//set the slide start time
 		SlideStartTime = GetWorld()->GetTimeSeconds();
-
-		//print message to the screen
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Slide Started"));
 	}
 
 	//start the score degredation timer
