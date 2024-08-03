@@ -57,15 +57,12 @@ void UScoreComponent::AddScore(const float Value)
 	//set the last score gain time
 	LastScoreGainTime = GetWorld()->GetTimeSeconds();
 
-	//set bShouldDegrade to false
-	bShouldDegrade = false;
-
-	////check if the default score addition value is different from the current score
-	//if (DefaultScoreAdditionValue != Score)
-	//{
-	//	//print the 2 values
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Default Score Addition Value: %f, Score: %f"), DefaultScoreAdditionValue, Score));
-	//}
+	//check if the value is greater than 0
+	if (Value > 0)
+	{
+		//set bShouldDegrade to false
+		bShouldDegrade = false;
+	}
 }
 
 void UScoreComponent::SubtractScore(const float Value)
@@ -79,15 +76,12 @@ void UScoreComponent::SubtractScore(const float Value)
 	//set the last score gain time to -infinity
 	LastScoreGainTime = -INFINITY;
 
-	//set bShouldDegrade to true
-	bShouldDegrade = true;
-
-	////check if the default score subtraction value is different from the current score
-	//if (DefaultScoreSubtractionValue != Score)
-	//{
-	//	//print the 2 values
-	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Default Score Subtraction Value: %f, Score: %f"), DefaultScoreSubtractionValue, Score));
-	//}
+	//check if the value is less than 0
+	if (Value > 0)
+	{
+		//set bShouldDegrade to true
+		bShouldDegrade = true;
+	}
 }
 
 void UScoreComponent::ResetScore()
