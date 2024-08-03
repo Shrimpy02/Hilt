@@ -71,6 +71,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	float LastScoreGainTime = 0;
 
+	//whether or not the score should degrade
+	UPROPERTY(BlueprintReadOnly)
+	bool bShouldDegrade = false;
+
 	//reference to the player character associated with this component as a player character
 	UPROPERTY()
 	class APlayerCharacter* PlayerCharacter = nullptr;
@@ -92,6 +96,14 @@ public:
 	//function to reset the player's score
 	UFUNCTION(BlueprintCallable)
 	void ResetScore();
+
+	//start degredation timer
+	UFUNCTION(BlueprintCallable)
+	void StartDegredationTimer();
+
+	//function to stop the degredation timer
+	UFUNCTION(BlueprintCallable)
+	void StopDegredationTimer();
 
 	//function to get the current score values
 	UFUNCTION(BlueprintCallable)

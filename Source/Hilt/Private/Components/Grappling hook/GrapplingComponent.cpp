@@ -100,6 +100,9 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 		StopGrapple();
 	}
 
+	//stop any degredation timers
+	PlayerCharacter->ScoreComponent->StopDegredationTimer();
+
 	//check if the other actor is valid
 	if (HitResult.GetActor()->IsValidLowLevelFast())
 	{

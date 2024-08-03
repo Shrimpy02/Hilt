@@ -65,6 +65,9 @@ float UPlayerMovementComponent::GetCurrentSpeedLimit() const
 
 void UPlayerMovementComponent::StartSlide()
 {
+	//stop the score degredation timer
+	PlayerPawn->ScoreComponent->StopDegredationTimer();
+
 	//check if our velocity is less than the minimum slide start speed
 	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling() && !IsSliding())
 	{
@@ -93,6 +96,13 @@ void UPlayerMovementComponent::StartSlide()
 
 void UPlayerMovementComponent::StopSlide()
 {
+	//check if we're walking
+	if (IsWalking())
+	{
+		//start the score degredation timer
+		PlayerPawn->ScoreComponent->StartDegredationTimer();
+	}
+
 	//set the sliding variable
 	bIsSliding = false;
 
@@ -556,7 +566,6 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 		//set the movement mode to walking
 		SetMovementMode(MOVE_Walking);
 
-
 		//check if we're not using normal movement
 		if (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->ShouldUseNormalMovement())
 		{
@@ -614,11 +623,11 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 		//clamp the launch velocity and launch the character
 		GetCharacterOwner()->LaunchCharacter(UnclampedLaunchVelocity.GetClampedToSize(MinCollisionLaunchSpeed, MaxCollisionLaunchSpeed), true, true);
 
+		//start the score degredation timer
+		PlayerPawn->ScoreComponent->StartDegredationTimer();
+
 		//subtract the score
 		PlayerPawn->ScoreComponent->SubtractScore(CollisionScoreLoss);
-
-		//set the last score gain time to -infinity
-		PlayerPawn->ScoreComponent->LastScoreGainTime = -INFINITY;
 
 		//return to prevent further execution
 		return;
@@ -652,6 +661,9 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 			Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
 		}
 	}
+
+	//start the score degredation timer
+	PlayerPawn->ScoreComponent->StartDegredationTimer();
 }
 
 bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
