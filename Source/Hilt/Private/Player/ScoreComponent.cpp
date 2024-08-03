@@ -28,7 +28,7 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//check if the score degradation curve is valid
-	if (ScoreDegradationCurve)
+	if (ScoreDegradationCurve && LastScoreGainTime + GetCurrentScoreValues().ScoreDecayDelay < GetWorld()->GetTimeSeconds())
 	{
 		//get the degradation value from the curve
 		const float DegradationValue = ScoreDegradationCurve->GetFloatValue(Score / ScoreValues.Num());
@@ -51,7 +51,10 @@ void UScoreComponent::AddScore(const float Value)
 	//const float DefaultScoreAdditionValue = Score + Value;
 
 	//apply the score addition value
-	Score = FMath::Clamp(Score + Value, 0.f, ScoreValues.Num() - 1);
+	Score = FMath::Clamp(Score + Value * GetCurrentScoreValues().ScoreGainMultiplier, 0.f, ScoreValues.Num() - 1);
+
+	//set the last score gain time
+	LastScoreGainTime = GetWorld()->GetTimeSeconds();
 
 	////check if the default score addition value is different from the current score
 	//if (DefaultScoreAdditionValue != Score)
@@ -67,7 +70,7 @@ void UScoreComponent::SubtractScore(const float Value)
 	//const float DefaultScoreSubtractionValue = Score - Value;
 	//
 	//apply the score subtraction value
-	Score = FMath::Clamp(Score - Value, 0.f, ScoreValues.Num() - 1);
+	Score = FMath::Clamp(Score - Value * GetCurrentScoreValues().ScoreLossMultiplier, 0.f, ScoreValues.Num() - 1);
 
 
 	////check if the default score subtraction value is different from the current score
