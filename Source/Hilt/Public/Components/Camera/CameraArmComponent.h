@@ -110,6 +110,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
 	bool bUseMoveOffset = true;
 
+	//the value to clamp the z value of the target offset to
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
+	float TargetOffsetZClamp = 0;
+
 	//storage for the player character as a player character
 	UPROPERTY()
 	class APlayerCharacter* PlayerCharacter = nullptr;

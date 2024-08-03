@@ -73,6 +73,25 @@ void UCameraArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocati
 	Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
 }
 
+FVector UCameraArmComponent::ClampTargetOffsetZ(FVector InVector) const
+{
+	//check if the z value is above the target offset z clamp
+	if (InVector.Z > TargetOffsetZClamp)
+	{
+		//set the z value to the target offset z clamp
+		InVector.Z = TargetOffsetZClamp;
+	}
+	else if (InVector.Z < -TargetOffsetZClamp)
+	{
+		//set the z value to the negative target offset z clamp
+		InVector.Z = -TargetOffsetZClamp;
+	}
+
+	//return the clamped vector
+	return InVector;
+
+}
+
 void UCameraArmComponent::InterpCameraZoom()
 {
 	//the speed of movement

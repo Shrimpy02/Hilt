@@ -617,6 +617,9 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 		//subtract the score
 		PlayerPawn->ScoreComponent->SubtractScore(CollisionScoreLoss);
 
+		//set the last score gain time to -infinity
+		PlayerPawn->ScoreComponent->LastScoreGainTime = -INFINITY;
+
 		//return to prevent further execution
 		return;
 	}
