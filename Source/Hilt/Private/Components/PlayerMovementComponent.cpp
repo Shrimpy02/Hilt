@@ -65,14 +65,14 @@ float UPlayerMovementComponent::GetCurrentSpeedLimit() const
 
 void UPlayerMovementComponent::StartSlide()
 {
-	//stop the score degredation timer
-	PlayerPawn->ScoreComponent->StopDegredationTimer();
-
 	//check if our velocity is less than the minimum slide start speed
 	if (Velocity.Size() < MinSlideStartSpeed && IsWalking() && !IsFalling() && !IsSliding())
 	{
 		//set the velocity to the minimum slide start speed
 		Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
+
+		//set the slide start time
+		SlideStartTime = GetWorld()->GetTimeSeconds();
 	}
 	else if (IsSliding())
 	{
@@ -96,7 +96,7 @@ void UPlayerMovementComponent::StartSlide()
 
 void UPlayerMovementComponent::StopSlide()
 {
-	//check if we're walking
+	//check if we're on the ground
 	if (IsWalking())
 	{
 		//start the score degredation timer
@@ -134,6 +134,17 @@ void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	//clamp the excess speed
 	ExcessSpeed = FMath::Clamp(ExcessSpeed, 0.f, MaxExcessSpeed);
+
+	//check if we're sliding
+	if (IsSliding())
+	{
+		//check if the slide start time + SlideScoreDecayStopDelay is less than the current time
+		if (SlideStartTime + SlideScoreDecayStopDelay < GetWorld()->GetTimeSeconds())
+		{
+			//stop the score degredation timer
+			PlayerPawn->ScoreComponent->StopDegredationTimer();
+		}
+	}
 }
 
 FVector UPlayerMovementComponent::GetSlideSurfaceDirection()
@@ -555,8 +566,6 @@ float UPlayerMovementComponent::GetMaxAcceleration() const
 
 void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta)
 {
-	//todo add a bit of launch upwards when sliding
-
 	//check if the surface normal should be considered a floor
 	if (IsWalkable(Hit)) 
 	{

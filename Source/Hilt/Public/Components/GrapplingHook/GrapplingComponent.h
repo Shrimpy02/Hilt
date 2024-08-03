@@ -185,6 +185,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	float GrappleStartTime = 0;
 
+	//the time to wait before stopping the score degradation when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleScoreDecayStopDelay = 0.5f;
+
 	//whether or not we can grapple right now
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
 	bool CanGrappleVar = false;
