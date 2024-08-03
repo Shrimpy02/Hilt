@@ -338,6 +338,9 @@ FVector UGrapplingComponent::ProcessGrappleInput(FVector MovementInput)
 		ReturnVec *= Value;
 	}
 
+	//apply the speed limit to the return vector
+	ReturnVec = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(ReturnVec, DELTA, false);
+
 	//return the return vector
 	return ReturnVec;
 }
