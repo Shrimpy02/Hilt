@@ -33,14 +33,35 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 void UScoreComponent::AddScore(const float Value)
 {
-	Score += Value;
-	FMath::Clamp(Score, 0.f, ScoreValues.Num() - 1);
+	////store the default score addition value
+	//const float DefaultScoreAdditionValue = Score + Value;
+
+	//apply the score addition value
+	Score = FMath::Clamp(Score + Value, 0.f, ScoreValues.Num() - 1);
+
+	////check if the default score addition value is different from the current score
+	//if (DefaultScoreAdditionValue != Score)
+	//{
+	//	//print the 2 values
+	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Default Score Addition Value: %f, Score: %f"), DefaultScoreAdditionValue, Score));
+	//}
 }
 
 void UScoreComponent::SubtractScore(const float Value)
 {
-	Score -= Value;
-	FMath::Clamp(Score, 0.f, ScoreValues.Num() - 1);
+	////store the default score subtraction value
+	//const float DefaultScoreSubtractionValue = Score - Value;
+	//
+	//apply the score subtraction value
+	Score = FMath::Clamp(Score - Value, 0.f, ScoreValues.Num() - 1);
+
+
+	////check if the default score subtraction value is different from the current score
+	//if (DefaultScoreSubtractionValue != Score)
+	//{
+	//	//print the 2 values
+	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Default Score Subtraction Value: %f, Score: %f"), DefaultScoreSubtractionValue, Score));
+	//}
 }
 
 void UScoreComponent::ResetScore()

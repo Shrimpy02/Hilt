@@ -74,6 +74,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Zoom")
 	bool bIgnoreZVelocity = true;
 
+	//the multiplier to apply to z velocity when calculating the camera zoom
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Zoom", meta = (editcondition = "bIgnoreZVelocity", editconditionHides))
+	float ZVelocityMultiplier = 1;
+
 	//whether or not to smooth camera movement when character crouches (character class must call OnCrouch when crouching)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Crouch")
 	bool bSmoothCrouch = true;
