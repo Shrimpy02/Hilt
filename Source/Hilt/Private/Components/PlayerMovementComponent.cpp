@@ -669,12 +669,12 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		if (DotProduct <= 0)
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(Velocity.GetSafeNormal() * SuperJumpForce, DELTA);
+			Velocity += FVector::UpVector * JumpBoostAmount + ApplySpeedLimit(Velocity.GetSafeNormal() * SuperJumpForce, DELTA);
 		}
 		else
 		{
 			//set the velocity
-			Velocity += FVector::UpVector * (JumpZVelocity + JumpBoostAmount) + ApplySpeedLimit(LastSuperJumpDirection * SuperJumpForce, DELTA);
+			Velocity += FVector::UpVector * JumpBoostAmount + ApplySpeedLimit(LastSuperJumpDirection * SuperJumpForce, DELTA);
 		}
 
 		//call the blueprint event
