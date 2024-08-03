@@ -9,6 +9,8 @@
 // Sets default values for this component's properties
 UScoreComponent::UScoreComponent()
 {
+	//set the tick function to be enabled
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UScoreComponent::BeginPlay()
@@ -24,8 +26,6 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 {
 	//call the parent tick function
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Score: %f"), Score));
 
 	//check if the score degradation curve is valid
 	if (ScoreDegradationCurve)
