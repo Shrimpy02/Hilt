@@ -27,6 +27,18 @@ struct FScoreValues
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float GravityScale = 1;
 
+	//the free time where your score is not degrading after you've gained a bit of score
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ScoreDecayDelay = 0;
+
+	//the score gain multiplier for this score value
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ScoreGainMultiplier = 1;
+
+	//the score loss multiplier for this score value
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ScoreLossMultiplier = 1;
+
 	//the sliding turn rate curve to use
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Curves")
 	UCurveFloat* SlidingTurnRateCurve = nullptr;
@@ -50,6 +62,10 @@ public:
 	//the array of score values to use
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
 	TArray<FScoreValues> ScoreValues;
+
+	//last time the player gained score
+	UPROPERTY(BlueprintReadOnly)
+	float LastScoreGainTime = 0;
 
 	//reference to the player character associated with this component as a player character
 	UPROPERTY()
