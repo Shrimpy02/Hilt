@@ -124,23 +124,32 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 		//get the up vector from the control rotation
 		const FVector PlayerDirectionYaw_Upwards_Downwards = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Z);
 
-		//get the rope direction
-		const FVector RopeDirection = RopeComponent->GetRopeDirection(0).GetSafeNormal();
+		////get the rope direction
+		//const FVector RopeDirection = RopeComponent->GetRopeDirection(0).GetSafeNormal();
 
 		//get the X axis for the movement input
-		const FVector MovementXAxis = FVector::CrossProduct(PlayerDirectionYaw_Upwards_Downwards.GetSafeNormal(), RopeDirection).GetSafeNormal();
+		const FVector MovementXAxis = FVector::CrossProduct(PlayerDirectionYaw_Upwards_Downwards.GetSafeNormal(), Camera->GetForwardVector()).GetSafeNormal();
+
+		////draw a debug arrow
+		//DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementXAxis * 100, 100, FColor::Red, false, 0, 0, 1);
 
 		//get the right vector from the control rotation
 		const FVector PlayerDirectionYaw_Left_Right = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Y);
 
 		//get the X axis for the movement input
-		const FVector MovementYAxis = FVector::CrossProduct((PlayerDirectionYaw_Left_Right * -1).GetSafeNormal(), RopeDirection).GetSafeNormal();
+		const FVector MovementYAxis = FVector::CrossProduct((PlayerDirectionYaw_Left_Right * -1).GetSafeNormal(), Camera->GetForwardVector()).GetSafeNormal();
+
+		////draw a debug arrow
+		//DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementYAxis * 100, 100, FColor::Green, false, 0, 0, 1);
 
 		//add upwards/downwards movement input
 		AddMovementInput(MovementYAxis, VectorDirection.Y);
 
 		//add left/right movement input
 		AddMovementInput(MovementXAxis, VectorDirection.X);
+
+		////print the vector direction
+		//GEngine->AddOnScreenDebugMessage(99, 0.f, FColor::Red, FString::Printf(TEXT("VectorDirection: %s"), *VectorDirection.ToString()));
 
 		return;
 	}
