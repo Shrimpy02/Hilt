@@ -60,9 +60,6 @@ void UScoreComponent::AddScore(const float Value)
 	//set bShouldDegrade to false
 	bShouldDegrade = false;
 
-	//print that this function was called
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("AddScore called")));
-
 	////check if the default score addition value is different from the current score
 	//if (DefaultScoreAdditionValue != Score)
 	//{
@@ -85,9 +82,6 @@ void UScoreComponent::SubtractScore(const float Value)
 	//set bShouldDegrade to true
 	bShouldDegrade = true;
 
-	//print that this function was called
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("SubtractScore called")));
-
 	////check if the default score subtraction value is different from the current score
 	//if (DefaultScoreSubtractionValue != Score)
 	//{
@@ -109,9 +103,6 @@ void UScoreComponent::StartDegredationTimer()
 		LastScoreGainTime = GetWorld()->GetTimeSeconds();
 		bShouldDegrade = true;
 	}
-
-	//print that this function was called
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("StartDegredationTimer called")));
 }
 
 void UScoreComponent::StopDegredationTimer()
@@ -121,9 +112,6 @@ void UScoreComponent::StopDegredationTimer()
 	{
 		bShouldDegrade = false;
 	}
-
-	//print that this function was called
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("StopDegredationTimer called")));
 }
 
 FScoreValues UScoreComponent::GetCurrentScoreValues() const

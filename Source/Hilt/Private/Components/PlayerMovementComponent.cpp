@@ -620,6 +620,9 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 		{
 			//add the extra force to the launch velocity
 			UnclampedLaunchVelocity += FVector::UpVector * SlideCollisionLaunchExtraForce;
+
+			//set the start time of the slide
+			SlideStartTime = GetWorld()->GetTimeSeconds();
 		}
 
 		//check if we're grappling and not using normal movement
