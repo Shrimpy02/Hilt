@@ -138,6 +138,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime) override;
 
+	//function to clamp the z value of the target offset
+	FVector ClampTargetOffsetZ(FVector InVector) const;
+
 	//function that interpolates the camera zoom
 	void InterpCameraZoom();
 
