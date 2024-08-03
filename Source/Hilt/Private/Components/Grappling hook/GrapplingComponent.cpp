@@ -71,6 +71,16 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			PlayerCharacter->PlayerMovementComponent->bOrientRotationToMovement = true;
 		}
 
+		//check if the grapplescorecurve is valid
+		if (GrappleScoreCurve)
+		{
+			//get the grapple score curve value
+			const float Value = GrappleScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - GrappleStartTime);
+
+			//set the pending score
+			PendingScore = Value;
+		}
+
 		//check if we should stop grappling
 		StopGrappleCheck();
 	}
@@ -151,7 +161,7 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 	}
 
 	//check if we should disable gravity when grappling
-	if (bDisableGravityWhenGrappling)
+	if (!bApplyGravityWhenGrappling)
 	{
 		//disable gravity
 		GetOwner()->FindComponentByClass<UPrimitiveComponent>()->SetEnableGravity(false);

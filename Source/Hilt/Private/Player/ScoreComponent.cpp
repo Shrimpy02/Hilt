@@ -3,15 +3,29 @@
 
 #include "Player/ScoreComponent.h"
 
+#include "Components/PlayerMovementComponent.h"
+#include "Player/PlayerCharacter.h"
+
 // Sets default values for this component's properties
 UScoreComponent::UScoreComponent()
 {
+}
+
+void UScoreComponent::BeginPlay()
+{
+	//call the parent implementation
+	Super::BeginPlay();
+
+	//get the owner as a player character
+	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 }
 
 void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	//call the parent tick function
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Score: %f"), Score));
 
 	//check if the score degradation curve is valid
 	if (ScoreDegradationCurve)
@@ -29,6 +43,9 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 			Score = 0;
 		}
 	}
+
+	//set the player's gravity scale based on the current score
+	PlayerCharacter->PlayerMovementComponent->GravityScale = GetCurrentScoreValues().GravityScale;
 }
 
 void UScoreComponent::AddScore(const float Value)
