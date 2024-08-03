@@ -86,9 +86,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		{
 			//stop the score degredation timer
 			PlayerCharacter->ScoreComponent->StopDegredationTimer();
-
-			//print a message to the screen
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, TEXT("Score decay stopped"));
 		}
 
 		//check if we should stop grappling
