@@ -3,6 +3,7 @@
 
 #include "Player/ScoreComponent.h"
 
+#include "Components/PlayerMovementComponent.h"
 #include "Components/GrapplingHook/GrapplingComponent.h"
 #include "Player/PlayerCharacter.h"
 
@@ -27,8 +28,8 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	//call the parent tick function
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//check if the score degradation curve is valid and the last score gain time + the score decay delay is less than the current time and that we're not grappling
-	if (ScoreDegradationCurve && LastScoreGainTime + GetCurrentScoreValues().ScoreDecayDelay < GetWorld()->GetTimeSeconds() && !PlayerCharacter->GrappleComponent->bIsGrappling)
+	//check if the score degradation curve is valid and the last score gain time + the score decay delay is less than the current time and that we're not falling and we're walking
+	if (ScoreDegradationCurve && LastScoreGainTime + GetCurrentScoreValues().ScoreDecayDelay < GetWorld()->GetTimeSeconds() && !PlayerCharacter->PlayerMovementComponent->IsFalling() && PlayerCharacter->PlayerMovementComponent->IsWalking())
 	{
 		//get the degradation value from the curve
 		const float DegradationValue = ScoreDegradationCurve->GetFloatValue(Score / ScoreValues.Num());
