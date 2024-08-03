@@ -669,6 +669,9 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 			//set the velocity to the minimum slide start speed
 			Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
 		}
+
+		//set the slide start time
+		SlideStartTime = GetWorld()->GetTimeSeconds();
 	}
 
 	//start the score degredation timer

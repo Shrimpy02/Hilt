@@ -86,6 +86,9 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		{
 			//stop the score degredation timer
 			PlayerCharacter->ScoreComponent->StopDegredationTimer();
+
+			//print a message to the screen
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, TEXT("Score decay stopped"));
 		}
 
 		//check if we should stop grappling
@@ -106,9 +109,6 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 		//stop grappling
 		StopGrapple();
 	}
-
-	//stop any degredation timers
-	PlayerCharacter->ScoreComponent->StopDegredationTimer();
 
 	//check if the other actor is valid
 	if (HitResult.GetActor()->IsValidLowLevelFast())
