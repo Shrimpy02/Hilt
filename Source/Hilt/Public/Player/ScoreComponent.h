@@ -23,6 +23,10 @@ struct FScoreValues
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SpeedLimitModifier = 1;
 
+	//the gravity scale for the player at this score value
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GravityScale = 1;
+
 	//the sliding turn rate curve to use
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Curves")
 	UCurveFloat* SlidingTurnRateCurve = nullptr;
@@ -47,9 +51,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
 	TArray<FScoreValues> ScoreValues;
 
+	//reference to the player character associated with this component as a player character
+	UPROPERTY()
+	class APlayerCharacter* PlayerCharacter = nullptr;
+
 	// Sets default values for this component's properties
 	UScoreComponent();
 
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//function to add to the player's score

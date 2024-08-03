@@ -84,10 +84,6 @@ public:
 	//the nowasd grapple interp struct
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
 	FGrappleInterpStruct NoWasdGrappleInterpStruct = FGrappleInterpStruct(10000.0f, 5.f, InterpTo);
-
-	//whether or not to disable gravity when grappling
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	bool bDisableGravityWhenGrappling = true;
 	
 	//the movement input modifier to use when processing the grapple movement input curve
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -192,6 +188,10 @@ public:
 	//whether or not we can grapple right now
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
 	bool CanGrappleVar = false;
+
+	//the amount of pending score to give from the grapple
+	UPROPERTY(BlueprintReadOnly)
+	float PendingScore = 0;
 
 	//the current grapple input
 	UPROPERTY(BlueprintReadOnly)
