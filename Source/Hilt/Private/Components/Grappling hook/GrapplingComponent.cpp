@@ -236,9 +236,11 @@ void UGrapplingComponent::StopGrapple()
 	{
 		//enable gravity
 		PlayerCharacter->GetCapsuleComponent()->SetEnableGravity(true);
-
+	}
+	else
+	{
 		//set the gravity scale back to normal
-		PlayerCharacter->PlayerMovementComponent->GravityScale = 4;
+		PlayerCharacter->PlayerMovementComponent->GravityScale = PlayerCharacter->DefaultGravityScale;
 	}
 
 	//check if we shouldn't use normal movement

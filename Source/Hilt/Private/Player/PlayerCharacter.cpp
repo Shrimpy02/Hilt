@@ -93,6 +93,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 
 void APlayerCharacter::BeginPlay()
 {
+	//set the default gravity scale
+	DefaultGravityScale = GetCharacterMovement()->GravityScale;
+
+	//call the parent implementation
 	Super::BeginPlay();
 
 	//get the game mode

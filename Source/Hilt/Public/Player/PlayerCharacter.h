@@ -61,6 +61,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D CurrentMoveDirection = FVector2D::ZeroVector;
 
+	//the default gravity scale for the player
+	UPROPERTY()
+	float DefaultGravityScale = 1;
+
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 	virtual void BeginPlay() override;
