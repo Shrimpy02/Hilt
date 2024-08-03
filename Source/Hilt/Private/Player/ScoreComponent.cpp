@@ -43,9 +43,6 @@ void UScoreComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 			Score = 0;
 		}
 	}
-
-	//set the player's gravity scale based on the current score
-	PlayerCharacter->PlayerMovementComponent->GravityScale = GetCurrentScoreValues().GravityScale;
 }
 
 void UScoreComponent::AddScore(const float Value)

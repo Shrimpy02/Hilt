@@ -166,6 +166,11 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 		//disable gravity
 		GetOwner()->FindComponentByClass<UPrimitiveComponent>()->SetEnableGravity(false);
 	}
+	else
+	{
+		//set the gravity scale back to normal
+		PlayerCharacter->PlayerMovementComponent->GravityScale = PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GravityScale;
+	}
 
 	GrappleStartTime = GetWorld()->GetTimeSeconds();
 
@@ -231,6 +236,9 @@ void UGrapplingComponent::StopGrapple()
 	{
 		//enable gravity
 		PlayerCharacter->GetCapsuleComponent()->SetEnableGravity(true);
+
+		//set the gravity scale back to normal
+		PlayerCharacter->PlayerMovementComponent->GravityScale = 4;
 	}
 
 	//check if we shouldn't use normal movement
@@ -544,7 +552,7 @@ void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 			CheckTargetForceModifiers(BaseVel, DeltaTime);
 
 			//apply the grapple velocity
-			PlayerCharacter->PlayerMovementComponent->Velocity = BaseVel;
+			PlayerCharacter->PlayerMovementComponent->Velocity = PlayerCharacter->PlayerMovementComponent->ApplySpeedLimit(BaseVel, DeltaTime, false);
 
 		break;
 		case InterpVelocity:
