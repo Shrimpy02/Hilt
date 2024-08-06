@@ -3,6 +3,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/Camera/PlayerCameraComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
+#include "InteractableObjects/PylonObjective.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/ScoreComponent.h"
@@ -168,6 +169,7 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 		//get the normal of the surface we're sliding on
 		const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
 
+		//get the direction of gravity along the slide surface
 		const FVector GravitySurfaceDirection = GetSlideSurfaceDirection();
 
 		//get the dot product of the gravity direction and the slide direction
@@ -184,10 +186,10 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 		}
 
 		//add the increase in speed to the current slide speed
-		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
 
 		//add the slide gravity to the velocity
-		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
+		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
 
 		//check if the slide start time + SlideScoreDecayStopDelay is less than the current time
 		if (SlideStartTime + SlideScoreDecayStopDelay < GetWorld()->GetTimeSeconds())

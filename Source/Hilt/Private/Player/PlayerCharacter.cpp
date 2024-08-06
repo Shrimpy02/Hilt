@@ -214,6 +214,9 @@ void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 	{
 		//restart the game
 		 GameMode->RestartLevel();
+
+		 //call the blueprint event
+		 OnPlayerRespawn();
 	}
 }
 

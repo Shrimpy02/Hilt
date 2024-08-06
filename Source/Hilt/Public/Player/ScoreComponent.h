@@ -78,6 +78,10 @@ struct FScoreValues
 	//the float curve modify the grapple wasd movement based on the player's velocity direction
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UCurveFloat* GrappleMovementDirectionCurve = nullptr;
+
+	//the curve for the gravity to apply when sliding based on the dot product of the surface normal and the gravity direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideGravityCurve = nullptr;
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )

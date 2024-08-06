@@ -29,6 +29,8 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerSuperJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerNormalJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStartFall, const FVector&, PreviousFloorImpactNormal, const FVector&, PreviousFloorContactNormal, const FVector&, PreviousLocation);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerHitObjective);
+
 
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
@@ -138,10 +140,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	float MinSlideStartSpeed = 1000;
 
-	//the curve for the gravity to apply when sliding based on the dot product of the surface normal and the gravity direction
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* SlideGravityCurve = nullptr;
-
 	//whether or not the player can super jump
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
 	bool bCanSuperJump = true;
@@ -164,6 +162,9 @@ public:
 
 	//the direction of the last directional jump
 	FVector LastSuperJumpDirection = FVector::UpVector;
+
+	//the amount of speed gained from sliding since the last slide start
+	float SlideSpeedGained = 1000;
 
 	//the current slide speed (from either landing or starting a slide)
 	float CurrentSlideSpeed = 0;
@@ -189,6 +190,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerStartFall OnPlayerStartFall;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerHitObjective OnPlayerHitObjective;
 
 	//constructor
 	UPlayerMovementComponent();

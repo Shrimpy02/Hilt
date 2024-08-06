@@ -29,6 +29,7 @@ APylonObjective::APylonObjective()
 void APylonObjective::BeginPlay()
 {
 	Super::BeginPlay();
+
 	TriggerCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &APylonObjective::OnOverlap);
 }
 

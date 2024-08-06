@@ -16,6 +16,7 @@ class APlayerCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+
 	//constructor with objectinitializer to override the movement component class
 	explicit APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
@@ -64,6 +65,19 @@ public:
 	//the default gravity scale for the player
 	UPROPERTY()
 	float DefaultGravityScale = 1;
+
+	//events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerDeath();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerRespawn();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerScoreChange(const float Score);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerScoreGain(const float Score);
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
