@@ -296,8 +296,11 @@ FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity
 	//check if we're applying the speed limit
 	if (bIsSpeedLimited)
 	{
-		////return the result clamped to the speed limit
-		//return ApplySpeedLimit(Result, DeltaTime, false);
+		//get the fall speed limit from the score component
+		const float FallSpeedLimit = PlayerPawn->ScoreComponent->GetCurrentScoreValues().FallSpeedLimit;
+
+		//clamp the result to the fall speed limit
+		return Result.GetClampedToMaxSize(FallSpeedLimit);
 	}
 
 	return Result;
@@ -398,16 +401,16 @@ void UPlayerMovementComponent::CalcVelocity(float DeltaTime, float Friction, boo
 
 bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const
 {
-	////check if we're grappling
-	//if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
-	//{
-	//	//check if the surface normal is close to the opposite of the grapple direction
-	//	if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
-	//	{
-	//		//return false
-	//		return false;
-	//	}
-	//}
+	//check if we're grappling
+	if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
+	{
+		//check if the surface normal is close to the opposite of the grapple direction
+		if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
+		{
+			//return false
+			return false;
+		}
+	}
 
 	//default to the parent implementation
 	return Super::IsValidLandingSpot(CapsuleLocation, Hit);
