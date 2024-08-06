@@ -74,6 +74,9 @@ void UPlayerMovementComponent::StartSlide()
 
 		//set the slide start time
 		SlideStartTime = GetWorld()->GetTimeSeconds();
+
+		//bind the slide score banking timer
+		GetWorld()->GetTimerManager().SetTimer(SlideScoreBankTimer, this, &UPlayerMovementComponent::BankSlideScore, SlideScoreBankRate, true);
 	}
 	else if (IsSliding())
 	{
@@ -93,9 +96,6 @@ void UPlayerMovementComponent::StartSlide()
 
 	//set the sliding variable
 	bIsSliding = true;
-
-	//bind the slide score banking timer
-	GetWorld()->GetTimerManager().SetTimer(SlideScoreBankTimer, this, &UPlayerMovementComponent::BankSlideScore, SlideScoreBankRate, true);
 }
 
 void UPlayerMovementComponent::StopSlide()
@@ -107,8 +107,11 @@ void UPlayerMovementComponent::StopSlide()
 		PlayerPawn->ScoreComponent->StartDegredationTimer();
 	}
 
-	//add the slide score to the player's score
-	BankSlideScore();
+	//add the pending slide score to the player's score
+	PlayerPawn->ScoreComponent->AddScore(PendingSlideScore);
+
+	//set the pending slide score to 0
+	PendingSlideScore = 0;
 
 	//set the sliding variable
 	bIsSliding = false;
