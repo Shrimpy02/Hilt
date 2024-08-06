@@ -8,10 +8,10 @@
 
 // Other Includes
 #include "Components/RocketLauncherComponent.h"
-#include "Components/Camera/PlayerCameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
+#include "Player/ScoreComponent.h"
 
 AHiltGameModeBase::AHiltGameModeBase()
 {
@@ -77,10 +77,25 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->SetActorRotation(spawnPoint->GetActorRotation());
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
+							PlayerCharacter->ScoreComponent->ResetScore();
 
 							// Set the camera rotation
 							FRotator NewCameraRotation = spawnPoint->GetActorRotation();
 							PC->SetControlRotation(NewCameraRotation);
+
+							//array for projectile actors
+							TArray<AActor*> ProjectileActors;
+
+							//get all actors of the projectile class
+							UGameplayStatics::GetAllActorsOfClass(GetWorld(), PlayerCharacter->RocketLauncherComponent->ProjectileClass, ProjectileActors);
+
+							//reset(destroy) projectile actors
+							for (AActor* Actor : ProjectileActors)
+							{
+								//destroy the projectile
+								Actor->Destroy();
+							}
+
 						}
 			}
 		}
@@ -98,7 +113,6 @@ void AHiltGameModeBase::RestartLevel()
 
 	}
 
-
 	// Reset player
 
 }
@@ -112,7 +126,6 @@ void AHiltGameModeBase::StartTimer()
 {
 	TimerShouldTick = true;
 	TotalElapsedTime = 0.0f;
-	LocalElapsedTime = 0.0f;
 }
 
 void AHiltGameModeBase::StopTimer()

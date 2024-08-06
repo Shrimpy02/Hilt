@@ -59,7 +59,6 @@ public:
 
 
 
-
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void RestartLevelBP();
 private:

@@ -48,7 +48,6 @@ public:
 	//events for the grappling
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGrapple, const FHitResult&, HitResult);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopGrapple);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWhileGrappled, float, DeltaTime);
 
 	//the rope component to use
 	UPROPERTY(BlueprintReadOnly, Category = "Rope")
@@ -65,10 +64,6 @@ public:
 	//stop grappling event
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnStopGrapple OnStopGrapple;
-
-	//while grappling event
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FWhileGrappled WhileGrappled;
 
 	//whether or not we're grappling
 	UPROPERTY(BlueprintReadOnly)
@@ -89,13 +84,6 @@ public:
 	//the nowasd grapple interp struct
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
 	FGrappleInterpStruct NoWasdGrappleInterpStruct = FGrappleInterpStruct(10000.0f, 5.f, InterpTo);
-
-	//whether or not to disable gravity when grappling
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	bool bDisableGravityWhenGrappling = true;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collisions")
-	ECollisionShape::Type CanGrappleCollisionShape = ECollisionShape::Sphere;
 	
 	//the movement input modifier to use when processing the grapple movement input curve
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -120,6 +108,10 @@ public:
 	//the max distance to check for when checking if the player can grapple to where they are aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
 	float MaxGrappleCheckDistance = 18000;
+
+	//the amount of wiggle room to give the can grapple check
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
+	float GrappleCheckWiggleRoom = 1000;
 
 	//the float curve to use when applying the grapple velocity using the dot product of the character's velocity and the velocity that was added from grappling last frame (-1 = opposite direction, 0 = perpendicular(90 degrees), 1 = same direction)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -149,6 +141,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	UCurveFloat* GrappleMovementDirectionCurve = nullptr;
 
+	//the float curve to use for calculating the score to give from the grapple (0 = no time, > 0 = time)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleScoreCurve = nullptr;
+
 	//the friction to use when grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleFriction = 0.5f;
@@ -156,6 +152,10 @@ public:
 	//the number of points to search for when checking the direction of the rope
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	int GrappleDirectionChecks = 15;
+
+	//the distance threshold to use when checking if we should stop grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleStopDistance = 100;
 
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
@@ -181,9 +181,21 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector GrappleDirection = FVector::ZeroVector;
 
+	//the time that the last grapple started
+	UPROPERTY(BlueprintReadOnly)
+	float GrappleStartTime = 0;
+
+	//the time to wait before stopping the score degradation when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleScoreDecayStopDelay = 0.5f;
+
 	//whether or not we can grapple right now
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CanGrapple")
 	bool CanGrappleVar = false;
+
+	//the amount of pending score to give from the grapple
+	UPROPERTY(BlueprintReadOnly)
+	float PendingScore = 0;
 
 	//the current grapple input
 	UPROPERTY(BlueprintReadOnly)
@@ -195,7 +207,7 @@ public:
 
 	//reference to the player movement component
 	UPROPERTY()
-	class UPlayerMovementComponent* PlayerMovementComponent = nullptr;
+	class APlayerCharacter* PlayerCharacter = nullptr;
 
 	//constructor
 	UGrapplingComponent();
@@ -215,13 +227,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartGrappleCheck();
 
+	//function to check if we should stop grappling
+	UFUNCTION(BlueprintCallable)
+	void StopGrappleCheck();
+
 	//function to process the grapple input
 	UFUNCTION(BlueprintCallable)
 	FVector ProcessGrappleInput(FVector MovementInput);
 
-	//function for the rope to pull the player
+	//whether or not we should use normal movement
 	UFUNCTION(BlueprintCallable)
-	void PullPlayer(FVector Vector);
+	bool ShouldUseNormalMovement() const;
 
 private:
 
@@ -230,6 +246,10 @@ private:
 
 	//function to do the grapple trace with a given max distance
 	void DoGrappleTrace(FHitResult& GrappleHit, float MaxDistance) const;
+	void DoGrappleTrace(TArray<FHitResult>& Array, float MaxDistance) const;
+
+	//function to check for force modifiers based on the grappleable component of the target we're grappling to
+	void CheckTargetForceModifiers(FVector& BaseVel, float DeltaTime) const;
 
 	//function to apply the pull force to the player
 	void ApplyPullForce(float DeltaTime);
