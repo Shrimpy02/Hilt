@@ -133,9 +133,6 @@ bool UPlayerMovementComponent::IsSliding() const
 
 void UPlayerMovementComponent::BankSlideScore()
 {
-	//print a debug message to the screen
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Banking Slide Score"));
-
 	//add the pending slide score to the player's score
 	PlayerPawn->ScoreComponent->AddScore(PendingSlideScore);
 
@@ -237,7 +234,7 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 			const float SlideScore = SlideScoreCurve->GetFloatValue(SlideSpeedGained / SpeedLimit * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SpeedLimitModifier);
 
 			//update the pending slide score
-			PendingSlideScore = SlideScore;
+			PendingSlideScore = SlideScore * PlayerPawn->ScoreComponent->GetCurrentScoreValues().ScoreGainMultiplier;
 		}
 	}
 
