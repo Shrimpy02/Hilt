@@ -31,6 +31,9 @@ public:
 	bool TimerShouldTick = true;
 	FTimerHandle TimerHandler;
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int NumActiveObjectives = 0;
+
 private:
 	//  ---------------------- Private Variable`s ---------------------
 
