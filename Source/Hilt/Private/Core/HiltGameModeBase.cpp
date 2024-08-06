@@ -43,6 +43,7 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 		CountTime();
 	}
 
+	// Checks for num objectives and calls event logic through player
 	if (UWorld* World = GetWorld())
 		if (APlayerController* PC = World->GetFirstPlayerController())
 			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
@@ -58,17 +59,21 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 					}
 				}
 
+				// One objective taken
 				if(NumActiveObjectives != TotalNumActiveObjectives && NumActiveObjectives != 0)
 				{
 					TotalNumActiveObjectives = NumActiveObjectives;
-					GEngine->AddOnScreenDebugMessage(8, 1.f, FColor::Red, FString::Printf(TEXT("One Objective taken")));
+					PlayerCharacter->OnPlayerObjectivePickedUp();
+					//GEngine->AddOnScreenDebugMessage(8, 1.f, FColor::Red, FString::Printf(TEXT("One Objective taken")));
 				} 
 
+				// All objectives taken 
 				if(NumActiveObjectives == 0 && doOnce)
 				{
-					GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Orange, FString::Printf(TEXT("All objectives taken")));
 					doOnce = false;
 					TotalNumActiveObjectives = TotalNumObjectives;
+					PlayerCharacter->OnPlayerPickedUpAllObjectives();
+					//GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Orange, FString::Printf(TEXT("All objectives taken")));
 				}
 
 				NumActiveObjectives = 0;

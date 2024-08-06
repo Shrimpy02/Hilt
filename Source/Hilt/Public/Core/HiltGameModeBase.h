@@ -40,7 +40,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
 	int NumActiveObjectives = 0;
 
-	UPROPERTY()
 	bool doOnce = true;
 
 private:
