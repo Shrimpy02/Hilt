@@ -52,7 +52,7 @@ void UScoreComponent::AddScore(const float Value)
 	//const float DefaultScoreAdditionValue = Score + Value;
 
 	//apply the score addition value
-	Score = FMath::Clamp(Score + Value * GetCurrentScoreValues().ScoreGainMultiplier, 0.f, ScoreValues.Num() - 1);
+	Score = FMath::Clamp(Score + Value * GetCurrentScoreValues().ScoreGainMultiplier, 0.f, ScoreValues.Num() - 0.01);
 
 	//set the last score gain time
 	LastScoreGainTime = GetWorld()->GetTimeSeconds();
@@ -71,7 +71,7 @@ void UScoreComponent::SubtractScore(const float Value)
 	//const float DefaultScoreSubtractionValue = Score - Value;
 	//
 	//apply the score subtraction value
-	Score = FMath::Clamp(Score - Value * GetCurrentScoreValues().ScoreLossMultiplier, 0.f, ScoreValues.Num() - 1);
+	Score = FMath::Clamp(Score - Value * GetCurrentScoreValues().ScoreLossMultiplier, 0.f, ScoreValues.Num() - 0.01);
 
 	//set the last score gain time to -infinity
 	LastScoreGainTime = -INFINITY;
