@@ -55,7 +55,7 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 
 				if(NumActiveObjectives == 0)
 				{
-					PlayerCharacter->OnPlayerPickedUpAllObjectives.Broadcast();
+					//PlayerCharacter->OnPlayerPickedUpAllObjectives.Broadcast();
 				}
 
 				NumActiveObjectives = 0;

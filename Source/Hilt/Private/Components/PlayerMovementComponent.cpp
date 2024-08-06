@@ -110,12 +110,18 @@ void UPlayerMovementComponent::StopSlide()
 		//get the slide score value
 		const float SlideScore = SlideScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - SlideStartTime);
 
+		//set the pending slide score to 0
+		PendingSlideScore = 0;
+
 		//add the slide score to the player's score
 		PlayerPawn->ScoreComponent->AddScore(SlideScore);
 	}
 
 	//set the sliding variable
 	bIsSliding = false;
+
+	//reset the slide speed gained
+	SlideSpeedGained = 0;
 
 	//call the blueprint event
 	OnPlayerStopSlide.Broadcast();
@@ -187,6 +193,14 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 
 		//add the increase in speed to the current slide speed
 		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+
+		//check if the sign is positive
+		if (Sign > 0)
+		{
+			//add the increase in speed to the slide speed gained
+			SlideSpeedGained += Sign * GravitySurfaceDirection.Size() * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+		}
+
 
 		//add the slide gravity to the velocity
 		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
