@@ -136,6 +136,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
 	bool bIsSliding = false;
 
+	//how often we should bank the player's score when sliding (0 = never, 1 = every second)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
+	float SlideScoreBankRate = 1;
+
 	//the speed to add to the player when starting a slide
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	float MinSlideStartSpeed = 1000;
@@ -171,6 +175,9 @@ public:
 
 	//storage for the time we started sliding
 	float SlideStartTime = 0;
+
+	//timer handle for banking slide score
+	FTimerHandle SlideScoreBankTimer;
 
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
@@ -216,6 +223,10 @@ public:
 	//function to get whether or not the player is currently sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsSliding() const;
+
+	//function to bank the pending score from sliding
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void BankSlideScore();
 
 	//function to get the direction the player is currently sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
