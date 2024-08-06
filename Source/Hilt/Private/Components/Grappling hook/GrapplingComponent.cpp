@@ -217,6 +217,9 @@ void UGrapplingComponent::StopGrapple()
 		//get the grapple score curve value
 		const float Value = GrappleScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - GrappleStartTime);
 
+		//set the pending score to 0
+		PendingScore = 0;
+
 		//add the grapple score curve value to the player's score
 		PlayerCharacter->ScoreComponent->AddScore(Value);
 	}
