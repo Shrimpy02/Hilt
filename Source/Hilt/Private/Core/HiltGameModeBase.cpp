@@ -109,8 +109,6 @@ void AHiltGameModeBase::RestartLevel()
 				Enemy->AddLevelPresence();
 			}
 		}
-
-
 	}
 
 	// Reset player
