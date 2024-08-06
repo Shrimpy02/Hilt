@@ -14,10 +14,6 @@ ABaseInteractableObject::ABaseInteractableObject()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Add Tags
-	Tags.Add(HiltTags::ObjectTag);
-	Tags.Add(HiltTags::ObjectActiveTag);
-
 	// Niagara Component -------
 	// Also acts as object 
 	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
@@ -52,6 +48,10 @@ ABaseInteractableObject::ABaseInteractableObject()
 void ABaseInteractableObject::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Add Tags
+	Tags.Add(HiltTags::ObjectTag);
+	Tags.Add(HiltTags::ObjectActiveTag);
 
 	GrappleComponent->OnStartGrappleEvent.AddDynamic(this, &ABaseInteractableObject::ToggleGrappleOn);
 	GrappleComponent->OnStopGrappleEvent.AddDynamic(this, &ABaseInteractableObject::ToggleGrappleOff);

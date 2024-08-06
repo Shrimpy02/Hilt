@@ -8,8 +8,6 @@ namespace HiltTags
 
 	// Objective
 	static FName ObjectiveTag = FName("Objective");
-	static FName ObjectiveActiveTag = FName("ObjectiveActive");
-	static FName ObjectiveNotActiveTag = FName("ObjectiveNotActive");
 
 	// Objects
 	static FName ObjectTag = FName("InteractableObject");
