@@ -32,7 +32,16 @@ public:
 	FTimerHandle TimerHandler;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int TotalNumObjectives = 0;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int TotalNumActiveObjectives = 0;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
 	int NumActiveObjectives = 0;
+
+	UPROPERTY()
+	bool doOnce = true;
 
 private:
 	//  ---------------------- Private Variable`s ---------------------

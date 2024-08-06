@@ -24,6 +24,11 @@ void AHiltGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APylonObjective::StaticClass(), FoundActors);
+	TotalNumObjectives = FoundActors.Num();
+	TotalNumActiveObjectives = FoundActors.Num();
+
 	RestartLevel();
 }
 
@@ -53,9 +58,17 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 					}
 				}
 
-				if(NumActiveObjectives == 0)
+				if(NumActiveObjectives != TotalNumActiveObjectives && NumActiveObjectives != 0)
 				{
-					PlayerCharacter->OnPlayerPickedUpAllObjectives.Broadcast();
+					TotalNumActiveObjectives = NumActiveObjectives;
+					GEngine->AddOnScreenDebugMessage(8, 1.f, FColor::Red, FString::Printf(TEXT("One Objective taken")));
+				} 
+
+				if(NumActiveObjectives == 0 && doOnce)
+				{
+					GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Orange, FString::Printf(TEXT("All objectives taken")));
+					doOnce = false;
+					TotalNumActiveObjectives = TotalNumObjectives;
 				}
 
 				NumActiveObjectives = 0;
@@ -67,7 +80,7 @@ void AHiltGameModeBase::RestartLevel()
 	// Get all actors with reset functionality
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseInteractableObject::StaticClass(), FoundActors);
-	GEngine->AddOnScreenDebugMessage(-2, 5.f, FColor::Green, FString::Printf(TEXT("Num resetable things in level: %d"), FoundActors.Num()));
+	//GEngine->AddOnScreenDebugMessage(-2, 5.f, FColor::Green, FString::Printf(TEXT("Num resetable things in level: %d"), FoundActors.Num()));
 
 	// Restarts timer
 	ResetTimer();
@@ -92,20 +105,20 @@ void AHiltGameModeBase::RestartLevel()
 
 			// Reset player to spawnpoint if there is one
 			else if (ABaseInteractableObject* spawnPoint = Cast<ASpawnPoint>(Object))
-			{
 				if (UWorld* World = GetWorld())
 					if (APlayerController* PC = World->GetFirstPlayerController())
 						if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
 						{
+							// Player location
 							PlayerCharacter->SetActorLocation(spawnPoint->GetActorLocation());
 							PlayerCharacter->SetActorRotation(spawnPoint->GetActorRotation());
+							FRotator NewCameraRotation = spawnPoint->GetActorRotation();
+							PC->SetControlRotation(NewCameraRotation);
+
+							// Player variables
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
-
-							// Set the camera rotation
-							FRotator NewCameraRotation = spawnPoint->GetActorRotation();
-							PC->SetControlRotation(NewCameraRotation);
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;
@@ -121,7 +134,6 @@ void AHiltGameModeBase::RestartLevel()
 							}
 
 						}
-			}
 		}
 
 		//Rest Enemies
@@ -135,7 +147,7 @@ void AHiltGameModeBase::RestartLevel()
 		}
 	}
 
-	// Reset player
+	doOnce = true;
 
 }
 
