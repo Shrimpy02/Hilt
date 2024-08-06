@@ -2,6 +2,10 @@
 
 #include "Components/RocketLauncherComponent.h"
 
+#include "Components/GrapplingHook/GrapplingComponent.h"
+#include "NPC/Components/GrappleableComponent.h"
+#include "Player/PlayerCharacter.h"
+
 URocketLauncherComponent::URocketLauncherComponent()
 {
 	//enable ticking
@@ -15,12 +19,27 @@ URocketLauncherComponent::URocketLauncherComponent()
 
 AActor* URocketLauncherComponent::FireProjectile(FVector Direction)
 {
+	//check if we're allowing alternative actions
+	if (bAllowAlternativeActions)
+	{
+		//check if the player is grappled and the grappleable component is valid
+		if (PlayerCharacter->GrappleComponent->bIsGrappling && PlayerCharacter->GrappleComponent->GrappleableComponent->IsValidLowLevel())
+		{
+			//check if we should use the alternative action
+			if (PlayerCharacter->GrappleComponent->GrappleableComponent->bUseAlternativeAction)
+			{
+				//call the grappleable component's alternative action
+				PlayerCharacter->GrappleComponent->GrappleableComponent->AlternativeActionEvent.Broadcast(PlayerCharacter);
+
+				//prevent further execution of this function
+				return nullptr;
+			}
+		}
+	}
+
 	//check if we have any ammo
 	if (CurrentAmmo <= 0)
 	{
-		//print a message to the screen
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Out of ammo"));
-
 		//return nullptr
 		return nullptr;
 	}
@@ -28,9 +47,6 @@ AActor* URocketLauncherComponent::FireProjectile(FVector Direction)
 	//check if the last fire time is less than the reload time
 	if (GetWorld()->GetTimeSeconds() - LastFireTime < LoadTime)
 	{
-		//print a message to the screen
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Reloading"));
-
 		//return nullptr
 		return nullptr;
 	}
@@ -50,9 +66,6 @@ void URocketLauncherComponent::OnProjectileHit(AActor* Projectile, AActor* Other
 	//check if we should ignore the owner when checking for collisions
 	if (bIgnoreOwnerCollisions && OtherActor == GetOwner())
 	{
-		//print a message to the screen
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Projectile hit owner"));
-
 		//prevent further execution of this function
 		return;
 	}
@@ -97,9 +110,6 @@ void URocketLauncherComponent::LoadRocketClip()
 	//check if the current ammo is less than the clip size
 	if (CurrentAmmo >= ClipSize)
 	{
-		//print a message to the screen
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, TEXT("Full Clip"));
-
 		//set the last reload time
 		LastReloadTime = GetWorld()->GetTimeSeconds();
 
