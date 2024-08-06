@@ -74,9 +74,6 @@ void UPlayerMovementComponent::StartSlide()
 
 		//set the slide start time
 		SlideStartTime = GetWorld()->GetTimeSeconds();
-
-		//bind the slide score banking timer
-		GetWorld()->GetTimerManager().SetTimer(SlideScoreBankTimer, this, &UPlayerMovementComponent::BankSlideScore, SlideScoreBankRate, true);
 	}
 	else if (IsSliding())
 	{
@@ -92,6 +89,9 @@ void UPlayerMovementComponent::StartSlide()
 	{
 		//call the blueprint event
 		OnPlayerStartSlide.Broadcast();
+
+		//bind the slide score banking timer
+		GetWorld()->GetTimerManager().SetTimer(SlideScoreBankTimer, this, &UPlayerMovementComponent::BankSlideScore, SlideScoreBankRate, true);
 	}
 
 	//set the sliding variable
@@ -133,11 +133,17 @@ bool UPlayerMovementComponent::IsSliding() const
 
 void UPlayerMovementComponent::BankSlideScore()
 {
+	//print a debug message to the screen
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Banking Slide Score"));
+
 	//add the pending slide score to the player's score
 	PlayerPawn->ScoreComponent->AddScore(PendingSlideScore);
 
 	//set the pending slide score to 0
 	PendingSlideScore = 0;
+
+	//reset the slide speed gained
+	SlideSpeedGained = 0;
 }
 
 void UPlayerMovementComponent::BeginPlay()
@@ -199,19 +205,23 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 			Sign = 1;
 		}
 
-		//add the increase in speed to the current slide speed
-		CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
-
-		//check if the sign is positive
-		if (Sign > 0)
+		//check if the slide gravity curve is valid
+		if (PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->IsValidLowLevelFast())
 		{
-			//add the increase in speed to the slide speed gained
-			SlideSpeedGained += Sign * GravitySurfaceDirection.Size() * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+			//add the increase in speed to the current slide speed
+			CurrentSlideSpeed += Sign * GravitySurfaceDirection.Size() * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+
+			//check if the sign is positive
+			if (Sign > 0)
+			{
+				//add the increase in speed to the slide speed gained
+				SlideSpeedGained += Sign * GravitySurfaceDirection.Size() * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime;
+			}
+
+
+			//add the slide gravity to the velocity
+			Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
 		}
-
-
-		//add the slide gravity to the velocity
-		Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
 
 		//check if the slide start time + SlideScoreDecayStopDelay is less than the current time
 		if (SlideStartTime + SlideScoreDecayStopDelay < GetWorld()->GetTimeSeconds())
@@ -523,7 +533,7 @@ float UPlayerMovementComponent::GetAxisDeltaRotation(float InAxisRotationRate, f
 FRotator UPlayerMovementComponent::GetDeltaRotation(float DeltaTime) const
 {
 	//check if we're sliding and walking
-	if (IsSliding())
+	if (IsSliding() && PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlidingTurnRateCurve->IsValidLowLevelFast())
 	{
 		return FRotator(GetAxisDeltaRotation(0, DeltaTime), GetAxisDeltaRotation(PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlidingTurnRateCurve->GetFloatValue(Velocity.Size() / FMath::Max(GetMaxSpeed(), GetCurrentSpeedLimit())), DeltaTime), GetAxisDeltaRotation(0, DeltaTime));
 	}
