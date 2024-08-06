@@ -4,7 +4,9 @@
 #include "InteractableObjects/BaseInteractableObject.h"
 #include "InteractableObjects/LaunchPad.h"
 #include "InteractableObjects/SpawnPoint.h"
+#include "InteractableObjects/PylonObjective.h"
 #include "NPC/Enemies/BaseEnemy.h"
+#include "Hilt/Public/Core/HiltTags.h"
 
 // Other Includes
 #include "Components/RocketLauncherComponent.h"
@@ -36,6 +38,28 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 		CountTime();
 	}
 
+	if (UWorld* World = GetWorld())
+		if (APlayerController* PC = World->GetFirstPlayerController())
+			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
+			{
+				TArray<AActor*> FoundActors;
+				UGameplayStatics::GetAllActorsOfClass(GetWorld(), APylonObjective::StaticClass(), FoundActors);
+
+				for(AActor* actor : FoundActors)
+				{
+					if(actor->Tags.Contains(HiltTags::ObjectActiveTag))
+					{
+						NumActiveObjectives++;
+					}
+				}
+
+				if(NumActiveObjectives == 0)
+				{
+					//PlayerCharacter->OnPlayerPickedUpAllObjectives.Broadcast();
+				}
+
+				NumActiveObjectives = 0;
+			}
 }
 
 void AHiltGameModeBase::RestartLevel()
