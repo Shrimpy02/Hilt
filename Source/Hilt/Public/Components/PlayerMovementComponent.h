@@ -29,6 +29,8 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerSuperJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerNormalJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStartFall, const FVector&, PreviousFloorImpactNormal, const FVector&, PreviousFloorContactNormal, const FVector&, PreviousLocation);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerHitObjective);
+
 
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
@@ -189,6 +191,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerStartFall OnPlayerStartFall;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerHitObjective OnPlayerHitObjective;
 
 	//constructor
 	UPlayerMovementComponent();
