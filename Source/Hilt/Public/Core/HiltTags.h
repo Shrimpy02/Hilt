@@ -6,6 +6,11 @@ namespace HiltTags
 	//Tag for actors that should not be grappled
 	static FName NoGrappleTag = FName("NoGrapple");
 
+	// Objective
+	static FName ObjectiveTag = FName("Objective");
+	static FName ObjectiveActiveTag = FName("ObjectiveActive");
+	static FName ObjectiveNotActiveTag = FName("ObjectiveNotActive");
+
 	// Objects
 	static FName ObjectTag = FName("InteractableObject");
 	static FName ObjectActiveTag = FName("ObjectActive");
