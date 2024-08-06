@@ -8,7 +8,6 @@
 
 // Other Includes
 #include "Components/RocketLauncherComponent.h"
-#include "Components/Camera/PlayerCameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
@@ -127,7 +126,6 @@ void AHiltGameModeBase::StartTimer()
 {
 	TimerShouldTick = true;
 	TotalElapsedTime = 0.0f;
-	LocalElapsedTime = 0.0f;
 }
 
 void AHiltGameModeBase::StopTimer()
