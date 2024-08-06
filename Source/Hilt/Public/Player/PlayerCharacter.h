@@ -16,6 +16,12 @@ class APlayerCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerPickupObjective);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerPickedUpAllObjectives);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDeath);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerRespawn);
+
 	//constructor with objectinitializer to override the movement component class
 	explicit APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
@@ -64,6 +70,19 @@ public:
 	//the default gravity scale for the player
 	UPROPERTY()
 	float DefaultGravityScale = 1;
+
+	//blueprint events
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnPlayerPickupObjective OnPlayerPickupObjective;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnPlayerPickedUpAllObjectives OnPlayerPickedUpAllObjectives;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnPlayerDeath OnPlayerDeath;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnPlayerRespawn OnPlayerRespawn;
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;

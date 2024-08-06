@@ -3,6 +3,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/Camera/PlayerCameraComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
+#include "InteractableObjects/PylonObjective.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/ScoreComponent.h"
@@ -168,6 +169,7 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 		//get the normal of the surface we're sliding on
 		const FVector SlideNormal = CurrentFloor.HitResult.ImpactNormal;
 
+		//get the direction of gravity along the slide surface
 		const FVector GravitySurfaceDirection = GetSlideSurfaceDirection();
 
 		//get the dot product of the gravity direction and the slide direction
