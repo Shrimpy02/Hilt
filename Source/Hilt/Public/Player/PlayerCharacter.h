@@ -74,7 +74,7 @@ public:
 	void OnPlayerRespawn();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-	void OnPlayerObjectivePickedUp(class APylonObjective* ObjectivePoint);
+	void OnPlayerObjectivePickedUp();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
 	void OnPlayerPickedUpAllObjectives();
