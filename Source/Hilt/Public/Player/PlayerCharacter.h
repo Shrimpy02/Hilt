@@ -74,10 +74,10 @@ public:
 	void OnPlayerRespawn();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-	void OnPlayerScoreChange(const float Score);
+	void OnPlayerObjectivePickedUp(class APylonObjective* ObjectivePoint);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-	void OnPlayerScoreGain(const float Score);
+	void OnPlayerPickedUpAllObjectives();
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
