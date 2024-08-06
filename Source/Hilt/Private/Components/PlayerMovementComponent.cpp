@@ -93,6 +93,9 @@ void UPlayerMovementComponent::StartSlide()
 
 	//set the sliding variable
 	bIsSliding = true;
+
+	//bind the slide score banking timer
+	GetWorld()->GetTimerManager().SetTimer(SlideScoreBankTimer, this, &UPlayerMovementComponent::BankSlideScore, SlideScoreBankRate, true);
 }
 
 void UPlayerMovementComponent::StopSlide()
@@ -104,18 +107,8 @@ void UPlayerMovementComponent::StopSlide()
 		PlayerPawn->ScoreComponent->StartDegredationTimer();
 	}
 
-	//check if we have a valid slide score curve
-	if (SlideScoreCurve->IsValidLowLevelFast())
-	{
-		//get the slide score value
-		const float SlideScore = SlideScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - SlideStartTime);
-
-		//set the pending slide score to 0
-		PendingSlideScore = 0;
-
-		//add the slide score to the player's score
-		PlayerPawn->ScoreComponent->AddScore(SlideScore);
-	}
+	//add the slide score to the player's score
+	BankSlideScore();
 
 	//set the sliding variable
 	bIsSliding = false;
@@ -125,11 +118,23 @@ void UPlayerMovementComponent::StopSlide()
 
 	//call the blueprint event
 	OnPlayerStopSlide.Broadcast();
+
+	//unbind the slide score banking timer
+	GetWorld()->GetTimerManager().ClearTimer(SlideScoreBankTimer);
 }
 
 bool UPlayerMovementComponent::IsSliding() const
 {
 	return bIsSliding && IsWalking() && !IsFalling() && !PlayerPawn->GrappleComponent->bIsGrappling;
+}
+
+void UPlayerMovementComponent::BankSlideScore()
+{
+	//add the pending slide score to the player's score
+	PlayerPawn->ScoreComponent->AddScore(PendingSlideScore);
+
+	//set the pending slide score to 0
+	PendingSlideScore = 0;
 }
 
 void UPlayerMovementComponent::BeginPlay()
@@ -216,7 +221,7 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 		if (SlideScoreCurve->IsValidLowLevelFast())
 		{
 			//get the slide score value
-			const float SlideScore = SlideScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - SlideStartTime);
+			const float SlideScore = SlideScoreCurve->GetFloatValue(SlideSpeedGained / SpeedLimit * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SpeedLimitModifier);
 
 			//update the pending slide score
 			PendingSlideScore = SlideScore;
