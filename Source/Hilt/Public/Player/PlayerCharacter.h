@@ -17,11 +17,6 @@ class APlayerCharacter : public ACharacter
 
 public:
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerPickupObjective);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerPickedUpAllObjectives);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDeath);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerRespawn);
-
 	//constructor with objectinitializer to override the movement component class
 	explicit APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
@@ -71,18 +66,18 @@ public:
 	UPROPERTY()
 	float DefaultGravityScale = 1;
 
-	//blueprint events
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnPlayerPickupObjective OnPlayerPickupObjective;
+	//events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerDeath();
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnPlayerPickedUpAllObjectives OnPlayerPickedUpAllObjectives;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerRespawn();
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnPlayerDeath OnPlayerDeath;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerScoreChange(const float Score);
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnPlayerRespawn OnPlayerRespawn;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerScoreGain(const float Score);
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;

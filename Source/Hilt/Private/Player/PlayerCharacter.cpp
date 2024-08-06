@@ -216,7 +216,7 @@ void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 		 GameMode->RestartLevel();
 
 		 //call the blueprint event
-		 OnPlayerRespawn.Broadcast();
+		 OnPlayerRespawn();
 	}
 }
 
