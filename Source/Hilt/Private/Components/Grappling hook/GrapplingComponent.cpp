@@ -78,7 +78,7 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			const float Value = GrappleScoreCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - GrappleStartTime);
 
 			//set the pending score
-			PendingScore = Value;
+			PendingScore = Value * PlayerCharacter->ScoreComponent->GetCurrentScoreValues().ScoreGainMultiplier;
 		}
 
 		//check if the grapple start time + GrappleScoreDecayStopDelay is less than the current time
