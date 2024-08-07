@@ -74,10 +74,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Zoom")
 	bool bIgnoreZVelocity = true;
 
-	//the multiplier to apply to z velocity when calculating the camera zoom
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Zoom", meta = (editcondition = "bIgnoreZVelocity", editconditionHides))
-	float ZVelocityMultiplier = 1;
-
 	//whether or not to smooth camera movement when character crouches (character class must call OnCrouch when crouching)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Crouch")
 	bool bSmoothCrouch = true;
@@ -110,10 +106,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
 	bool bUseMoveOffset = true;
 
-	//the value to clamp the z value of the target offset to
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSettings|Movement")
-	float TargetOffsetZClamp = 0;
-
 	//storage for the player character as a player character
 	UPROPERTY()
 	class APlayerCharacter* PlayerCharacter = nullptr;
@@ -137,9 +129,6 @@ public:
 	//overrides
 	virtual void BeginPlay() override;
 	virtual void UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime) override;
-
-	//function to clamp the z value of the target offset
-	FVector ClampTargetOffsetZ(FVector InVector) const;
 
 	//function that interpolates the camera zoom
 	void InterpCameraZoom();

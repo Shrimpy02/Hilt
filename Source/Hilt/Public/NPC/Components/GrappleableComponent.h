@@ -38,6 +38,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanChangeGrappleMode = true;
 
+	//the percentage of grapple reel force is applied to this object instead of the player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GrappleReelForcePercentage = 0;
+
 	//the multiplier for the grapple reel force applied to this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float GrappleReelForceMultiplierThis = 1.0f;
@@ -53,10 +57,6 @@ public:
 	//whether or not the player is currently grappling to this object
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsGrappled = false;
-
-	//whether or not we the player should have gravity disabled while grappling to this object
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool NormalMovement = false;
 
 	//constructor
 	UGrappleableComponent();

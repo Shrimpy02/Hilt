@@ -29,8 +29,6 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerSuperJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerNormalJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStartFall, const FVector&, PreviousFloorImpactNormal, const FVector&, PreviousFloorContactNormal, const FVector&, PreviousLocation);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerHitObjective);
-
 
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
@@ -60,14 +58,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
 	float CollisionSpeedThreshold = 1000;
 
-	//the extra upwards force to apply when launching off of a collision when sliding
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
-	float SlideCollisionLaunchExtraForce = 500;
-
-	//the amount of score to subtract when you collide
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
-	float CollisionScoreLoss = 1;
-
 	//the float curve to use when applying the collision launch speed based on the speed of the player (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
@@ -79,14 +69,6 @@ public:
 	//the float curve to use for braking deceleration when sliding based on the speed of the player (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* WalkingBrakingFrictionCurve = nullptr;
-
-	//the float curve to use for adding score when stopping a slide based on the time spend sliding
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* SlideScoreCurve = nullptr;
-
-	//the pending score for the slide
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|SlideJump")
-	float PendingSlideScore = 0;
 
 	//the ground friction to apply when sliding
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
@@ -106,7 +88,7 @@ public:
 
 	//the built up excess speed from applying the speed limit
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	mutable float ExcessSpeed = 0;
+	float ExcessSpeed = 0;
 
 	//the max excess speed that can be built up
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -116,49 +98,35 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float ExcessSpeedDegredationRate = 10;
 
-	//the max acceleration to apply when walking
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Walking")
 	float MaxWalkingAcceleration = 1000;
 
-	//the distance to trace for to check if the player is bunny hopping (in which case we don't want them to have falling speed or other physics applied from falling)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling")
 	float AvoidBunnyJumpTraceDistance = 1000;
-
-	////the first gravity curve to use for what should be considered walkable ground
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling|Curves")
-	//UCurveFloat* WalkabilityVelocityCurve = nullptr;
-
-	////the second gravity curve to use for what should be considered walkable ground
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling|Curves")
-	//UCurveFloat* WalkabilityDirectionNormalsCurve = nullptr;
 
 	//whether or not the player is currently sliding
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
 	bool bIsSliding = false;
 
-	//how often we should bank the player's score when sliding (0 = never, 1 = every second)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
-	float SlideScoreBankRate = 1;
-
 	//the speed to add to the player when starting a slide
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	float MinSlideStartSpeed = 1000;
 
+	//the curve for the gravity to apply when sliding based on the dot product of the surface normal and the gravity direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideGravityCurve = nullptr;
+
 	//whether or not the player can super jump
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SuperJump")
 	bool bCanSuperJump = true;
 
 	//the amount of force to apply in the direction the player is looking when jumping
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float SuperJumpForce = 3000;
 
 	//the amount of boost to apply when boosting a jump
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SuperJump")
 	float JumpBoostAmount = 500;
-
-	//the amount of time to wait before stopping the score degradation when sliding
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
-	float SlideScoreDecayStopDelay = 0.5;
 
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
@@ -167,17 +135,8 @@ public:
 	//the direction of the last directional jump
 	FVector LastSuperJumpDirection = FVector::UpVector;
 
-	//the amount of speed gained from sliding since the last slide start
-	float SlideSpeedGained = 1000;
-
 	//the current slide speed (from either landing or starting a slide)
 	float CurrentSlideSpeed = 0;
-
-	//storage for the time we started sliding
-	float SlideStartTime = 0;
-
-	//timer handle for banking slide score
-	FTimerHandle SlideScoreBankTimer;
 
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
@@ -198,19 +157,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerStartFall OnPlayerStartFall;
 
-	UPROPERTY(BlueprintAssignable, Category = "Movement")
-	FOnPlayerHitObjective OnPlayerHitObjective;
-
 	//constructor
 	UPlayerMovementComponent();
 
 	//function to apply the speed limit to a velocity (if speed limit is enabled)
 	UFUNCTION(BlueprintCallable, Category = "Movement")
-	FVector ApplySpeedLimit(const FVector& InVelocity, const float& InDeltaTime, bool AddToExcessSpeed = true) const;
-
-	//function to get the current speed limit (taking into account the current score multiplier)
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	float GetCurrentSpeedLimit() const;
+	FVector ApplySpeedLimit(const FVector& InVelocity, const float& InDeltaTime);
 
 	//function to start sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
@@ -224,19 +176,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsSliding() const;
 
-	//function to bank the pending score from sliding
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void BankSlideScore();
-
 	//function to get the direction the player is currently sliding
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	FVector GetSlideSurfaceDirection();
+
+	//own function to check if a hit is walkable
+	bool IsWalkable2(const FHitResult& Hit) const;
 
 	//override functions
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
-	virtual bool IsWalkable(const FHitResult& Hit) const override;
 	virtual void PerformMovement(float DeltaTime) override;
 	virtual void HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
