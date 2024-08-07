@@ -73,6 +73,25 @@ void UCameraArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocati
 	Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
 }
 
+FVector UCameraArmComponent::ClampTargetOffsetZ(FVector InVector) const
+{
+	//check if the z value is above the target offset z clamp
+	if (InVector.Z > TargetOffsetZClamp)
+	{
+		//set the z value to the target offset z clamp
+		InVector.Z = TargetOffsetZClamp;
+	}
+	else if (InVector.Z < -TargetOffsetZClamp)
+	{
+		//set the z value to the negative target offset z clamp
+		InVector.Z = -TargetOffsetZClamp;
+	}
+
+	//return the clamped vector
+	return InVector;
+
+}
+
 void UCameraArmComponent::InterpCameraZoom()
 {
 	//the speed of movement
@@ -86,8 +105,11 @@ void UCameraArmComponent::InterpCameraZoom()
 	}
 	else
 	{
-		//set the speed regularly
-		Speed = GetOwner()->GetVelocity().Length();
+		//get the difference betwen the 2d speed and the 3d speed
+		const float SpeedDifference = GetOwner()->GetVelocity().Size2D() - GetOwner()->GetVelocity().Length();
+
+		//set the speed to the 2d speed + the speed difference multiplied by the z velocity multiplier
+		Speed = GetOwner()->GetVelocity().Size2D() + SpeedDifference * ZVelocityMultiplier;
 	}
 
 	//check if current interp index is above 0

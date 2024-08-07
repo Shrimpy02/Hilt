@@ -1,6 +1,6 @@
 // Class Includes
 #include "InteractableObjects/PylonObjective.h"
-#include "NPC/Components/GrappleableComponent.h"
+#include "Hilt/Public/Core/HiltTags.h"
 
 // Other Includes
 #include "Player/PlayerCharacter.h"
@@ -10,6 +10,7 @@
 APylonObjective::APylonObjective()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	Tags.Add(HiltTags::ObjectiveTag);
 
 	// Trigger Collision Mesh  -------------
 	TriggerCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerCollisionBox"));
@@ -28,6 +29,7 @@ APylonObjective::APylonObjective()
 void APylonObjective::BeginPlay()
 {
 	Super::BeginPlay();
+
 	TriggerCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &APylonObjective::OnOverlap);
 }
 

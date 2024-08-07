@@ -31,6 +31,17 @@ public:
 	bool TimerShouldTick = true;
 	FTimerHandle TimerHandler;
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int TotalNumObjectives = 0;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int TotalNumActiveObjectives = 0;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int NumActiveObjectives = 0;
+
+	bool doOnce = true;
+
 private:
 	//  ---------------------- Private Variable`s ---------------------
 
@@ -56,7 +67,6 @@ public:
 	void ResetTimer();
 	UFUNCTION(BlueprintCallable)
 	void StopTimer();
-
 
 
 
