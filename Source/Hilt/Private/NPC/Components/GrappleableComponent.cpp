@@ -31,8 +31,3 @@ void UGrappleableComponent::OnStopGrapple()
 	//broadcast the event
 	OnStopGrappleEvent.Broadcast();
 }
-
-void UGrappleableComponent::WhileGrappled(float DeltaTime)
-{
-	//empty default implementation
-}

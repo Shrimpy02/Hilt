@@ -16,6 +16,7 @@ class APlayerCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+
 	//constructor with objectinitializer to override the movement component class
 	explicit APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
@@ -45,6 +46,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USkeletalMeshComponent* RopeMesh;
 
+	//the score component to keep track of the player's score
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UScoreComponent* ScoreComponent;
+
 	//input data asset to use for setting up input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UInputDataAsset* InputDataAsset;
@@ -56,6 +61,23 @@ public:
 	//the current movement direction (for wasd movement)
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D CurrentMoveDirection = FVector2D::ZeroVector;
+
+	//the default gravity scale for the player
+	UPROPERTY()
+	float DefaultGravityScale = 1;
+
+	//events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerDeath();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerRespawn();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerObjectivePickedUp();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerPickedUpAllObjectives();
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;

@@ -31,6 +31,22 @@ public:
 	bool TimerShouldTick = true;
 	FTimerHandle TimerHandler;
 
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Variables-Time")
+	float RestartCooldown = 0.3f;
+	bool canRestart = true;
+	FTimerHandle RestartCooldownHandler;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int TotalNumObjectives = 0;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int TotalNumActiveObjectives = 0;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
+	int NumActiveObjectives = 0;
+
+	bool doOnce = true;
+
 private:
 	//  ---------------------- Private Variable`s ---------------------
 
@@ -46,6 +62,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void RestartLevel();
+	void RestartCooldownComplete();
 
 	// Timer -----
 
@@ -58,10 +75,12 @@ public:
 	void StopTimer();
 
 
-
-
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void RestartLevelBP();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Game")
+	void OnRestartLevelCustom();
+
 private:
 	//  --------------------- Private Function`s ----------------------
 
