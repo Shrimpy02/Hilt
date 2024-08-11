@@ -193,7 +193,7 @@ public:
 
 	//stop grappling function
 	UFUNCTION(BlueprintCallable)
-	void StopGrapple();
+	void StopGrapple(bool CallBlueprintEvent = true);
 
 	//function to check if we can grapple and start the grapple if we can
 	UFUNCTION(BlueprintCallable)

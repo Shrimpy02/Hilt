@@ -40,10 +40,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	//call the parent implementation
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	////set all grappling variables to their default values
-	//GrappleDotProduct = 0.f;
-	//AbsoluteGrappleDotProduct = 0.f;
-
 	//update the can grapple variable
 	CanGrappleVar = CanGrapple();
 
@@ -185,7 +181,7 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 	OnStartGrapple.Broadcast(HitResult);
 }
 
-void UGrapplingComponent::StopGrapple()
+void UGrapplingComponent::StopGrapple(bool CallBlueprintEvent)
 {
 	//check if we're not grappling
 	if (!bIsGrappling)
@@ -224,8 +220,12 @@ void UGrapplingComponent::StopGrapple()
 		PlayerCharacter->ScoreComponent->AddScore(Value);
 	}
 
-	//call the OnStopGrapple event
-	OnStopGrapple.Broadcast();
+	//check if we should call the blueprint event
+	if (CallBlueprintEvent)
+	{
+		//call the OnStopGrapple event
+		OnStopGrapple.Broadcast();
+	}
 
 	//check if we have a grappleable component
 	if (GrappleableComponent->IsValidLowLevelFast())

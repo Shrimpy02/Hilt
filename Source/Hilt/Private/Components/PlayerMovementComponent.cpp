@@ -745,20 +745,35 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		//set the movement mode to falling
 		SetMovementMode(MOVE_Falling);
 
-		//check if the dot product is less than or equal to 0
+		//check if the dot product is less than or equal to 0 (we're jumping into the ground)
 		if (DotProduct <= 0)
 		{
-			//set the velocity
-			Velocity += FVector::UpVector * JumpBoostAmount + ApplySpeedLimit(Velocity.GetSafeNormal() * SuperJumpForce, DELTA);
-		}
-		else
-		{
-			//set the velocity
-			Velocity += FVector::UpVector * JumpBoostAmount + ApplySpeedLimit(LastSuperJumpDirection * SuperJumpForce, DELTA);
+			//use the normalized sum of the last super jump direction and the hit normal
+			LastSuperJumpDirection = (LastSuperJumpDirection + CurrentFloor.HitResult.ImpactNormal).GetSafeNormal();
 		}
 
+		//variable to store the slide jump force
+		float SlideJumpForce = 0;
+
+		//check if we have a valid slide jump speed curve
+		if (SlideJumpSpeedCurve->IsValidLowLevelFast())
+		{
+			//get the super jump force
+			SlideJumpForce *= SlideJumpSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+		}
+
+		//check if we have a valid slide jump direction curve
+		if (SlideJumpDirectionCurve->IsValidLowLevelFast())
+		{
+			//get the super jump direction
+			SlideJumpForce *= SlideJumpDirectionCurve->GetFloatValue(FVector::DotProduct(LastSuperJumpDirection.GetSafeNormal(), Velocity.GetSafeNormal()));
+		}
+
+		//launch the character in the direction of the jump
+		GetCharacterOwner()->LaunchCharacter(LastSuperJumpDirection * SlideJumpForce, true, true);
+
 		//call the blueprint event
-		OnPlayerSuperJump.Broadcast();
+		OnPlayerSLideJump.Broadcast();
 	}
 	else
 	{

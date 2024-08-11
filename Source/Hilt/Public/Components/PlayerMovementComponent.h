@@ -96,6 +96,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* FallingBrakingDecelerationCurve = nullptr;
 
+	//the float curve to use for the multiplier to apply to the player's speed when slide jumping (0 = min speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideJumpSpeedCurve = nullptr;
+
+	//the float curve to use for the multiplier to apply to the player's speed when slide jumping (1 = aligned with velocity, -1 = opposite of velocity)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideJumpDirectionCurve = nullptr;
+
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float SpeedLimit = 4000;
@@ -148,14 +156,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
 	bool bCanSuperJump = true;
 
-	//the amount of force to apply in the direction the player is looking when jumping
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
-	float SuperJumpForce = 3000;
-
-	//the amount of boost to apply when boosting a jump
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
-	float JumpBoostAmount = 500;
-
 	//the amount of time to wait before stopping the score degradation when sliding
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
 	float SlideScoreDecayStopDelay = 0.5;
@@ -190,7 +190,7 @@ public:
 	FOnPlayerStopSlide OnPlayerStopSlide;
 
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
-	FOnPlayerSuperJump OnPlayerSuperJump;
+	FOnPlayerSuperJump OnPlayerSLideJump;
 
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerNormalJump OnPlayerNormalJump;
