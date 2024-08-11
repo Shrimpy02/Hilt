@@ -83,6 +83,8 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 
 void AHiltGameModeBase::RestartLevel()
 {
+	if (!canRestart) return;
+
 	// Get all actors with reset functionality
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseInteractableObject::StaticClass(), FoundActors);
@@ -154,8 +156,16 @@ void AHiltGameModeBase::RestartLevel()
 		}
 	}
 
-	doOnce = true;
+	OnRestartLevelCustom();
+	GetWorld()->GetTimerManager().SetTimer(RestartCooldownHandler, this, &AHiltGameModeBase::RestartCooldownComplete, RestartCooldown, false);
 
+	doOnce = true;
+	canRestart = false;
+}
+
+void AHiltGameModeBase::RestartCooldownComplete()
+{
+	canRestart = true;
 }
 
 void AHiltGameModeBase::RestartLevelBP()
