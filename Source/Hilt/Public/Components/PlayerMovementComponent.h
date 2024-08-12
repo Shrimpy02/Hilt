@@ -38,7 +38,7 @@ public:
 
 	//the max movement speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling")
-	float MaxFallSpeed = 2000;
+	float MaxFallSpeed = 6000;
 
 	//the minimum speed to launch the character off of a collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "collision")
@@ -72,10 +72,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* CollisionLaunchSpeedCurve = nullptr;
 
-	////the float curve to use for max acceleration when walking based on the speed of the player (0 = min speed, 1 = max speed)
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	//UCurveFloat* MaxWalkingAccelerationCurve = nullptr;
-
 	//the float curve to use for braking deceleration when sliding based on the speed of the player (0 = min speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* WalkingBrakingFrictionCurve = nullptr;
@@ -83,6 +79,10 @@ public:
 	//the float curve to use for adding score when stopping a slide based on the time spend sliding
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* SlideScoreCurve = nullptr;
+
+	//the float curve to use for processing landing based on the dot product of the player's velocity and the surface normal (-1 = opposite, 1 = aligned)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* SlideLandingDotCurve = nullptr;
 
 	//the pending score for the slide
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|SlideJump")
@@ -152,13 +152,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	float MinSlideStartSpeed = 1000;
 
-	//whether or not the player can super jump
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
-	bool bCanSuperJump = true;
-
 	//the amount of time to wait before stopping the score degradation when sliding
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|SlideJump")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
 	float SlideScoreDecayStopDelay = 0.5;
+
+	//the slide jump force multiplier
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
+	float SlideJumpForceMultiplier = 1;
 
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
@@ -175,6 +175,9 @@ public:
 
 	//storage for the time we started sliding
 	float SlideStartTime = 0;
+
+	//whether or not we're slide jumping
+	bool bIsSlideJumping = false;
 
 	//timer handle for banking slide score
 	FTimerHandle SlideScoreBankTimer;
@@ -236,11 +239,11 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
+	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
 	virtual bool IsWalkable(const FHitResult& Hit) const override;
 	virtual void PerformMovement(float DeltaTime) override;
 	virtual void HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
-	virtual void Launch(FVector const& LaunchVel) override;
 	virtual FVector ConsumeInputVector() override;
 	virtual float GetMaxBrakingDeceleration() const override;
 	virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
@@ -249,7 +252,6 @@ public:
 	virtual float GetGravityZ() const override;
 	virtual FVector GetAirControl(float DeltaTime, float TickAirControl, const FVector& FallAcceleration) override;
 	virtual void StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc) override;
-	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
 	virtual void AddImpulse(FVector Impulse, bool bVelocityChange) override;
 	static float GetAxisDeltaRotation(float InAxisRotationRate, float DeltaTime);
 	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
