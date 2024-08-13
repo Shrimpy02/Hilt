@@ -160,6 +160,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
 	float SlideJumpForceMultiplier = 1;
 
+	//the slide jump time
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
+	float SlideJumpTime = 0.5;
+
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;
@@ -181,6 +185,9 @@ public:
 
 	//timer handle for banking slide score
 	FTimerHandle SlideScoreBankTimer;
+
+	//the gravity scale used at begin play
+	float DefaultGravityScale = 1;
 
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")

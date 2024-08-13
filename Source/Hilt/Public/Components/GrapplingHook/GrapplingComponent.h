@@ -181,6 +181,9 @@ public:
 	UPROPERTY()
 	class APlayerCharacter* PlayerCharacter = nullptr;
 
+	//storage for the grapple hit(s) we have
+	TArray<FHitResult> GrappleHits;
+
 	//constructor
 	UGrapplingComponent();
 
@@ -217,8 +220,7 @@ private:
 	void DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct);
 
 	//function to do the grapple trace with a given max distance
-	void DoGrappleTrace(FHitResult& GrappleHit, float MaxDistance) const;
-	void DoGrappleTrace(TArray<FHitResult>& Array, float MaxDistance) const;
+	void DoGrappleTrace(float MaxDistance, bool DoSphereTrace);
 
 	//function to check for force modifiers based on the grappleable component of the target we're grappling to
 	void CheckTargetForceModifiers(FVector& BaseVel, float DeltaTime) const;
@@ -256,11 +258,11 @@ public:
 
 	//function to get whether or not we can grapple in the given direction
 	UFUNCTION(BlueprintCallable)
-	bool CanGrapple() const;
+	bool CanGrapple();
 
 	//function to get the remaining distance in a direction before we hit something we can grapple to
 	UFUNCTION(BlueprintCallable)
-	float GetRemainingGrappleDistance() const;
+	float GetRemainingGrappleDistance();
 
 	/**
 	 * Setters

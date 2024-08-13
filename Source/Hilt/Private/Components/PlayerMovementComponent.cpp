@@ -150,6 +150,9 @@ void UPlayerMovementComponent::BeginPlay()
 
 	//get our owner as a player pawn
 	PlayerPawn = Cast<APlayerCharacter>(GetOwner());
+
+	//set the default gravity scale
+	DefaultGravityScale = GravityScale;
 }
 
 void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -466,15 +469,22 @@ void UPlayerMovementComponent::CalcVelocity(float DeltaTime, float Friction, boo
 
 bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const
 {
+	////check if we're grappling
+	//if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
+	//{
+	//	//check if the surface normal is close to the opposite of the grapple direction
+	//	if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
+	//	{
+	//		//return false
+	//		return false;
+	//	}
+	//}
+
 	//check if we're grappling
-	if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
+	if (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->ShouldUseNormalMovement())
 	{
-		//check if the surface normal is close to the opposite of the grapple direction
-		if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
-		{
-			//return false
-			return false;
-		}
+		//return false
+		return false;
 	}
 
 	//default to the parent implementation
@@ -673,8 +683,14 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 	//check if the dot product of the velocity and the impact normal is less than the negative of the head on collision dot
 	if (FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal) < HeadOnCollisionDot && (IsFalling() && Velocity.Size2D() > CollisionSpeedThreshold) || IsSliding() || (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->ShouldUseNormalMovement()))
 	{
+		//calcultate the dot product of the velocity and the impact normal
+		const float DotProduct = FVector::DotProduct(Velocity.GetSafeNormal(), -Hit.ImpactNormal);
+
+		//invert it by mapping it to the range of 0 to 1
+		const float InvertedDotProduct = FMath::GetMappedRangeValueClamped(FVector2D(-1, 1), FVector2D(0, 1), DotProduct);
+
 		//calculate the launch velocity
-		FVector UnclampedLaunchVelocity = Hit.ImpactNormal * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+		FVector UnclampedLaunchVelocity = (Hit.ImpactNormal + Velocity.GetSafeNormal() * InvertedDotProduct).GetSafeNormal() * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 
 		//check if we're sliding
 		if (IsSliding())
@@ -809,11 +825,11 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 		FTimerHandle SlideJumpGravityResetTimer;
 
 		//use timer manager lamba to reset the slide jump variable
-		GetWorld()->GetTimerManager().SetTimer(SlideJumpGravityResetTimer, [this]()
+		GetWorld()->GetTimerManager().SetTimer(SlideJumpGravityResetTimer, [this]
 		{
 			bIsSlideJumping = false;
-			GravityScale = 4;
-		}, 0.5, false);
+			GravityScale = DefaultGravityScale;
+		}, SlideJumpTime, false);
 
 		//call the blueprint event
 		OnPlayerSLideJump.Broadcast();
