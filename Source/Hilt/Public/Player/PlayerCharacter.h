@@ -62,6 +62,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D CurrentMoveDirection = FVector2D::ZeroVector;
 
+	//whether or not we can activate the grappling hook
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivateGrapple = true;
+
 	//events
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
 	void OnPlayerDeath();

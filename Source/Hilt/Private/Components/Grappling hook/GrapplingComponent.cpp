@@ -41,7 +41,9 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//update the can grapple variable
-	CanGrappleVar = CanGrapple();
+	CanGrappleVar = CanGrapple(false);
+
+	//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Can Grapple: %s"), CanGrappleVar ? TEXT("True") : TEXT("False")));
 
 	//check if we're grappling
 	if (bIsGrappling)
@@ -266,9 +268,8 @@ void UGrapplingComponent::StopGrapple(bool CallBlueprintEvent)
 
 void UGrapplingComponent::StartGrappleCheck()
 {
-	//todo
 	//check if we can grapple and we're not already grappling
-	if (CanGrapple() && !bIsGrappling)
+	if (CanGrapple(true) && !bIsGrappling)
 	{
 		////do a line trace to see if the player is aiming at something within grapple range
 		//TArray<FHitResult> GrappleHits;
@@ -426,9 +427,6 @@ void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVeloc
 
 void UGrapplingComponent::DoGrappleTrace(float MaxDistance, bool DoSphereTrace)
 {
-	//empty the grapple trace hits
-	GrappleHits.Empty();
-
 	//storage for camera location and rotation
 	FVector CameraLocation;
 	FRotator CameraRotation;
@@ -445,10 +443,24 @@ void UGrapplingComponent::DoGrappleTrace(float MaxDistance, bool DoSphereTrace)
 	//the collision parameters to use for the line trace
 	const FCollisionQueryParams GrappleCollisionParams = RopeComponent->GetCollisionParams();
 
+	//empty the grapple trace hits
+	GrappleHits.Empty();
+
+	//storage for the temp array
 	TArray<FHitResult> TempArray;
 
 	//do the line trace
 	GetWorld()->LineTraceMultiByChannel(TempArray, CameraLocation, End, RopeComponent->CollisionChannel, GrappleCollisionParams);
+
+	//check if the temp array is empty and we're doing a sphere trace
+	if (TempArray.IsEmpty() && DoSphereTrace)
+	{
+		//do a sphere multi trace
+		GetWorld()->SweepMultiByChannel(TempArray, CameraLocation, End, FQuat::Identity, RopeComponent->CollisionChannel, FCollisionShape::MakeSphere(GrappleSphereRadius), GrappleCollisionParams);
+
+		//print a debug message to the screen
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sphere Trace"));
+	}
 
 	for (const FHitResult& GrappleHit : TempArray)
 	{
@@ -610,10 +622,10 @@ float UGrapplingComponent::GetAbsoluteGrappleDotProduct(FVector GrappleVelocity)
 	return FVector::DotProduct(GrappleVelocity.GetSafeNormal(), FVector(0, 0, 1));
 }
 
-bool UGrapplingComponent::CanGrapple()
+bool UGrapplingComponent::CanGrapple(bool DoSphereTrace)
 {
 	//do a line trace to see if the player is aiming at something within grapple range
-	DoGrappleTrace(MaxGrappleDistance, false);
+	DoGrappleTrace(MaxGrappleDistance, DoSphereTrace);
 
 	////check if the line trace didn't hit anything
 	//if (!GrappleHit.bBlockingHit)

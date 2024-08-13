@@ -219,7 +219,12 @@ void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 
 void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
 {
-	GrappleComponent->StartGrappleCheck();
+	//check if we can grapple
+	if (bCanActivateGrapple)
+	{
+		//check if we can start the grapple
+		GrappleComponent->StartGrappleCheck();
+	}
 }
 
 void APlayerCharacter::StopGrapple(const FInputActionValue& Value)

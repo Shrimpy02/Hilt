@@ -129,6 +129,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleStopDistance = 100;
 
+	//the sphere radius to use when checking when double checking the if you can grapple to where you're aiming
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleSphereRadius = 100;
+
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	//UCurveFloat* GrappleCollisionPointsCurve = nullptr;
@@ -258,7 +262,7 @@ public:
 
 	//function to get whether or not we can grapple in the given direction
 	UFUNCTION(BlueprintCallable)
-	bool CanGrapple();
+	bool CanGrapple(bool DoSphereTrace);
 
 	//function to get the remaining distance in a direction before we hit something we can grapple to
 	UFUNCTION(BlueprintCallable)
