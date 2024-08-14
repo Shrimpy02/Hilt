@@ -62,10 +62,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D CurrentMoveDirection = FVector2D::ZeroVector;
 
-	//the default gravity scale for the player
-	UPROPERTY()
-	float DefaultGravityScale = 1;
-
 	//events
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
 	void OnPlayerDeath();
