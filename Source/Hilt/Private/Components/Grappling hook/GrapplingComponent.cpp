@@ -455,9 +455,6 @@ void UGrapplingComponent::DoGrappleTrace(float MaxDistance, bool DoSphereTrace)
 	{
 		//do a sphere multi trace
 		GetWorld()->SweepMultiByChannel(TempArray, CameraLocation, End, FQuat::Identity, RopeComponent->CollisionChannel, FCollisionShape::MakeSphere(GrappleSphereRadius), GrappleCollisionParams);
-
-		//print a debug message to the screen
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sphere Trace"));
 	}
 
 	for (const FHitResult& GrappleHit : TempArray)
