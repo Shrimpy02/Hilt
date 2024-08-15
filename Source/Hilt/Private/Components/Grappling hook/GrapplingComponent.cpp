@@ -9,7 +9,7 @@
 #include "Player/PlayerCharacter.h"
 #include "Player/ScoreComponent.h"
 
-FGrappleInterpStruct::FGrappleInterpStruct(const float InPullSpeed, const float InPullAccel, const EInterpToTargetType InInterpMode): InInterpMode(InInterpMode), PullSpeed(InPullSpeed), PullAccel(InPullAccel)
+FGrappleInterpStruct::FGrappleInterpStruct(const float InPullSpeed, const float InPullAccel, const EInterpToTargetType InInterpMode): PullSpeed(InPullSpeed), PullAccel(InPullAccel), InInterpMode(InInterpMode)
 {
 
 }
@@ -42,8 +42,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 	//update the can grapple variable
 	CanGrappleVar = CanGrapple(false);
-
-	//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Can Grapple: %s"), CanGrappleVar ? TEXT("True") : TEXT("False")));
 
 	//check if we're grappling
 	if (bIsGrappling)
@@ -622,7 +620,7 @@ float UGrapplingComponent::GetAbsoluteGrappleDotProduct(FVector GrappleVelocity)
 	return FVector::DotProduct(GrappleVelocity.GetSafeNormal(), FVector(0, 0, 1));
 }
 
-bool UGrapplingComponent::CanGrapple(bool DoSphereTrace)
+bool UGrapplingComponent::CanGrapple(const bool DoSphereTrace)
 {
 	//do a line trace to see if the player is aiming at something within grapple range
 	DoGrappleTrace(MaxGrappleDistance, DoSphereTrace);
