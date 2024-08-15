@@ -102,6 +102,13 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 {
+	//check if we can activate input
+	if (!bCanActivateInput)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	//get the vector direction from the input value
 	FVector2D VectorDirection = Value.Get<FVector2D>();
 
@@ -181,6 +188,13 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 
 void APlayerCharacter::MouseMovement(const FInputActionValue& Value)
 {
+	//check if we can activate input
+	if (!bCanActivateInput)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	//get the look axis input
 	const FVector2D LookAxisInput = Value.Get<FVector2D>();
 
@@ -191,6 +205,13 @@ void APlayerCharacter::MouseMovement(const FInputActionValue& Value)
 
 void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 {
+	//check if we can activate pause
+	if (!bCanActivatePause)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	//get the player controller
 	APlayerController* PC = GetLocalViewingPlayerController();
 
@@ -200,12 +221,26 @@ void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 
 void APlayerCharacter::FireRocketLauncher(const FInputActionValue& Value)
 {
+	//check if we can activate input
+	if (!bCanActivateInput)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	//fire the rocket launcher
 	RocketLauncherComponent->FireProjectile(Camera->GetForwardVector());
 }
 
 void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 {
+	//check if we can activate restart
+	if (!bCanActivateRestart)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	//check if we have a valid game mode
 	if (GameMode)
 	{
@@ -229,28 +264,63 @@ void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
 
 void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 {
+	//check if we can grapple
+	if (bCanActivateGrapple)
+	{
+		//stop grappling
+		GrappleComponent->StopGrapple();
+	}
+
 	//stop grappling
 	GrappleComponent->StopGrapple();
 }
 
 void APlayerCharacter::StartSlide(const FInputActionValue& Value)
 {
+	//check if we can activate input
+	if (!bCanActivateInput)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	PlayerMovementComponent->StartSlide();
 }
 
 void APlayerCharacter::StopSlide(const FInputActionValue& Value)
 {
+	//check if we can activate input
+	if (!bCanActivateInput)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	PlayerMovementComponent->StopSlide();
 }
 
 void APlayerCharacter::DoJump(const FInputActionValue& Value)
 {
+	//check if we can activate input
+	if (!bCanActivateInput)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	//call the jump function
 	Jump();
 }
 
 void APlayerCharacter::StopTheJumping(const FInputActionValue& Value)
 {
+	//check if we can activate input
+	if (!bCanActivateInput)
+	{
+		//return to prevent further execution
+		return;
+	}
+
 	//call the stop jump function
 	StopJumping();
 }

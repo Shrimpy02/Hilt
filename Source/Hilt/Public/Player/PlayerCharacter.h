@@ -62,7 +62,19 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D CurrentMoveDirection = FVector2D::ZeroVector;
 
-	//whether or not we can activate the grappling hook
+	//whether or not we can activate any input (except for pause, restart, and grapple)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivateInput = true;
+
+	//wheter or not we can activate pause input
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivatePause = true;
+
+	//whether or not we can activate restart input
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivateRestart = true;
+
+	//whether or not we can activate the grappling hook input
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanActivateGrapple = true;
 
