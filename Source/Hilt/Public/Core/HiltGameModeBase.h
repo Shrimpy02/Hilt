@@ -21,6 +21,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Time")
 	float TotalElapsedTime = 0.0f;
 	float LocalElapsedTime = 0.0f;
+
+	UPROPERTY()
+	float LocalMillisecs = 0;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Time")
 	float Millisecs = 0;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Time")
