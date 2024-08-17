@@ -186,7 +186,8 @@ void AHiltGameModeBase::ResetTimer()
 {
 	TotalElapsedTime = 0.0f;
 	LocalElapsedTime = 0.0f;
-	Millisecs = 0;
+	//LocalMillisecs = 0.0f;
+	Millisecs = 0.f;
 	Seconds = 0;
 	Minutes = 0;
 }
@@ -195,6 +196,8 @@ void AHiltGameModeBase::CountTime()
 {
 	// Calculate the milliseconds
 	Millisecs = LocalElapsedTime;
+
+	//Millisecs = (int)(LocalMillisecs*100);
 
 	// Calculate the seconds
 	if (Millisecs >= 1.0f)
