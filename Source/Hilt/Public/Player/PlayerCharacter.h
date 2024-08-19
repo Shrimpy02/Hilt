@@ -16,6 +16,7 @@ class APlayerCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+
 	//constructor with objectinitializer to override the movement component class
 	explicit APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
@@ -60,6 +61,35 @@ public:
 	//the current movement direction (for wasd movement)
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D CurrentMoveDirection = FVector2D::ZeroVector;
+
+	//whether or not we can activate any input (except for pause, restart, and grapple)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivateInput = true;
+
+	//wheter or not we can activate pause input
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivatePause = true;
+
+	//whether or not we can activate restart input
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivateRestart = true;
+
+	//whether or not we can activate the grappling hook input
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanActivateGrapple = true;
+
+	//events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerDeath();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerRespawn();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerObjectivePickedUp();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void OnPlayerPickedUpAllObjectives();
 
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
