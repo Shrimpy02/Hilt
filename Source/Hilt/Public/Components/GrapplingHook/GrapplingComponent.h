@@ -129,6 +129,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleStopDistance = 100;
 
+	//the sphere radius to use when checking when double checking the if you can grapple to where you're aiming
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleSphereRadius = 100;
+
 	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	//UCurveFloat* GrappleCollisionPointsCurve = nullptr;
@@ -181,6 +185,9 @@ public:
 	UPROPERTY()
 	class APlayerCharacter* PlayerCharacter = nullptr;
 
+	//storage for the grapple hit(s) we have
+	TArray<FHitResult> GrappleHits;
+
 	//constructor
 	UGrapplingComponent();
 
@@ -193,7 +200,7 @@ public:
 
 	//stop grappling function
 	UFUNCTION(BlueprintCallable)
-	void StopGrapple();
+	void StopGrapple(bool CallBlueprintEvent = true);
 
 	//function to check if we can grapple and start the grapple if we can
 	UFUNCTION(BlueprintCallable)
@@ -217,8 +224,7 @@ private:
 	void DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct);
 
 	//function to do the grapple trace with a given max distance
-	void DoGrappleTrace(FHitResult& GrappleHit, float MaxDistance) const;
-	void DoGrappleTrace(TArray<FHitResult>& Array, float MaxDistance) const;
+	void DoGrappleTrace(float MaxDistance, bool DoSphereTrace);
 
 	//function to check for force modifiers based on the grappleable component of the target we're grappling to
 	void CheckTargetForceModifiers(FVector& BaseVel, float DeltaTime) const;
@@ -256,11 +262,11 @@ public:
 
 	//function to get whether or not we can grapple in the given direction
 	UFUNCTION(BlueprintCallable)
-	bool CanGrapple() const;
+	bool CanGrapple(bool DoSphereTrace);
 
 	//function to get the remaining distance in a direction before we hit something we can grapple to
 	UFUNCTION(BlueprintCallable)
-	float GetRemainingGrappleDistance() const;
+	float GetRemainingGrappleDistance();
 
 	/**
 	 * Setters

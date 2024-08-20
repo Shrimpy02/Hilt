@@ -150,6 +150,9 @@ void UPlayerMovementComponent::BeginPlay()
 
 	//get our owner as a player pawn
 	PlayerPawn = Cast<APlayerCharacter>(GetOwner());
+
+	//set the default gravity scale
+	DefaultGravityScale = GravityScale;
 }
 
 void UPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -218,6 +221,12 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 
 			//add the slide gravity to the velocity
 			Velocity = ApplySpeedLimit(Velocity + GravitySurfaceDirection * PlayerPawn->ScoreComponent->GetCurrentScoreValues().SlideGravityCurve->GetFloatValue(DotProduct) * deltaTime, deltaTime);
+
+			//get the fall speed limit from the score component
+			const float FallSpeedLimit = PlayerPawn->ScoreComponent->GetCurrentScoreValues().FallSpeedLimit;
+
+			//clamp the result to the fall speed limit
+			Velocity = Velocity.GetClampedToMaxSize(FallSpeedLimit);
 		}
 
 		//check if the slide start time + SlideScoreDecayStopDelay is less than the current time
@@ -240,6 +249,39 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 
 	//call the parent implementation
 	Super::PhysWalking(deltaTime, Iterations);
+}
+
+void UPlayerMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
+{
+	//check if we might be bunny jumping
+	if (bMightBeBunnyJumping)
+	{
+		//storage for the line trace
+		FHitResult Hit;
+
+		//do a line trace straight down from the player with the bunny jump trace distance
+		GetWorld()->LineTraceSingleByChannel(Hit, GetOwner()->GetActorLocation(), GetOwner()->GetActorLocation() - FVector::UpVector * AvoidBunnyJumpTraceDistance, ECC_Visibility);
+
+		//check if it wasn't a valid blocking hit and we didn't start penetrating
+		if (!Hit.IsValidBlockingHit() && !Hit.bStartPenetrating)
+		{
+			//set might be bunny jumping to false
+			bMightBeBunnyJumping = false;
+		}
+	}
+
+	//check if we're slide jumping
+	if (bIsSlideJumping)
+	{
+		//set the velocity to be the direction of the camera
+		Velocity = PlayerPawn->Camera->GetForwardVector() * Velocity.Size();
+
+		//rotate the character to the velocity direction
+		GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
+	}
+
+	//delegate to the parent implementation
+	Super::PhysFalling(deltaTime, Iterations);
 }
 
 bool UPlayerMovementComponent::IsWalkable(const FHitResult& Hit) const
@@ -337,15 +379,10 @@ FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity
 	return Result;
 }
 
-void UPlayerMovementComponent::Launch(FVector const& LaunchVel)
-{
-	Super::Launch(LaunchVel.GetClampedToMaxSize(GetMaxSpeed()));
-}
-
 FVector UPlayerMovementComponent::ConsumeInputVector()
 {
-	//check if we don't have a valid player pawn or we're perched
-	if (!PlayerPawn)
+	//check if we don't have a valid player pawn or we're slide jumping
+	if (!PlayerPawn || bIsSlideJumping)
 	{
 		return FVector::ZeroVector;
 	}
@@ -432,15 +469,22 @@ void UPlayerMovementComponent::CalcVelocity(float DeltaTime, float Friction, boo
 
 bool UPlayerMovementComponent::IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const
 {
+	////check if we're grappling
+	//if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
+	//{
+	//	//check if the surface normal is close to the opposite of the grapple direction
+	//	if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
+	//	{
+	//		//return false
+	//		return false;
+	//	}
+	//}
+
 	//check if we're grappling
-	if (PlayerPawn->GrappleComponent->bIsGrappling && Super::IsValidLandingSpot(CapsuleLocation, Hit) == true)
+	if (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->ShouldUseNormalMovement())
 	{
-		//check if the surface normal is close to the opposite of the grapple direction
-		if (const float LocDot = FVector::DotProduct(Hit.ImpactNormal, PlayerPawn->GrappleComponent->GrappleDirection.GetSafeNormal()); LocDot > -0.8)
-		{
-			//return false
-			return false;
-		}
+		//return false
+		return false;
 	}
 
 	//default to the parent implementation
@@ -486,29 +530,6 @@ void UPlayerMovementComponent::StartFalling(int32 Iterations, float remainingTim
 {
 	//delegate to the parent implementation
 	Super::StartFalling(Iterations, remainingTime, timeTick, Delta, subLoc);
-}
-
-void UPlayerMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
-{
-	//check if we might be bunny jumping
-	if (bMightBeBunnyJumping)
-	{
-		//storage for the line trace
-		FHitResult Hit;
-
-		//do a line trace straight down from the player with the bunny jump trace distance
-		GetWorld()->LineTraceSingleByChannel(Hit, GetOwner()->GetActorLocation(), GetOwner()->GetActorLocation() - FVector::UpVector * AvoidBunnyJumpTraceDistance, ECC_Visibility);
-
-		//check if it wasn't a valid blocking hit and we didn't start penetrating
-		if (!Hit.IsValidBlockingHit() && !Hit.bStartPenetrating)
-		{
-			//set might be bunny jumping to false
-			bMightBeBunnyJumping = false;
-		}
-	}
-
-	//delegate to the parent implementation
-	Super::PhysFalling(deltaTime, Iterations);
 }
 
 void UPlayerMovementComponent::AddImpulse(FVector Impulse, bool bVelocityChange)
@@ -662,8 +683,14 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 	//check if the dot product of the velocity and the impact normal is less than the negative of the head on collision dot
 	if (FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal) < HeadOnCollisionDot && (IsFalling() && Velocity.Size2D() > CollisionSpeedThreshold) || IsSliding() || (PlayerPawn->GrappleComponent->bIsGrappling && !PlayerPawn->GrappleComponent->ShouldUseNormalMovement()))
 	{
+		//calcultate the dot product of the velocity and the impact normal
+		const float DotProduct = FVector::DotProduct(Velocity.GetSafeNormal(), -Hit.ImpactNormal);
+
+		//invert it by mapping it to the range of 0 to 1
+		const float InvertedDotProduct = FMath::GetMappedRangeValueClamped(FVector2D(-1, 1), FVector2D(0, 1), DotProduct);
+
 		//calculate the launch velocity
-		FVector UnclampedLaunchVelocity = Hit.ImpactNormal * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+		FVector UnclampedLaunchVelocity = (Hit.ImpactNormal + Velocity.GetSafeNormal() * InvertedDotProduct).GetSafeNormal() * CollisionLaunchSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
 
 		//check if we're sliding
 		if (IsSliding())
@@ -704,8 +731,8 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 	//set might be bunny jumping to true
 	bMightBeBunnyJumping = true;
 
-	//call the parent implementation
-	Super::ProcessLanded(Hit, remainingTime, Iterations);
+	//set the slide jumping variable to false
+	bIsSlideJumping = false;
 
 	//stop grappling (if we're grappling)
 	PlayerPawn->GrappleComponent->StopGrapple();
@@ -725,6 +752,21 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 
 		//set the slide start time
 		SlideStartTime = GetWorld()->GetTimeSeconds();
+
+		//check if we have a valid slide landing dot curve
+		if (SlideLandingDotCurve->IsValidLowLevelFast())
+		{
+			//get the dot product of the velocity and the impact normal
+			const float DotProduct = FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal);
+
+			//add in the slide landing dot curve
+			Velocity *= SlideLandingDotCurve->GetFloatValue(DotProduct);
+		}
+	}
+	else
+	{
+		//call the parent implementation
+		Super::ProcessLanded(Hit, remainingTime, Iterations);
 	}
 
 	//start the score degredation timer
@@ -737,34 +779,67 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 	if (IsSliding())
 	{
 		//get the direction of the jump
-		LastSuperJumpDirection = GetCharacterOwner()->GetControlRotation().Vector();
-
-		//get the dot product of the camera forward vector and the velocity
-		const float DotProduct = FVector::DotProduct(LastSuperJumpDirection, CurrentFloor.HitResult.ImpactNormal);
+		LastSuperJumpDirection = PlayerPawn->Camera->GetForwardVector();
 
 		//set the movement mode to falling
 		SetMovementMode(MOVE_Falling);
 
-		//check if the dot product is less than or equal to 0
-		if (DotProduct <= 0)
+		//get the current floor
+		FFindFloorResult LocCurrentFloor;
+		FindFloor(GetOwner()->GetActorLocation(), LocCurrentFloor, false);
+
+		//get the dot product of the last super jump direction and the impact normal and check if it's less than or equal to 0 (we're jumping into the ground)
+		if (const float DotProduct = FVector::DotProduct(LastSuperJumpDirection, LocCurrentFloor.HitResult.ImpactNormal); DotProduct <= 0)
 		{
-			//set the velocity
-			Velocity += FVector::UpVector * JumpBoostAmount + ApplySpeedLimit(Velocity.GetSafeNormal() * SuperJumpForce, DELTA);
-		}
-		else
-		{
-			//set the velocity
-			Velocity += FVector::UpVector * JumpBoostAmount + ApplySpeedLimit(LastSuperJumpDirection * SuperJumpForce, DELTA);
+			//use the normalized sum of the last super jump direction and the hit normal
+			LastSuperJumpDirection = (LastSuperJumpDirection + CurrentFloor.HitResult.ImpactNormal).GetSafeNormal();
 		}
 
+		//variable to store the slide jump force
+		float SlideJumpForce = Velocity.Size() * SlideJumpForceMultiplier;
+
+		//check if we have a valid slide jump speed curve
+		if (SlideJumpSpeedCurve->IsValidLowLevelFast())
+		{
+			//get the super jump force
+			SlideJumpForce *= SlideJumpSpeedCurve->GetFloatValue(Velocity.Size() / GetMaxSpeed());
+		}
+
+		//check if we have a valid slide jump direction curve
+		if (SlideJumpDirectionCurve->IsValidLowLevelFast())
+		{
+			//get the super jump direction
+			SlideJumpForce *= SlideJumpDirectionCurve->GetFloatValue(FVector::DotProduct(LastSuperJumpDirection.GetSafeNormal(), Velocity.GetSafeNormal()));
+		}
+
+		//launch the character in the direction of the jump
+		GetCharacterOwner()->LaunchCharacter(LastSuperJumpDirection * SlideJumpForce, true, true);
+		
+		//set the bIsSlideJumping variable to true
+		bIsSlideJumping = true;
+
+		//set the gravity scale to 0
+		GravityScale = 0;
+
+		//throwaway timer handle
+		FTimerHandle SlideJumpGravityResetTimer;
+
+		//use timer manager lamba to reset the slide jump variable
+		GetWorld()->GetTimerManager().SetTimer(SlideJumpGravityResetTimer, [this]
+		{
+			bIsSlideJumping = false;
+			GravityScale = DefaultGravityScale;
+		}, SlideJumpTime, false);
+
 		//call the blueprint event
-		OnPlayerSuperJump.Broadcast();
+		OnPlayerSLideJump.Broadcast();
+
+		//return true
+		return true;
 	}
-	else
-	{
-		//call the blueprint event
-		OnPlayerNormalJump.Broadcast();	
-	}
+
+	//call the blueprint event for a normal jump
+	OnPlayerNormalJump.Broadcast();	
 
 	//default to the parent implementation
 	return Super::DoJump(bReplayingMoves);
