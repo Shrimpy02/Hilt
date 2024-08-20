@@ -87,11 +87,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		//check if we should stop grappling
 		StopGrappleCheck();
 	}
-	else
-	{
-		////set the grapple direction to zero if we're not grappling
-		//GrappleDirection = FVector::ZeroVector;
-	}
 }
 
 void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
@@ -266,27 +261,28 @@ void UGrapplingComponent::StopGrapple(bool CallBlueprintEvent)
 
 void UGrapplingComponent::StartGrappleCheck()
 {
-	//check if we can grapple and we're not already grappling
-	if (CanGrapple(true) && !bIsGrappling)
+	//check if we're already grappling or if we can't grapple
+	if (bIsGrappling || !CanGrapple(true))
 	{
-		////do a line trace to see if the player is aiming at something within grapple range
-		//TArray<FHitResult> GrappleHits;
-
-		//DoGrappleTrace(GrappleHits, MaxGrappleCheckDistance, false);
-
-		//check if the line trace hit something
-		if (!GrappleHits.IsEmpty())
-		{
-			//check if the distance between the trace start and the hit location is less than the distance between the trace start and the player character
-			if (FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].ImpactPoint) < FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].TraceStart))
-			{
-				return;
-			}
-
-			//start grappling
-			StartGrapple(GrappleHits[0]);
-		}
+		//return early
+		return;
 	}
+	
+	//check if the line trace hit something
+	if (GrappleHits.IsEmpty())
+	{
+		//return early
+		return;
+	}
+
+	//check if the distance between the trace start and the hit location is less than the distance between the trace start and the player character
+	if (FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].ImpactPoint) < FVector::Dist(GetOwner()->GetActorLocation(), GrappleHits[0].TraceStart))
+	{
+		return;
+	}
+
+	//start grappling
+	StartGrapple(GrappleHits[0]);
 }
 
 void UGrapplingComponent::StopGrappleCheck()
