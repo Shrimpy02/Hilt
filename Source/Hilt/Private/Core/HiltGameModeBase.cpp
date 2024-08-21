@@ -10,6 +10,7 @@
 
 // Other Includes
 #include "Components/RocketLauncherComponent.h"
+#include "Components/GrapplingHook/GrapplingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
@@ -126,6 +127,7 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
+							PlayerCharacter->GrappleComponent->StopGrapple(false);
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;
@@ -186,7 +188,8 @@ void AHiltGameModeBase::ResetTimer()
 {
 	TotalElapsedTime = 0.0f;
 	LocalElapsedTime = 0.0f;
-	Millisecs = 0;
+	//LocalMillisecs = 0.0f;
+	Millisecs = 0.f;
 	Seconds = 0;
 	Minutes = 0;
 }
@@ -195,6 +198,8 @@ void AHiltGameModeBase::CountTime()
 {
 	// Calculate the milliseconds
 	Millisecs = LocalElapsedTime;
+
+	//Millisecs = (int)(LocalMillisecs*100);
 
 	// Calculate the seconds
 	if (Millisecs >= 1.0f)
