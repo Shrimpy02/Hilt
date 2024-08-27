@@ -5,6 +5,7 @@
 // Other Includes
 #include "Player/PlayerCharacter.h"
 #include "Components/BoxComponent.h"
+#include "NPC/Components/GrappleableComponent.h"
 
 // ---------------------- Constructor`s -----------------------------
 APylonObjective::APylonObjective()
@@ -64,10 +65,9 @@ void APylonObjective::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	if(Player)
 	{
 		// if player and is being grappled stop grapple
-		if (isBeingGrappled)
+		if (GrappleComponent->bIsGrappled)
 		{
 			Player->StopGrapple(0);
-			isBeingGrappled = false;
 		}
 
 		RemoveLevelPresence();

@@ -52,9 +52,6 @@ void ABaseInteractableObject::BeginPlay()
 	// Add Tags
 	Tags.Add(HiltTags::ObjectTag);
 	Tags.Add(HiltTags::ObjectActiveTag);
-
-	GrappleComponent->OnStartGrappleEvent.AddDynamic(this, &ABaseInteractableObject::ToggleGrappleOn);
-	GrappleComponent->OnStopGrappleEvent.AddDynamic(this, &ABaseInteractableObject::ToggleGrappleOff);
 }
 
 void ABaseInteractableObject::Tick(float DeltaTime)
@@ -106,18 +103,6 @@ void ABaseInteractableObject::AddLevelPresence()
 bool ABaseInteractableObject::IsActive()
 {
 	return Tags.Contains(HiltTags::ObjectActiveTag) ? true : false;
-}
-
-void ABaseInteractableObject::ToggleGrappleOn(const FHitResult& HitResult)
-{
-	isBeingGrappled = true;
-	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Grapple on"));
-}
-
-void ABaseInteractableObject::ToggleGrappleOff()
-{
-	isBeingGrappled = false;
-	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Grapple off"));
 }
 
 void ABaseInteractableObject::UpdateVFXLocationRotation()

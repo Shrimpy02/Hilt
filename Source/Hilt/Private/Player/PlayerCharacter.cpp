@@ -100,6 +100,39 @@ void APlayerCharacter::BeginPlay()
 	GameMode = GetWorld()->GetAuthGameMode<AHiltGameModeBase>();
 }
 
+void APlayerCharacter::LoadStreamingLevel(TArray<FName> LevelsToShow)
+{
+	//get the world's streaming levels
+	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
+
+	//iterate over the streaming levels
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+			//find the part of the string after the last underscore
+			FString LevelName = Level->GetWorldAssetPackageFName().ToString();
+			LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
+
+			////print the level name
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Level: %s"), *LevelName));
+
+			//check if the level is in the levels to load array
+			if (LevelsToShow.Contains(*LevelName))
+			{
+				//set the next level to be visible
+				Level->SetShouldBeVisible(true);
+			}
+			else
+			{
+				//set the level to be invisible
+				Level->SetShouldBeVisible(false);
+			}
+		}
+	}
+}
+
 void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 {
 	//check if we can activate input
