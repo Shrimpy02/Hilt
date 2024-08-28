@@ -292,6 +292,19 @@ void UGrapplingComponent::StopGrappleCheck()
 	{
 		//stop grappling
 		StopGrapple();
+		
+		//prevent further execution
+		return;
+	}
+
+	//check if the grapple target is valid
+	if (!GrappleTarget->GetLevel()->bIsVisible)
+	{
+		//stop grappling
+		StopGrapple();
+
+		//prevent further execution
+		return;
 	}
 }
 
