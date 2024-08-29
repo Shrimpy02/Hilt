@@ -41,9 +41,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* NiagaraComp;
 
-	//
-	bool isBeingGrappled = false;
-
 private:
 	//  ---------------------- Private Variable`s ---------------------
 
@@ -62,12 +59,6 @@ public:
 	virtual void RemoveLevelPresence();
 	virtual void AddLevelPresence();
 	virtual bool IsActive();
-
-	UFUNCTION()
-	void ToggleGrappleOn(const FHitResult& HitResult);
-
-	UFUNCTION()
-	void ToggleGrappleOff();
 
 	// VFX ------------------------------
 	// Updates all Niagara components to play at the enemies location
