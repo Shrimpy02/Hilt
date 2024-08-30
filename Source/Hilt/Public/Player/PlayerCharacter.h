@@ -78,6 +78,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanActivateGrapple = true;
 
+	//array of default levels to load
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FName> DefaultLevelsToShow;
+
 	//events
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
 	void OnPlayerDeath();
@@ -94,6 +98,10 @@ public:
 	//overrides
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 	virtual void BeginPlay() override;
+
+	//function to handle loading a streaming level (and hiding the others)
+	UFUNCTION(BlueprintCallable)
+	void LoadStreamingLevel(TArray<FName> LevelsToLoad, bool HideOthers = true);
 
 	//input function for shooting the grappling hook
 	UFUNCTION()

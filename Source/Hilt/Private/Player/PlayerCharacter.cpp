@@ -98,6 +98,69 @@ void APlayerCharacter::BeginPlay()
 
 	//get the game mode
 	GameMode = GetWorld()->GetAuthGameMode<AHiltGameModeBase>();
+
+	//get the world's streaming levels
+	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
+
+	//iterate through all the levels get the ones that are visible
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+		 	//check if the level is visible
+			if (Level->GetLevelStreamingState() == ELevelStreamingState::LoadedVisible)
+		 	{
+		 		//find the part of the string after the last underscore
+		 		FString LevelName = Level->GetWorldAssetPackageFName().ToString();
+		 		LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
+		 
+		 		//add the level to the levels to show array
+		 		DefaultLevelsToShow.Add(*LevelName);
+		 	}
+		}
+	}
+}
+
+void APlayerCharacter::LoadStreamingLevel(TArray<FName> LevelsToShow, bool HideOthers)
+{
+	//check if levels to show is empty
+	if (LevelsToShow.Num() == 0)
+	{
+		//return to prevent further execution
+		return;
+	}
+
+	//get the world's streaming levels
+	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
+
+	//iterate over the streaming levels
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+			//find the part of the string after the last underscore
+			FString LevelName = Level->GetWorldAssetPackageFName().ToString();
+			LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
+
+			////print the level name
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Level: %s"), *LevelName));
+
+			//check if the level is in the levels to load array
+			if (LevelsToShow.Contains(*LevelName))
+			{
+				//set the next level to be visible
+				Level->SetShouldBeVisible(true);
+			}
+			//check if we should hide the other levels
+			else if (HideOthers)
+			{
+				//set the level to be invisible
+				Level->SetShouldBeVisible(false);
+			}
+		}
+	}
 }
 
 void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
