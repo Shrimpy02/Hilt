@@ -130,10 +130,7 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
 							PlayerCharacter->GrappleComponent->StopGrapple(false);
-							PlayerCharacter->LoadStreamingLevel(PlayerCharacter->DefaultLevelsToShow);
-							
-							//debug print
-							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player respawned")));
+							PlayerCharacter->ShowStreamingLevel(PlayerCharacter->DefaultLevelsToShow);
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;
