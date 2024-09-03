@@ -30,6 +30,8 @@ void AHiltGameModeBase::BeginPlay()
 	TotalNumObjectives = FoundActors.Num();
 	TotalNumActiveObjectives = FoundActors.Num();
 
+
+
 	RestartLevel();
 }
 
@@ -128,6 +130,7 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
 							PlayerCharacter->GrappleComponent->StopGrapple(false);
+							PlayerCharacter->ShowStreamingLevel(PlayerCharacter->DefaultLevelsToShow);
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;

@@ -98,6 +98,98 @@ void APlayerCharacter::BeginPlay()
 
 	//get the game mode
 	GameMode = GetWorld()->GetAuthGameMode<AHiltGameModeBase>();
+
+	//get the world's streaming levels
+	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
+
+	//iterate through all the levels get the ones that are visible
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+		 	//check if the level is visible
+			if (Level->GetLevelStreamingState() == ELevelStreamingState::LoadedVisible)
+		 	{
+		 		//find the part of the string after the last underscore
+		 		FString LevelName = Level->GetWorldAssetPackageFName().ToString();
+		 		LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
+		 
+		 		//add the level to the levels to show array
+		 		DefaultLevelsToShow.Add(*LevelName);
+		 	}
+		}
+	}
+}
+
+void APlayerCharacter::ShowStreamingLevel(TArray<FName> LevelsToShow)
+{
+	//check if levels to show is empty
+	if (LevelsToShow.Num() == 0)
+	{
+		//return to prevent further execution
+		return;
+	}
+
+	//get the world's streaming levels
+	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
+
+	//iterate over the streaming levels
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+			//iterate over the levels to show
+			for (FName LevelName : LevelsToShow)
+			{
+				//check if the level is in the levels to load array
+				if (Level->GetWorldAssetPackageFName().ToString().Contains(*LevelName.ToString()))
+				{
+					//set the next level to be visible
+					Level->SetShouldBeVisible(true);
+
+					//break the loop
+					break;
+				}
+
+				////print false
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("False")));
+			}
+		}
+	}
+}
+
+void APlayerCharacter::HideStreamingLevel(TArray<FName> LevelsToHide)
+{
+	//check if levels to show is empty
+	if (LevelsToHide.Num() == 0)
+	{
+		//return to prevent further execution
+		return;
+	}
+
+	//get the world's streaming levels
+	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
+
+	//iterate over the streaming levels
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+			//iterate over the levels to show
+			for (FName LevelName : LevelsToHide)
+			{
+				//check if the level is in the levels to load array
+				if (Level->GetWorldAssetPackageFName().ToString().Contains(*LevelName.ToString()))
+				{
+					//set the next level to be visible
+					Level->SetShouldBeVisible(false);
+				}
+			}
+		}
+	}
 }
 
 void APlayerCharacter::WasdMovement(const FInputActionValue& Value)

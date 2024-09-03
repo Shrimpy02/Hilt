@@ -77,6 +77,17 @@ FVector FRopePoint::GetWL() const
 		return Location;
 	}
 
+	//check if we have a attached actor
+	if (AttachedActor)
+	{
+		//get the grapplable component of the attached actor
+		if (const UGrappleableComponent* GrappleableComponent = AttachedActor->FindComponentByClass<UGrappleableComponent>())
+		{
+			//return the location of the grappleable component
+			return GrappleableComponent->GetComponentLocation();
+		}
+	}
+
 	//check if we're using a component for this rope point
 	if (Component->IsValidLowLevelFast())
 	{
