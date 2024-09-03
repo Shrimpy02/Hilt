@@ -122,7 +122,7 @@ void APlayerCharacter::BeginPlay()
 	}
 }
 
-void APlayerCharacter::LoadStreamingLevel(TArray<FName> LevelsToShow, bool HideOthers)
+void APlayerCharacter::ShowStreamingLevel(TArray<FName> LevelsToShow)
 {
 	//check if levels to show is empty
 	if (LevelsToShow.Num() == 0)
@@ -140,24 +140,53 @@ void APlayerCharacter::LoadStreamingLevel(TArray<FName> LevelsToShow, bool HideO
 		//check if the level is valid
 		if (Level)
 		{
-			//find the part of the string after the last underscore
-			FString LevelName = Level->GetWorldAssetPackageFName().ToString();
-			LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
-
-			////print the level name
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Level: %s"), *LevelName));
-
-			//check if the level is in the levels to load array
-			if (LevelsToShow.Contains(*LevelName))
+			//iterate over the levels to show
+			for (FName LevelName : LevelsToShow)
 			{
-				//set the next level to be visible
-				Level->SetShouldBeVisible(true);
+				//check if the level is in the levels to load array
+				if (Level->GetWorldAssetPackageFName().ToString().Contains(*LevelName.ToString()))
+				{
+					//set the next level to be visible
+					Level->SetShouldBeVisible(true);
+
+					//break the loop
+					break;
+				}
+
+				////print false
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("False")));
 			}
-			//check if we should hide the other levels
-			else if (HideOthers)
+		}
+	}
+}
+
+void APlayerCharacter::HideStreamingLevel(TArray<FName> LevelsToHide)
+{
+	//check if levels to show is empty
+	if (LevelsToHide.Num() == 0)
+	{
+		//return to prevent further execution
+		return;
+	}
+
+	//get the world's streaming levels
+	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
+
+	//iterate over the streaming levels
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+			//iterate over the levels to show
+			for (FName LevelName : LevelsToHide)
 			{
-				//set the level to be invisible
-				Level->SetShouldBeVisible(false);
+				//check if the level is in the levels to load array
+				if (Level->GetWorldAssetPackageFName().ToString().Contains(*LevelName.ToString()))
+				{
+					//set the next level to be visible
+					Level->SetShouldBeVisible(false);
+				}
 			}
 		}
 	}
