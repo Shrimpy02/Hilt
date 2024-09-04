@@ -99,9 +99,13 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 	virtual void BeginPlay() override;
 
-	//function to handle loading a streaming level (and hiding the others)
+	//function to handle loading streaming levels
 	UFUNCTION(BlueprintCallable)
-	void LoadStreamingLevel(TArray<FName> LevelsToLoad, bool HideOthers = true);
+	void ShowStreamingLevel(TArray<FName> LevelsToLoad);
+
+	//function to handle
+	UFUNCTION(BlueprintCallable)
+	void HideStreamingLevel(TArray<FName> LevelsToHide);
 
 	//input function for shooting the grappling hook
 	UFUNCTION()
