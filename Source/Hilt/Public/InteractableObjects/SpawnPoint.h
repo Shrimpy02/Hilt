@@ -19,6 +19,9 @@ class ASpawnPoint : public ABaseInteractableObject
 public:
 	//  ---------------------- Public Variable`s ----------------------
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int SpawnIndex = 0;
+
 private:
 	//  ---------------------- Private Variable`s ---------------------
 

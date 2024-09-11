@@ -6,6 +6,7 @@
 #include "HiltGameModeBase.generated.h"
 
 // Forward Declaration`s
+class ASpawnPoint;
 
 /**
  * @class AHiltGameModeBase.
@@ -40,15 +41,16 @@ public:
 	FTimerHandle RestartCooldownHandler;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
-	int TotalNumObjectives = 0;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
 	int TotalNumActiveObjectives = 0;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Variables-Game")
 	int NumActiveObjectives = 0;
 
-	bool doOnce = true;
+	TArray<ULevelStreaming*> StreamingLevels;
+	TArray<FName> DefaultLevelsToShow;
+	TArray<FName> LevelsToHide;
+	TArray<ASpawnPoint*> LevelSpawnPoints;
+	bool DoObjectivesOnce = true;
 
 private:
 	//  ---------------------- Private Variable`s ---------------------
@@ -67,6 +69,9 @@ public:
 	virtual void RestartLevel();
 	void RestartCooldownComplete();
 
+	void ShowAllStreamingLevels();
+	void HideNotDefaultStreamingLevels();
+
 	// Timer -----
 
 	void CountTime();
@@ -76,7 +81,6 @@ public:
 	void ResetTimer();
 	UFUNCTION(BlueprintCallable)
 	void StopTimer();
-
 
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void RestartLevelBP();
