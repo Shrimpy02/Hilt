@@ -82,6 +82,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FName> DefaultLevelsToShow;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int PlayerSpawnPointIndex = 0;
+
 	//events
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
 	void OnPlayerDeath();
