@@ -98,28 +98,6 @@ void APlayerCharacter::BeginPlay()
 
 	//get the game mode
 	GameMode = GetWorld()->GetAuthGameMode<AHiltGameModeBase>();
-
-	//get the world's streaming levels
-	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
-
-	//iterate through all the levels get the ones that are visible
-	for (ULevelStreaming* Level : StreamingLevels)
-	{
-		//check if the level is valid
-		if (Level)
-		{
-		 	//check if the level is visible
-			if (Level->GetLevelStreamingState() == ELevelStreamingState::LoadedVisible)
-		 	{
-		 		//find the part of the string after the last underscore
-		 		FString LevelName = Level->GetWorldAssetPackageFName().ToString();
-		 		LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
-		 
-		 		//add the level to the levels to show array
-		 		DefaultLevelsToShow.Add(*LevelName);
-		 	}
-		}
-	}
 }
 
 void APlayerCharacter::ShowStreamingLevel(TArray<FName> LevelsToShow)
@@ -152,9 +130,6 @@ void APlayerCharacter::ShowStreamingLevel(TArray<FName> LevelsToShow)
 					//break the loop
 					break;
 				}
-
-				////print false
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("False")));
 			}
 		}
 	}
@@ -327,6 +302,7 @@ void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 
 		 //call the blueprint event
 		 OnPlayerRespawn();
+		 OnPlayerRestart.Broadcast();
 	}
 }
 

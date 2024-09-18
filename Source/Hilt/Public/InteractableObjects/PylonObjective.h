@@ -28,9 +28,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UBoxComponent* TriggerCollisionBox;
 
-	UPROPERTY(VisibleAnywhere)
-	UGrappleableComponent* GrappleableComponent;
-
 	// ------------- class Refs ------------
 
 	// VFX ------------------------------

@@ -19,10 +19,6 @@ APylonObjective::APylonObjective()
 	TriggerCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerCollisionBox"));
 	TriggerCollisionBox->SetupAttachment(GetRootComponent());
 
-	// GrappleAble Component -------------
-	GrappleableComponent = CreateDefaultSubobject<UGrappleableComponent>(TEXT("GrappleableComponent"));
-	GrappleableComponent->SetupAttachment(GetRootComponent());
-
 	// Collision Settings
 	TriggerCollisionBox->SetCollisionObjectType(ECC_WorldStatic);
 	TriggerCollisionBox->SetGenerateOverlapEvents(true);
