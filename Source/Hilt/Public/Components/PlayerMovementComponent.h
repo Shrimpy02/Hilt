@@ -33,7 +33,6 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStartFall, const FVector&, PreviousFloorImpactNormal, const FVector&, PreviousFloorContactNormal, const FVector&, PreviousLocation);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerHitObjective);
 
-
 	//reference to the player as a PlayerCharacter
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	APlayerCharacter* PlayerPawn = nullptr;
@@ -196,7 +195,7 @@ public:
 
 	//the gravity scale to use when diving
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Diving")
-	float DiveGravityScale = 8;
+	float DiveGravityScaleMultiplier = 8;
 
 	//the direction of the last directional jump
 	FVector LastSuperJumpDirection = FVector::UpVector;
@@ -308,14 +307,14 @@ public:
 	virtual void PerformMovement(float DeltaTime) override;
 	virtual void HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
+	virtual float GetGravityZ() const override;
+	virtual FVector GetAirControl(float DeltaTime, float TickAirControl, const FVector& FallAcceleration) override;
+	virtual void StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc) override;
 	virtual FVector ConsumeInputVector() override;
 	virtual float GetMaxBrakingDeceleration() const override;
 	virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
 	virtual void CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration) override;
 	virtual bool IsValidLandingSpot(const FVector& CapsuleLocation, const FHitResult& Hit) const override;
-	virtual float GetGravityZ() const override;
-	virtual FVector GetAirControl(float DeltaTime, float TickAirControl, const FVector& FallAcceleration) override;
-	virtual void StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc) override;
 	virtual void AddImpulse(FVector Impulse, bool bVelocityChange) override;
 	static float GetAxisDeltaRotation(float InAxisRotationRate, float DeltaTime);
 	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
