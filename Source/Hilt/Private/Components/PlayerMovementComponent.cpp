@@ -3,6 +3,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/Camera/PlayerCameraComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
+#include "GameFramework/PhysicsVolume.h"
 #include "InteractableObjects/PylonObjective.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
@@ -71,9 +72,11 @@ void UPlayerMovementComponent::StartSlide()
 	{
 		//set the velocity to the minimum slide start speed
 		Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
-
-		//set the slide start time
-		SlideStartTime = GetWorld()->GetTimeSeconds();
+	}
+	else if (Velocity.Size2D() < MinSlideStartSpeed && IsWalking() && !IsFalling() && !IsSliding())
+	{
+		//set the direction of our velocity to be the forward vector of the player
+		Velocity = GetOwner()->GetActorForwardVector() * Velocity.Size();
 	}
 	else if (IsSliding())
 	{
@@ -90,12 +93,18 @@ void UPlayerMovementComponent::StartSlide()
 		//call the blueprint event
 		OnPlayerStartSlide.Broadcast();
 
+		//set the slide start time
+		SlideStartTime = GetWorld()->GetTimeSeconds();
+
 		//bind the slide score banking timer
 		GetWorld()->GetTimerManager().SetTimer(SlideScoreBankTimer, this, &UPlayerMovementComponent::BankSlideScore, SlideScoreBankRate, true);
 	}
 
 	//set the sliding variable
 	bIsSliding = true;
+
+	//stop diving (if we are)
+	StopDive();
 }
 
 void UPlayerMovementComponent::StopSlide()
@@ -178,6 +187,47 @@ FVector UPlayerMovementComponent::GetSlideSurfaceDirection()
 	return GravitySurfaceDirection;
 }
 
+void UPlayerMovementComponent::StartDive()
+{
+	//check if we're already diving
+	if (bIsDiving)
+	{
+		return;
+	}
+
+	//set the diving variable
+	bIsDiving = true;
+
+	//set the dive start time
+	DiveStartTime = GetWorld()->GetTimeSeconds();
+
+	//set the gravity scale to the dive gravity scale
+	GravityScale = DiveGravityScale;
+}
+
+void UPlayerMovementComponent::StopDive()
+{
+	//check if we're not diving
+	if (!bIsDiving)
+	{
+		return;
+	}
+
+	//set the diving variable
+	bIsDiving = false;
+
+	//set the dive stop time
+	DiveStopTime = GetWorld()->GetTimeSeconds();
+
+	//set the gravity scale to the default gravity scale
+	GravityScale = DefaultGravityScale;
+}
+
+bool UPlayerMovementComponent::IsDiving() const
+{
+	return bIsSliding && IsFalling() && !PlayerPawn->GrappleComponent->bIsGrappling;
+}
+
 void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 {
 	//check if we're sliding
@@ -253,6 +303,23 @@ void UPlayerMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 
 void UPlayerMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
 {
+	//check if we're slide falling
+	if (bIsSlideFalling)
+	{
+		//set the velocity to the direction of the camera
+		Velocity = PlayerPawn->Camera->GetForwardVector() * Velocity.Size();
+
+		//rotate the character to the velocity direction
+		GetCharacterOwner()->SetActorRotation(Velocity.Rotation());
+
+		//check if we should stop slide jumping
+		if (GetWorld()->GetTimeSeconds() > SlideFallStartTime + SlideFallStopDelay)
+		{
+			//set the slide falling variable to false
+			bIsSlideFalling = false;
+		}
+	}
+
 	//check if we might be bunny jumping
 	if (bMightBeBunnyJumping)
 	{
@@ -363,8 +430,48 @@ void UPlayerMovementComponent::HandleWalkingOffLedge(const FVector& PreviousFloo
 
 FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
 {
-	//get the result from the parent implementation
-	const FVector Result = Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);
+
+	//section (mostly) copied from the parent implementation start
+	FVector Result = InitialVelocity;
+
+	if (DeltaTime > 0.f)
+	{
+		// Apply gravity.
+		Result += Gravity * DeltaTime;
+
+		// Don't exceed terminal velocity.
+		const float TerminalLimit = FMath::Abs(GetPhysicsVolume()->TerminalVelocity);
+
+		//check if we're diving and we have a valid DiveTerminalVelocityCurve
+		if (IsDiving() && DiveTerminalVelocityCurve->IsValidLowLevelFast())
+		{
+			//get the value from the curve
+			const float TerminalVelMultiplier = DiveTerminalVelocityCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStartTime);
+
+			//multiply the terminal limit by the value
+			Result = Result.GetClampedToMaxSize(TerminalLimit * TerminalVelMultiplier);
+		}
+		//check if we're diving not diving and we have a valid AfterDiveTerminalVelocityCurve
+		else if (!IsDiving() && AfterDiveTerminalVelocityCurve->IsValidLowLevelFast())
+		{
+			//get the value from the curve
+			const float TerminalVelMultiplier = AfterDiveTerminalVelocityCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStopTime);
+
+			//multiply the terminal limit by the value
+			Result = Result.GetClampedToMaxSize(TerminalLimit * TerminalVelMultiplier);
+		}
+
+		if (Result.SizeSquared() > FMath::Square(TerminalLimit))
+		{
+			const FVector GravityDir = Gravity.GetSafeNormal();
+			if ((Result | GravityDir) > TerminalLimit)
+			{
+				Result = FVector::PointPlaneProject(Result, FVector::ZeroVector, GravityDir) + GravityDir * TerminalLimit;
+			}
+		}
+	}
+
+	//section (mostly) copied from the parent implementation end
 
 	//check if we're applying the speed limit
 	if (bIsSpeedLimited)
@@ -398,7 +505,7 @@ FVector UPlayerMovementComponent::ConsumeInputVector()
 	}
 
 	//check if we're sliding
-	if (IsSliding())
+	if (IsSliding() || bIsSlideFalling)
 	{
 		//return zero vector
 		return FVector::ZeroVector;
@@ -509,6 +616,7 @@ float UPlayerMovementComponent::GetGravityZ() const
 			return Super::GetGravityZ();
 		}
 
+		//return 0 to disable gravity
 		return 0;
 	}
 
@@ -530,6 +638,19 @@ void UPlayerMovementComponent::StartFalling(int32 Iterations, float remainingTim
 {
 	//delegate to the parent implementation
 	Super::StartFalling(Iterations, remainingTime, timeTick, Delta, subLoc);
+
+	//check if we're sliding
+	if (IsSliding())
+	{
+		//set is slide falling to true
+		bIsSlideFalling = true;
+
+		//set the slide fall start time
+		SlideFallStartTime = GetWorld()->GetTimeSeconds();
+
+		//stop sliding
+		StopSlide();
+	}
 }
 
 void UPlayerMovementComponent::AddImpulse(FVector Impulse, bool bVelocityChange)
@@ -575,11 +696,11 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 		if (bIsSpeedLimited)
 		{
 			//return the max speed when grappling or the speed limit, whichever is smaller
-			return FMath::Min(GetCurrentSpeedLimit(), PlayerPawn->GrappleComponent->GrappleMaxSpeed);
+			return FMath::Min(GetCurrentSpeedLimit(), PlayerPawn->GrappleComponent->GetMaxSpeed());
 		}
 
 		//return the max speed when grappling
-		return PlayerPawn->GrappleComponent->GrappleMaxSpeed;
+		return PlayerPawn->GrappleComponent->GetMaxSpeed();
 	}
 
 	//check if we're falling and we're probably not bunny jumping
@@ -610,6 +731,13 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 	{
 		//return the current slide speed
 		return CurrentSlideSpeed;
+	}
+
+	//check if we're diving and we have a valid dive speed curve
+	if (IsDiving() && DiveSpeedMovementCurve->IsValidLowLevelFast())
+	{
+		//return the max fall speed multiplied by the dive speed curve
+		return MaxFallSpeed * DiveSpeedMovementCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStartTime);
 	}
 
 	//check if we're applying the speed limit
@@ -726,6 +854,40 @@ void UPlayerMovementComponent::HandleImpact(const FHitResult& Hit, float TimeSli
 	Super::HandleImpact(Hit, TimeSlice, MoveDelta);
 }
 
+void UPlayerMovementComponent::ApplyImpactPhysicsForces(const FHitResult& Impact, const FVector& ImpactAcceleration, const FVector& ImpactVelocity)
+{
+	//check if we are/just were diving
+	if (bIsDiving)
+	{
+		//stop diving (if we are)
+		StopDive();
+
+		//set the velocity back to the impact velocity
+		Velocity = ImpactVelocity;
+
+		//start sliding
+		StartSlide();
+
+		//check if we have a valid slide landing dot curve
+		if (SlideLandingDotCurve->IsValidLowLevelFast())
+		{
+			//get the dot product of the velocity and the impact normal
+			const float DotProduct = FVector::DotProduct(Velocity.GetSafeNormal(), Impact.ImpactNormal);
+
+			//add in the slide landing dot curve to the velocity
+			Velocity *= SlideLandingDotCurve->GetFloatValue(DotProduct);
+
+			//add in the slide landing dot curve to the current slide speed
+			CurrentSlideSpeed *= SlideLandingDotCurve->GetFloatValue(DotProduct);
+		}
+	}
+	else
+	{
+		//call the parent implementation
+		Super::ApplyImpactPhysicsForces(Impact, ImpactAcceleration, ImpactVelocity);
+	}
+}
+
 void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations)
 {
 	//set might be bunny jumping to true
@@ -737,37 +899,8 @@ void UPlayerMovementComponent::ProcessLanded(const FHitResult& Hit, float remain
 	//stop grappling (if we're grappling)
 	PlayerPawn->GrappleComponent->StopGrapple();
 
-	//check if we're sliding
-	if (IsSliding())
-	{
-		//set the current slide speed
-		CurrentSlideSpeed = Velocity.Size();
-
-		//check if the velocity is less than the minimum slide start speed
-		if (Velocity.Size() < MinSlideStartSpeed)
-		{
-			//set the velocity to the minimum slide start speed
-			Velocity = GetOwner()->GetActorForwardVector() * MinSlideStartSpeed;
-		}
-
-		//set the slide start time
-		SlideStartTime = GetWorld()->GetTimeSeconds();
-
-		//check if we have a valid slide landing dot curve
-		if (SlideLandingDotCurve->IsValidLowLevelFast())
-		{
-			//get the dot product of the velocity and the impact normal
-			const float DotProduct = FVector::DotProduct(Velocity.GetSafeNormal(), Hit.ImpactNormal);
-
-			//add in the slide landing dot curve
-			Velocity *= SlideLandingDotCurve->GetFloatValue(DotProduct);
-		}
-	}
-	else
-	{
-		//call the parent implementation
-		Super::ProcessLanded(Hit, remainingTime, Iterations);
-	}
+	//call the parent implementation
+	Super::ProcessLanded(Hit, remainingTime, Iterations);
 
 	//start the score degredation timer
 	PlayerPawn->ScoreComponent->StartDegredationTimer();
@@ -833,6 +966,9 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 
 		//call the blueprint event
 		OnPlayerSLideJump.Broadcast();
+
+		//stop sliding
+		StopSlide();
 
 		//return true
 		return true;

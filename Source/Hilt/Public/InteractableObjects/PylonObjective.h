@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "InteractableObjects/BaseInteractableObject.h"
+#include "NPC/Components/GrappleableComponent.h"
 #include "PylonObjective.generated.h"
 
 /**
@@ -26,6 +27,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	UBoxComponent* TriggerCollisionBox;
+
+	UPROPERTY(VisibleAnywhere)
+	UGrappleableComponent* GrappleableComponent;
 
 	// ------------- class Refs ------------
 

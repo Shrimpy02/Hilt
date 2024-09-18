@@ -716,58 +716,8 @@ void URopeComponent::ActivateRope(const FHitResult& HitResult)
 	//SetRopeOldLocations(GetWorld()->GetDeltaSeconds());
 }
 
-FVector URopeComponent::GetRopeDirection(const int RopeDirectionChecks) const
+FVector URopeComponent::GetRopeDirection() const
 {
-	//check if we're using verlet integration
-	if (bUseVerletIntegration)
-	{
-		//check if we have any collision points
-		if (CollisionPoints.Num() > 0)
-		{
-			//get the direction from the first rope point to first collision point
-			const FVector Direction = CollisionPoints[0]->GetWL() - RopePoints[0].GetWL();
-
-			//return the direction
-			return Direction.GetSafeNormal();
-		}
-
-		//storage for the direction to each rope point individually
-		TArray<FVector> GrappleDirections;
-
-		//for loop to perform the grapple direction checks	
-		for (int Index = 0 /*StartIndex*/; Index < /*StartIndex +*/ RopeDirectionChecks; ++Index)
-		{
-			//check that index + 1 is a valid index
-			if (!RopePoints.IsValidIndex(Index + 1))
-			{
-				//break the loop
-				break;
-			}
-
-			//get the direction from the first rope point to the current rope point
-			const FVector LocGrappleDirection = (RopePoints[Index + 1].GetWL() - RopePoints[Index].GetWL()).GetSafeNormal();
-
-			//add the direction to the array
-			GrappleDirections.Add(LocGrappleDirection);
-		}
-
-		//storage for the return vector
-		FVector ReturnVec = FVector::ZeroVector;
-
-		//iterate over the grapple directions array
-		for (const FVector& LocGrappleDirection : GrappleDirections)
-		{
-			//add the grapple direction to the return vector
-			ReturnVec += LocGrappleDirection;
-		}
-
-		//normalize the return vector
-		ReturnVec.Normalize();
-
-		//return the return vector
-		return ReturnVec;
-	}
-
 	//get the direction from the first rope point to the second rope point
  	return (RopePoints[1].GetWL() - RopePoints[0].GetWL()).GetSafeNormal();
 }

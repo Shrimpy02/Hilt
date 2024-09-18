@@ -120,11 +120,11 @@ public:
 
 	//input function to start sliding
 	UFUNCTION()
-	void StartSlide(const FInputActionValue& Value);
+	void StartDiveOrSlide(const FInputActionValue& Value);
 
 	//input function to stop sliding
 	UFUNCTION()
-	void StopSlide(const FInputActionValue& Value);
+	void StopDiveOrSlide(const FInputActionValue& Value);
 
 	//input function to jump
 	UFUNCTION()
