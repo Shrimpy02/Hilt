@@ -16,6 +16,8 @@ class APylonObjective : public ABaseInteractableObject
 public:
 	//  ---------------------- Public Variable`s ----------------------
 
+	bool DisableOnce = true;
+
 private:
 	//  ---------------------- Private Variable`s ---------------------
 

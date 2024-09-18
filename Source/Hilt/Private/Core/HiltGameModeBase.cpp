@@ -25,12 +25,45 @@ void AHiltGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Adds All streaming levels to default levels array
+	StreamingLevels = GetWorld()->GetStreamingLevels();
+	for (ULevelStreaming* Level : StreamingLevels)
+		if (Level)
+			if (Level->GetLevelStreamingState() == ELevelStreamingState::LoadedVisible)
+			{
+				//find the part of the string after the last underscore
+				FString LevelName = Level->GetWorldAssetPackageFName().ToString();
+				LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
+
+				//add the level to the levels to show array
+				DefaultLevelsToShow.Add(*LevelName);
+			}
+			else
+			{
+				//find the part of the string after the last underscore
+				FString LevelName = Level->GetWorldAssetPackageFName().ToString();
+				LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
+
+				//add the level to the levels to show array
+				LevelsToHide.Add(*LevelName);
+			}
+
+	ShowAllStreamingLevels();
+	
+	// Gets all objectives and sets num for win condition
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APylonObjective::StaticClass(), FoundActors);
-	TotalNumObjectives = FoundActors.Num();
+	NumActiveObjectives = FoundActors.Num();
 	TotalNumActiveObjectives = FoundActors.Num();
 
-
+	TArray<AActor*> SpawnActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnPoint::StaticClass(), SpawnActors);
+	
+	for(AActor* actor : SpawnActors)
+	{
+		if(ASpawnPoint* spawnPoint = Cast<ASpawnPoint>(actor))
+			LevelSpawnPoints.Add(spawnPoint);
+	}
 
 	RestartLevel();
 }
@@ -46,40 +79,17 @@ void AHiltGameModeBase::Tick(float DeltaTime)
 		CountTime();
 	}
 
-	// Checks for num objectives and calls event logic through player
+	// Checks if all objectives are taken
 	if (UWorld* World = GetWorld())
 		if (APlayerController* PC = World->GetFirstPlayerController())
 			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
 			{
-				TArray<AActor*> FoundActors;
-				UGameplayStatics::GetAllActorsOfClass(GetWorld(), APylonObjective::StaticClass(), FoundActors);
-
-				for(AActor* actor : FoundActors)
-				{
-					if(actor->Tags.Contains(HiltTags::ObjectActiveTag))
-					{
-						NumActiveObjectives++;
-					}
-				}
-
-				// One objective taken
-				if(NumActiveObjectives != TotalNumActiveObjectives && NumActiveObjectives != 0)
-				{
-					TotalNumActiveObjectives = NumActiveObjectives;
-					PlayerCharacter->OnPlayerObjectivePickedUp();
-					//GEngine->AddOnScreenDebugMessage(8, 1.f, FColor::Red, FString::Printf(TEXT("One Objective taken")));
-				} 
-
 				// All objectives taken 
-				if(NumActiveObjectives == 0 && doOnce)
+				if(NumActiveObjectives <= 0 && DoObjectivesOnce)
 				{
-					doOnce = false;
-					TotalNumActiveObjectives = TotalNumObjectives;
+					DoObjectivesOnce = false;
 					PlayerCharacter->OnPlayerPickedUpAllObjectives();
-					//GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Orange, FString::Printf(TEXT("All objectives taken")));
 				}
-
-				NumActiveObjectives = 0;
 			}
 }
 
@@ -87,37 +97,49 @@ void AHiltGameModeBase::RestartLevel()
 {
 	if (!canRestart) return;
 
-	// Get all actors with reset functionality
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseInteractableObject::StaticClass(), FoundActors);
-	//GEngine->AddOnScreenDebugMessage(-2, 5.f, FColor::Green, FString::Printf(TEXT("Num resetable things in level: %d"), FoundActors.Num()));
-
+	//ShowAllStreamingLevels();
 	// Restarts timer
 	ResetTimer();
 
-	// Reset actors
-	for (AActor* Object : FoundActors)
+	// RESET OBJECTIVES
+	TArray<AActor*> PylonActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APylonObjective::StaticClass(), PylonActors);
+
+	for (AActor* object : PylonActors)
 	{
-			//Rest Interactable objects
-		if(ABaseInteractableObject* InteractableObject = Cast<ABaseInteractableObject>(Object)){
-
-			// Reset non active objects ------------
-			if(!InteractableObject->IsActive())
+		if (APylonObjective* objective = Cast<APylonObjective>(object))
+		{
+			if (!objective->IsActive())
 			{
-				InteractableObject->AddLevelPresence();
+				objective->AddLevelPresence();
+				objective->DisableOnce = true;
 			}
+		}
 
-			// Reset active objects cooldowns ------------
-			else if (ALaunchPad* throwPad = Cast<ALaunchPad>(InteractableObject))
-			{
-				throwPad->ResetCooldown();
-			}
+		// Reset NumActiveObjectives
+		NumActiveObjectives = TotalNumActiveObjectives;
+	}
 
-			// Reset player to spawnpoint if there is one
-			else if (ABaseInteractableObject* spawnPoint = Cast<ASpawnPoint>(Object))
-				if (UWorld* World = GetWorld())
-					if (APlayerController* PC = World->GetFirstPlayerController())
-						if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
+	// Get all actors with reset JUMPPADS
+	TArray<AActor*> LaunchActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ALaunchPad::StaticClass(), LaunchActors);
+
+	for (AActor* object : LaunchActors)
+	{
+		if (ALaunchPad* throwPad = Cast<ALaunchPad>(object))
+		{
+			throwPad->ResetCooldown();
+		}
+	}
+
+	// RESET SPAWNPOINT AND PLAYER
+	for(ASpawnPoint* spawnPoint : LevelSpawnPoints)
+	{
+		if (spawnPoint)
+			if (UWorld* World = GetWorld())
+				if (APlayerController* PC = World->GetFirstPlayerController())
+					if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
+						if(PlayerCharacter->PlayerSpawnPointIndex == spawnPoint->SpawnIndex)
 						{
 							// Player location
 							PlayerCharacter->SetActorLocation(spawnPoint->GetActorLocation());
@@ -130,7 +152,6 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
 							PlayerCharacter->GrappleComponent->StopGrapple(false);
-							PlayerCharacter->ShowStreamingLevel(PlayerCharacter->DefaultLevelsToShow);
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;
@@ -144,31 +165,91 @@ void AHiltGameModeBase::RestartLevel()
 								//destroy the projectile
 								Actor->Destroy();
 							}
+						} else {
+							// Player location
+							PlayerCharacter->SetActorLocation(LevelSpawnPoints[0]->GetActorLocation());
+							PlayerCharacter->SetActorRotation(LevelSpawnPoints[0]->GetActorRotation());
+							FRotator NewCameraRotation = LevelSpawnPoints[0]->GetActorRotation();
+							PC->SetControlRotation(NewCameraRotation);
 
+							// Player variables
+							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
+							PlayerCharacter->ScoreComponent->ResetScore();
+							PlayerCharacter->GrappleComponent->StopGrapple(false);
+
+							//array for projectile actors
+							TArray<AActor*> ProjectileActors;
+
+							//get all actors of the projectile class
+							UGameplayStatics::GetAllActorsOfClass(GetWorld(), PlayerCharacter->RocketLauncherComponent->ProjectileClass, ProjectileActors);
+
+							//reset(destroy) projectile actors
+							for (AActor* Actor : ProjectileActors)
+							{
+								//destroy the projectile
+								Actor->Destroy();
+							}
 						}
-		}
-
-		//Rest Enemies
-		else if (ABaseEnemy* Enemy = Cast<ABaseEnemy>(Object)) {
-
-			// Reset non active enemies ------------
-			if(!Enemy->IsAlive())
-			{
-				Enemy->AddLevelPresence();
-			}
-		}
+				
 	}
+	
+
+	// RESET ENEMIES
+	//if (ABaseEnemy* Enemy = Cast<ABaseEnemy>(Object)) {
+	//
+	//	// Reset non active enemies ------------
+	//	if (!Enemy->IsAlive())
+	//	{
+	//		Enemy->AddLevelPresence();
+	//	}
+	//}
 
 	OnRestartLevelCustom();
 	GetWorld()->GetTimerManager().SetTimer(RestartCooldownHandler, this, &AHiltGameModeBase::RestartCooldownComplete, RestartCooldown, false);
 
-	doOnce = true;
+	DoObjectivesOnce = true;
 	canRestart = false;
+
+	HideNotDefaultStreamingLevels();
 }
 
 void AHiltGameModeBase::RestartCooldownComplete()
 {
 	canRestart = true;
+}
+
+void AHiltGameModeBase::ShowAllStreamingLevels()
+{
+	// Enables visibility on all levels
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		Level->SetShouldBeVisible(true);
+		if(Level->IsLevelVisible())
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("LevelVis"));
+	}
+}
+
+void AHiltGameModeBase::HideNotDefaultStreamingLevels()
+{
+	//iterate over the streaming levels
+	for (ULevelStreaming* Level : StreamingLevels)
+	{
+		//check if the level is valid
+		if (Level)
+		{
+			//iterate over the levels to show
+			for (FName LevelName : LevelsToHide)
+			{
+				//check if the level is in the levels to load array
+				if (Level->GetWorldAssetPackageFName().ToString().Contains(*LevelName.ToString()))
+				{
+					//set the next level to be visible
+					Level->SetShouldBeVisible(false);
+				}
+			}
+		}
+	}
 }
 
 void AHiltGameModeBase::RestartLevelBP()
