@@ -1,7 +1,6 @@
 #include "Components/GrapplingHook/GrapplingComponent.h"
 
 #include "Components/CapsuleComponent.h"
-#include "Core/HiltTags.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Components/PlayerMovementComponent.h"
 #include "Components/Camera/PlayerCameraComponent.h"
@@ -47,7 +46,7 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	if (bIsGrappling)
 	{
 		//assign the grapple direction
-		GrappleDirection = RopeComponent->GetRopeDirection(GrappleDirectionChecks).GetSafeNormal();
+		GrappleDirection = RopeComponent->GetRopeDirection().GetSafeNormal();
 
 		//apply the pull force
 		ApplyPullForce(DeltaTime);
@@ -133,7 +132,7 @@ void UGrapplingComponent::StartGrapple(const FHitResult& HitResult)
 	}
 
 	//update the grapple direction (done immediately to for the animation blueprint)
-	GrappleDirection = RopeComponent->GetRopeDirection(GrappleDirectionChecks).GetSafeNormal();
+	GrappleDirection = RopeComponent->GetRopeDirection().GetSafeNormal();
 
 	//update bIsGrappling
 	bIsGrappling = true;
@@ -399,6 +398,23 @@ bool UGrapplingComponent::ShouldUseNormalMovement() const
 	return bUseDebugMode;
 }
 
+float UGrapplingComponent::GetMaxSpeed() const
+{
+	//check if we have a valid grappleable component
+	if (GrappleableComponent->IsValidLowLevelFast())
+	{
+		//check if the grappleable component has a max speed set
+		if (GrappleableComponent->MaxSpeedPlayer > 0)
+		{
+			//return the grappleable component's max speed
+			return GrappleableComponent->MaxSpeedPlayer;
+		}
+	}
+
+	//default to our max grapple speed
+	return GrappleMaxSpeed;
+}
+
 void UGrapplingComponent::DoInterpGrapple(float DeltaTime, FVector& GrappleVelocity, FGrappleInterpStruct GrappleInterpStruct)
 {
 	//storage for the grapple direction
@@ -495,6 +511,16 @@ void UGrapplingComponent::CheckTargetForceModifiers(FVector& BaseVel, float Delt
 	}
 }
 
+void UGrapplingComponent::CheckTargetPullSpeedModifiers(float& PullSpeed) const
+{
+	//check if we have a valid grappleable component
+	if (GrappleableComponent->IsValidLowLevelFast())
+	{
+		//apply the grapple velocity to the player
+		PullSpeed *= GrappleableComponent->GrappleReelForceMultiplierPlayer;
+	}
+}
+
 void UGrapplingComponent::ApplyPullForce(float DeltaTime)
 {
 	//check if we're using debug mode
@@ -586,27 +612,19 @@ FGrappleInterpStruct UGrapplingComponent::GetGrappleInterpStruct() const
 	}
 
 	//default to the NoWasd grapple interp struct
-	return NoWasdGrappleInterpStruct;
+	return DefaultGrappleInterpStruct;
 }
 
 float UGrapplingComponent::GetPullSpeed() const
 {
-	//check if we're in the AddToVelocity grapple mode
-	if (GrappleMode == AddToVelocity)
-	{
-		//return the pull speed from the objective grapple interp struct
-		return GetGrappleInterpStruct().PullSpeed * PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleSpeedMultiplier;
-	}
-	//check if we're in the InterpVelocity grapple mode
-	if (GrappleMode == InterpVelocity)
-	{
-		//todo check if this works
-		//return the pull speed from the objective grapple interp struct
-		return GetGrappleInterpStruct().PullSpeed * PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleSpeedMultiplier;
-	}
+	//return variable
+	float ReturnSpeed = GetGrappleInterpStruct().PullSpeed * PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleSpeedMultiplier;
 
-	//return 0
-	return 0.f;
+	//check for pull speed modifiers from the grappleable component
+	CheckTargetPullSpeedModifiers(ReturnSpeed);
+
+	//return the pull speed
+	return ReturnSpeed;
 }
 
 TEnumAsByte<EGrapplingMode> UGrapplingComponent::GetGrappleMode() const

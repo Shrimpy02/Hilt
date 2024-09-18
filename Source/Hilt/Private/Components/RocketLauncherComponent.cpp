@@ -134,3 +134,15 @@ void URocketLauncherComponent::LoadRocketClip()
 	//set the last reload time
 	LastReloadTime = GetWorld()->GetTimeSeconds();
 }
+
+void URocketLauncherComponent::ResetRocketLauncher()
+{
+	//set the current ammo to the starting ammo
+	CurrentAmmo = StartingAmmo;
+
+	//set the last fire time to 0
+	LastFireTime = 0.f;
+
+	//set the last reload time to 0
+	LastReloadTime = 0.f;
+}
