@@ -480,10 +480,10 @@ FVector UPlayerMovementComponent::NewFallVelocity(const FVector& InitialVelocity
 		if (AfterDiveTerminalVelocityCurve->IsValidLowLevelFast())
 		{
 			//get the value from the curve
-			const float TerminalVelMultiplier = AfterDiveTerminalVelocityCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStopTime);
+			const float Value = AfterDiveTerminalVelocityCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStopTime);
 
-			//multiply the terminal limit by the value
-			Result *= TerminalVelMultiplier;
+			//clamp the result to the terminal limit multiplied by the value
+			return Result.GetClampedToMaxSize(FallSpeedLimit * Value);
 		}
 
 		//clamp the result to the fall speed limit
@@ -536,7 +536,21 @@ FVector UPlayerMovementComponent::GetAirControl(float DeltaTime, float TickAirCo
 		TickAirControl = PlayerPawn->GrappleComponent->GrappleAirControl;
 	}
 
-	return Super::GetAirControl(DeltaTime, TickAirControl, FallAcceleration);
+	//store the result
+	FVector Result = Super::GetAirControl(DeltaTime, TickAirControl, FallAcceleration);
+
+	//check if we're diving anc we have a valid DiveWasdCurve
+	if (IsDiving() && DiveWasdCurve->IsValidLowLevelFast())
+	{
+		//get the value from the curve
+		const float DiveWasdValue = DiveWasdCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStartTime);
+
+		//multiply the result by the value
+		Result *= DiveWasdValue;
+	}
+
+	//return the result
+	return Result;
 }
 
 void UPlayerMovementComponent::StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc)
@@ -739,6 +753,16 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 			return FMath::Min(MaxSpeedToUse, GetCurrentSpeedLimit());
 		}
 
+		//check if we're diving and we have a valid DiveMaxWasdSpeedCurve curve
+		if (IsDiving() && DiveMaxWasdSpeedCurve->IsValidLowLevelFast())
+		{
+			//get the value
+			const float Value = DiveMaxWasdSpeedCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStartTime);
+
+			//multiply in the value
+			MaxSpeedToUse *= Value;
+		}
+
 		//return the max fall speed
 		return MaxSpeedToUse;
 	}
@@ -748,13 +772,6 @@ float UPlayerMovementComponent::GetMaxSpeed() const
 	{
 		//return the current slide speed
 		return CurrentSlideSpeed;
-	}
-
-	//check if we're diving and we have a valid dive speed curve
-	if (IsDiving() && DiveSpeedMovementCurve->IsValidLowLevelFast())
-	{
-		//return the max fall speed multiplied by the dive speed curve
-		return MaxFallSpeed * DiveSpeedMovementCurve->GetFloatValue(GetWorld()->GetTimeSeconds() - DiveStartTime);
 	}
 
 	//check if we're applying the speed limit
