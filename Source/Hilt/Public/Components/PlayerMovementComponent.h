@@ -111,7 +111,11 @@ public:
 
 	//the float curve for the wasd movement multiplier when diving (0 = no speed, 1 = max speed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
-	UCurveFloat* DiveSpeedMovementCurve = nullptr;
+	UCurveFloat* DiveWasdCurve = nullptr;
+
+	//the float curve for the max wasd speed (0 just started diving)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* DiveMaxWasdSpeedCurve = nullptr;
 
 	//the float curve for the terminal velocity when diving (0 = just started diving)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
