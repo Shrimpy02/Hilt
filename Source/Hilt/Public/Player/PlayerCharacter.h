@@ -17,6 +17,9 @@ class APlayerCharacter : public ACharacter
 
 public:
 
+	//event for when the player restarts
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerRestart);
+
 	//constructor with objectinitializer to override the movement component class
 	explicit APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
@@ -78,12 +81,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanActivateGrapple = true;
 
-	//array of default levels to load
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FName> DefaultLevelsToShow;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int PlayerSpawnPointIndex = 0;
+
+	//blueprint event for when the level restarts
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerRestart OnPlayerRestart;
 
 	//events
 	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
@@ -120,11 +123,11 @@ public:
 
 	//input function to start sliding
 	UFUNCTION()
-	void StartSlide(const FInputActionValue& Value);
+	void StartDiveOrSlide(const FInputActionValue& Value);
 
 	//input function to stop sliding
 	UFUNCTION()
-	void StopSlide(const FInputActionValue& Value);
+	void StopDiveOrSlide(const FInputActionValue& Value);
 
 	//input function to jump
 	UFUNCTION()

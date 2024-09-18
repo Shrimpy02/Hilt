@@ -26,6 +26,8 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerImpulse, FVector, Impulse, bool, bVelocityChange);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStartSlide);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStopSlide);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStartDive);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerStopDive);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerSuperJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerNormalJump);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerStartFall, const FVector&, PreviousFloorImpactNormal, const FVector&, PreviousFloorContactNormal, const FVector&, PreviousLocation);
@@ -85,7 +87,7 @@ public:
 	UCurveFloat* SlideLandingDotCurve = nullptr;
 
 	//the pending score for the slide
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|SlideJump")
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|Sliding")
 	float PendingSlideScore = 0;
 
 	//the ground friction to apply when sliding
@@ -103,6 +105,26 @@ public:
 	//the float curve to use for the multiplier to apply to the player's speed when slide jumping (1 = aligned with velocity, -1 = opposite of velocity)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
 	UCurveFloat* SlideJumpDirectionCurve = nullptr;
+
+	////the float curve for the slide fall turn rate limiter (0 = no time spent falling)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	//UCurveFloat* SlideFallTurnRateCurve = nullptr;
+
+	//the float curve for the wasd movement multiplier when diving (0 = no speed, 1 = max speed)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* DiveSpeedMovementCurve = nullptr;
+
+	//the float curve for the terminal velocity when diving (0 = just started diving)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* DiveTerminalVelocityCurve = nullptr;
+
+	////the float curve for the dive movement multiplier when diving (-1 = moving upwards, 1 = moving downwards)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	//UCurveFloat* DiveMovementDirectionCurve = nullptr;
+
+	//the float curve for the terminal velocity after diving (0 = just stopped diving)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UCurveFloat* AfterDiveTerminalVelocityCurve = nullptr;
 
 	//the player's current speed limit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -132,17 +154,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling")
 	float AvoidBunnyJumpTraceDistance = 1000;
 
-	////the first gravity curve to use for what should be considered walkable ground
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling|Curves")
-	//UCurveFloat* WalkabilityVelocityCurve = nullptr;
-
-	////the second gravity curve to use for what should be considered walkable ground
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement: Jumping / Falling|Curves")
-	//UCurveFloat* WalkabilityDirectionNormalsCurve = nullptr;
-
 	//whether or not the player is currently sliding
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
 	bool bIsSliding = false;
+
+	//whether or not we're slide falling
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding")
+	bool bIsSlideFalling = false;
+
+	//the amount of time to wait before stopping the slide falling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
+	float SlideFallStopDelay = 0.5;
 
 	//how often we should bank the player's score when sliding (0 = never, 1 = every second)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Sliding")
@@ -157,16 +179,24 @@ public:
 	float SlideScoreDecayStopDelay = 0.5;
 
 	//the slide jump force multiplier
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding|Jumping")
 	float SlideJumpForceMultiplier = 1;
 
 	//the slide jump time
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|SlideJump")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sliding|Jumping")
 	float SlideJumpTime = 0.5;
 
 	//whether the player has gone far enough above the ground to be considered not bunny hopping
 	UPROPERTY(BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	bool bMightBeBunnyJumping = true;
+
+	//whether or not the player is currently diving
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Diving")
+	bool bIsDiving = false;
+
+	//the gravity scale to use when diving
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement|Diving")
+	float DiveGravityScale = 8;
 
 	//the direction of the last directional jump
 	FVector LastSuperJumpDirection = FVector::UpVector;
@@ -189,6 +219,15 @@ public:
 	//the gravity scale used at begin play
 	float DefaultGravityScale = 1;
 
+	//the time when the slide fall started
+	float SlideFallStartTime = 0;
+
+	//the time when the player started diving
+	float DiveStartTime = 0;
+
+	//the time when the player stopped diving
+	float DiveStopTime = 0;
+
 	//blueprint event(s)
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerImpulse OnPlayerImpulse;
@@ -198,6 +237,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerStopSlide OnPlayerStopSlide;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStartDive OnPlayerStartDive;
+
+	UPROPERTY(BlueprintAssignable, Category = "Movement")
+	FOnPlayerStopDive OnPlayerStopDive;
 
 	UPROPERTY(BlueprintAssignable, Category = "Movement")
 	FOnPlayerSuperJump OnPlayerSLideJump;
@@ -242,6 +287,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	FVector GetSlideSurfaceDirection();
 
+	//function to start diving
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StartDive();
+
+	//function to stop diving
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StopDive();
+
+	//function to get whether or not the player is currently diving
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsDiving() const;
+
 	//override functions
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -265,6 +322,7 @@ public:
 	virtual float GetMaxSpeed() const override;
 	virtual float GetMaxAcceleration() const override;
 	virtual void HandleImpact(const FHitResult& Hit, float TimeSlice, const FVector& MoveDelta) override;
+	virtual void ApplyImpactPhysicsForces(const FHitResult& Impact, const FVector& ImpactAcceleration, const FVector& ImpactVelocity) override;
 	virtual void ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations) override;
 	virtual bool DoJump(bool bReplayingMoves) override;
 };
