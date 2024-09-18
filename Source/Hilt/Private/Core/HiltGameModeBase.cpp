@@ -149,7 +149,7 @@ void AHiltGameModeBase::RestartLevel()
 
 							// Player variables
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
-							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
+							PlayerCharacter->RocketLauncherComponent->ResetRocketLauncher();
 							PlayerCharacter->ScoreComponent->ResetScore();
 							PlayerCharacter->GrappleComponent->StopGrapple(false);
 

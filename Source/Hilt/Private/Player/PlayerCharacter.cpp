@@ -76,8 +76,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InInputCompone
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_Jump, ETriggerEvent::Completed, this, &APlayerCharacter::StopJumping);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_Grapple, ETriggerEvent::Triggered, this, &APlayerCharacter::ShootGrapple);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_StopGrapple, ETriggerEvent::Triggered, this, &APlayerCharacter::StopGrapple);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_Slide, ETriggerEvent::Triggered, this, &APlayerCharacter::StartSlide);
-		EnhancedInputComponent->BindAction(InputDataAsset->IA_Slide, ETriggerEvent::Completed, this, &APlayerCharacter::StopSlide);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_Slide, ETriggerEvent::Triggered, this, &APlayerCharacter::StartDiveOrSlide);
+		EnhancedInputComponent->BindAction(InputDataAsset->IA_Slide, ETriggerEvent::Completed, this, &APlayerCharacter::StopDiveOrSlide);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_FireGun, ETriggerEvent::Triggered, this, &APlayerCharacter::FireRocketLauncher);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_PauseButton, ETriggerEvent::Triggered, this, &APlayerCharacter::PauseGame);
 		EnhancedInputComponent->BindAction(InputDataAsset->IA_RestartGame, ETriggerEvent::Triggered, this, &APlayerCharacter::RestartGame);
@@ -98,28 +98,6 @@ void APlayerCharacter::BeginPlay()
 
 	//get the game mode
 	GameMode = GetWorld()->GetAuthGameMode<AHiltGameModeBase>();
-
-	//get the world's streaming levels
-	TArray<ULevelStreaming*> StreamingLevels = GetWorld()->GetStreamingLevels();
-
-	//iterate through all the levels get the ones that are visible
-	for (ULevelStreaming* Level : StreamingLevels)
-	{
-		//check if the level is valid
-		if (Level)
-		{
-		 	//check if the level is visible
-			if (Level->GetLevelStreamingState() == ELevelStreamingState::LoadedVisible)
-		 	{
-		 		//find the part of the string after the last underscore
-		 		FString LevelName = Level->GetWorldAssetPackageFName().ToString();
-		 		LevelName = LevelName.RightChop(LevelName.Find("_0_") + 3);
-		 
-		 		//add the level to the levels to show array
-		 		DefaultLevelsToShow.Add(*LevelName);
-		 	}
-		}
-	}
 }
 
 void APlayerCharacter::ShowStreamingLevel(TArray<FName> LevelsToShow)
@@ -152,9 +130,6 @@ void APlayerCharacter::ShowStreamingLevel(TArray<FName> LevelsToShow)
 					//break the loop
 					break;
 				}
-
-				////print false
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("False")));
 			}
 		}
 	}
@@ -224,14 +199,8 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 		//get the up vector from the control rotation
 		const FVector PlayerDirectionYaw_Upwards_Downwards = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Z);
 
-		////get the rope direction
-		//const FVector RopeDirection = RopeComponent->GetRopeDirection(0).GetSafeNormal();
-
 		//get the X axis for the movement input
 		const FVector MovementXAxis = FVector::CrossProduct(PlayerDirectionYaw_Upwards_Downwards.GetSafeNormal(), Camera->GetForwardVector()).GetSafeNormal();
-
-		////draw a debug arrow
-		//DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementXAxis * 100, 100, FColor::Red, false, 0, 0, 1);
 
 		//get the right vector from the control rotation
 		const FVector PlayerDirectionYaw_Left_Right = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Y);
@@ -239,17 +208,20 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 		//get the X axis for the movement input
 		const FVector MovementYAxis = FVector::CrossProduct((PlayerDirectionYaw_Left_Right * -1).GetSafeNormal(), Camera->GetForwardVector()).GetSafeNormal();
 
-		////draw a debug arrow
-		//DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementYAxis * 100, 100, FColor::Green, false, 0, 0, 1);
-
 		//add upwards/downwards movement input
 		AddMovementInput(MovementYAxis, VectorDirection.Y);
 
 		//add left/right movement input
 		AddMovementInput(MovementXAxis, VectorDirection.X);
 
-		////print the vector direction
-		//GEngine->AddOnScreenDebugMessage(99, 0.f, FColor::Red, FString::Printf(TEXT("VectorDirection: %s"), *VectorDirection.ToString()));
+		return;
+	}
+
+	//check if we're not sliding
+	if (PlayerMovementComponent->IsSliding() || PlayerMovementComponent->bIsSlideFalling)
+	{
+		//add left/right movement input
+		AddMovementInput(FVector::CrossProduct(Camera->GetForwardVector(), -GetActorUpVector()), VectorDirection.X);
 
 		return;
 	}
@@ -259,17 +231,6 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 
 	//get the right vector from the control rotation
 	const FVector PlayerDirectionYaw_Left_Right = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Y);
-
-	//check if we're not sliding
-	if (PlayerMovementComponent->IsSliding())
-	{
-		//add left/right movement input
-		AddMovementInput(FVector::CrossProduct(Camera->GetForwardVector(), -GetActorUpVector()), VectorDirection.X);
-		//GetActorRightVector()
-		//add left/right movement input
-
-		return;
-	}
 	
 	//add forward/backwards movement input
 	AddMovementInput(PlayerDirectionYaw_Forward_Backward, VectorDirection.Y);
@@ -341,6 +302,7 @@ void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 
 		 //call the blueprint event
 		 OnPlayerRespawn();
+		 OnPlayerRestart.Broadcast();
 	}
 }
 
@@ -367,7 +329,7 @@ void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 	GrappleComponent->StopGrapple();
 }
 
-void APlayerCharacter::StartSlide(const FInputActionValue& Value)
+void APlayerCharacter::StartDiveOrSlide(const FInputActionValue& Value)
 {
 	//check if we can activate input
 	if (!bCanActivateInput)
@@ -376,10 +338,21 @@ void APlayerCharacter::StartSlide(const FInputActionValue& Value)
 		return;
 	}
 
+	//check if we're in the air
+	if (GetCharacterMovement()->IsFalling())
+	{
+		//start the dive
+		PlayerMovementComponent->StartDive();
+
+		//return to prevent further execution
+		return;
+	}
+
+	//start the slide
 	PlayerMovementComponent->StartSlide();
 }
 
-void APlayerCharacter::StopSlide(const FInputActionValue& Value)
+void APlayerCharacter::StopDiveOrSlide(const FInputActionValue& Value)
 {
 	//check if we can activate input
 	if (!bCanActivateInput)
@@ -388,6 +361,10 @@ void APlayerCharacter::StopSlide(const FInputActionValue& Value)
 		return;
 	}
 
+	//stop diving
+	PlayerMovementComponent->StopDive();
+	
+	//stop sliding
 	PlayerMovementComponent->StopSlide();
 }
 
