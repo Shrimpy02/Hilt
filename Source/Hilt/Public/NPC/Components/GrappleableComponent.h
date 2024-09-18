@@ -30,7 +30,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGrappleInterpStruct GrappleInterpStructThis = FGrappleInterpStruct();
 
-	//whether or not to use the grapple interp struct for this object
+	//whether or not to use the grapple interp struct for the player when grappling to this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bUseGrappleInterpStruct = false;
 
@@ -40,11 +40,15 @@ public:
 
 	//the multiplier for the grapple reel force applied to this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float GrappleReelForceMultiplierThis = 1.0f;
+	float GrappleReelForceMultiplierThis = 1;
 
 	//the multiplier for the grapple reel force applied to the player
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float GrappleReelForceMultiplierPlayer = 1.0f;
+	float GrappleReelForceMultiplierPlayer = 1;
+
+	//the max speed to use for the player when grappling to this object (only used if positive)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxSpeedPlayer = -1;
 
 	//whether or not to use the alternative action when grappling to this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

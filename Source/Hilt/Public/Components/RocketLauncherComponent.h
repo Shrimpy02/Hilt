@@ -66,4 +66,8 @@ public:
 	//function to load a rocket into the rocket launcher clip
 	UFUNCTION(BlueprintCallable, Category = "Rocket Launcher")
 	void LoadRocketClip();
+
+	//function to reset the rocket launcher
+	UFUNCTION(BlueprintCallable, Category = "Rocket Launcher")
+	void ResetRocketLauncher();
 };
