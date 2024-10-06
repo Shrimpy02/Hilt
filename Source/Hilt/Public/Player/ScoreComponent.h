@@ -11,6 +11,10 @@ struct FScoreValues
 {
 	GENERATED_BODY()
 
+	//the grappling hook pull mode max speed multiplier
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GrapplePullModeMultiplier = 1;
+
 	//the grappling hook real speed multiplier
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float GrappleSpeedMultiplier = 1;
@@ -45,7 +49,7 @@ struct FScoreValues
 
 	//the hard max limit for the player's speed when falling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float FallSpeedLimit = 6000;
+	float SlideSpeedLimit = 6000;
 
 	//the sliding turn rate curve to use
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -96,12 +100,40 @@ public:
 	float Score = 0;
 
 	//the float curve to use for the player's score degradation over time (1 = 100% of the score, 0 = 0% of the score)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Curves")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
 	UCurveFloat* ScoreDegradationCurve = nullptr;
+
+	//current pending score to add to the player's score
+	UPROPERTY(BlueprintReadOnly, Category = "Score")
+	float PendingScore = 0;
 
 	//the array of score values to use
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
 	TArray<FScoreValues> ScoreValues;
+
+	//the amount of score to subtract when you collide
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
+	float CollisionScoreLoss = 1;
+
+	//the float curve to use for calculating the score to give from grappling (0 = no time, > 0 = time)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	UCurveFloat* GrappleScoreCurve = nullptr;
+
+	//the time to wait before stopping the score degradation when grappling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
+	float GrappleScoreDecayStopDelay = 0.5;
+
+	//the float curve to use for adding score when stopping a slide based on the time spend sliding
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sliding")
+	UCurveFloat* SlideScoreCurve = nullptr;
+
+	//how often we should bank the player's score when sliding (0 = never, 1 = every second)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sliding")
+	float SlideScoreBankRate = 1;
+
+	//the amount of time to wait before stopping the score degradation when sliding
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sliding")
+	float SlideScoreDecayStopDelay = 0.5;
 
 	//last time the player gained score
 	UPROPERTY(BlueprintReadOnly)
@@ -114,6 +146,9 @@ public:
 	//reference to the player character associated with this component as a player character
 	UPROPERTY()
 	class APlayerCharacter* PlayerCharacter = nullptr;
+
+	//timer handle for banking slide score
+	FTimerHandle SlideScoreBankTimer;
 
 	// Sets default values for this component's properties
 	UScoreComponent();
@@ -144,5 +179,25 @@ public:
 	//function to get the current score values
 	UFUNCTION(BlueprintCallable)
 	FScoreValues GetCurrentScoreValues() const;
-		
+
+	//function to get the total pending score values
+	UFUNCTION(BlueprintCallable)
+	float GetTotalPendingScore() const;
+
+	//functions to update the score for various events (that need to be called every frame)
+	void GrapplingScoreUpdate();
+	void SlidingScoreUpdate();
+
+	//function's to handle the events that will update the score
+	UFUNCTION()
+	void OnStopGrapple();
+
+	UFUNCTION()
+	void OnStartSliding();
+
+	UFUNCTION()
+	void OnStopSliding();
+
+	UFUNCTION()
+	void BankSlideScore();
 };

@@ -10,7 +10,7 @@
 
 // Other Includes
 #include "Components/RocketLauncherComponent.h"
-#include "Components/GrapplingHook/GrapplingComponent.h"
+#include "Components/GrapplingHook/PlayerHeadGrapplingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
@@ -151,7 +151,12 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->ResetRocketLauncher();
 							PlayerCharacter->ScoreComponent->ResetScore();
-							PlayerCharacter->GrappleComponent->StopGrapple(false);
+
+							//check if the player is grappling
+							if (PlayerCharacter->HeadGrappleComponent->IsGrappling())
+							{
+								PlayerCharacter->HeadGrappleComponent->StopGrapple(false);
+							}
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;
@@ -176,7 +181,7 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
-							PlayerCharacter->GrappleComponent->StopGrapple(false);
+							PlayerCharacter->HeadGrappleComponent->StopGrapple(false);
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;

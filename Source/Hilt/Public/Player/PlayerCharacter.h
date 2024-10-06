@@ -25,10 +25,10 @@ public:
 
 	/** Class Components  */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	class UPlayerCameraComponent* Camera;
+	class UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	class UCameraArmComponent* CameraArm;
+	class USpringArmComponent* CameraArm;
 
 	UPROPERTY(BlueprintReadOnly)
 	class UPlayerMovementComponent* PlayerMovementComponent;
@@ -37,17 +37,29 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class URocketLauncherComponent* RocketLauncherComponent;
 
+	//the head grappling component that handles administrative tasks for grappling
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UPlayerHeadGrapplingComponent* HeadGrappleComponent;
+
 	//the grappling component that handles the player's grappling hook
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UGrapplingComponent* GrappleComponent;
+	class UPlayerGrapplingComponent* PlayerGrappleComponent;
 
-	//the rope component that handles the rope that connects the player to the grappling hook
+	//the grappling input component that handles wasd input for the grappling hook
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UPlayerGrapplingInputComponent* PlayerGrapplingInputComponent;
+
+	//the rope component that handles the rope that is used for grappling
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class URopeComponent* RopeComponent;
 
-	//the secondary skeletal mesh for the rope component
+	//the slide component that handles sliding
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class USkeletalMeshComponent* RopeMesh;
+	class USlideComponent* SlideComponent;
+
+	//the dive component that handles diving
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UDiveComponent* DiveComponent;
 
 	//the score component to keep track of the player's score
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

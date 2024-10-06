@@ -1,14 +1,18 @@
 #include "Player/PlayerCharacter.h"
 
 #include "Components/PlayerMovementComponent.h"
-#include "Components/Camera/CameraArmComponent.h"
-#include "Components/Camera/PlayerCameraComponent.h"
-#include "Components/GrapplingHook/GrapplingComponent.h"
-#include "Components/TerrainGun/TerrainGunComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Components/GrapplingHook/PlayerGrapplingComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 //#include "Components/SphereComponent.h"
+#include "Components/DiveComponent.h"
 #include "Components/RocketLauncherComponent.h"
+#include "Components/SlideComponent.h"
+#include "Components/GrapplingHook/PlayerGrapplingInputComponent.h"
+#include "Components/GrapplingHook/HeadGrapplingComponent.h"
+#include "Components/GrapplingHook/PlayerHeadGrapplingComponent.h"
 #include "Components/GrapplingHook/RopeComponent.h"
 #include "Core/HiltGameModeBase.h"
 #include "Player/ScoreComponent.h"
@@ -29,19 +33,21 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 
 	//initialize our components
 	PlayerMovementComponent = Cast<UPlayerMovementComponent>(GetCharacterMovement());
-	Camera = CreateDefaultSubobject<UPlayerCameraComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, Camera));
-	CameraArm = CreateDefaultSubobject<UCameraArmComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, CameraArm));
+	Camera = CreateDefaultSubobject<UCameraComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, Camera));
+	CameraArm = CreateDefaultSubobject<USpringArmComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, CameraArm));
 	RocketLauncherComponent = CreateDefaultSubobject<URocketLauncherComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
-	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
+	HeadGrappleComponent = CreateDefaultSubobject<UPlayerHeadGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, HeadGrappleComponent));
+	PlayerGrappleComponent = CreateDefaultSubobject<UPlayerGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, PlayerGrappleComponent));
+	PlayerGrapplingInputComponent = CreateDefaultSubobject<UPlayerGrapplingInputComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, PlayerGrapplingInputComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
-	RopeMesh = CreateDefaultSubobject<USkeletalMeshComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeMesh));
+	SlideComponent = CreateDefaultSubobject<USlideComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, SlideComponent));
+	DiveComponent = CreateDefaultSubobject<UDiveComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, DiveComponent));
 	ScoreComponent = CreateDefaultSubobject<UScoreComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, ScoreComponent));
 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());
 	Camera->SetupAttachment(CameraArm);
-	RopeMesh->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
-	RopeComponent->SetupAttachment(RopeMesh, FName("GrapplingHookSocket"));
+	RopeComponent->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
 	RocketLauncherComponent->SetupAttachment(GetRootComponent());
 
 	////set relative location and rotation for the mesh
@@ -194,7 +200,7 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 	const FRotator YawPlayerRotation(0.f, ControlPlayerRotationYaw.Yaw, 0.f);
 
 	//check if we're grappling
-	if (GrappleComponent->bIsGrappling && !GrappleComponent->ShouldUseNormalMovement())
+	if (HeadGrappleComponent->IsGrappling() && !PlayerGrapplingInputComponent->ShouldUseNormalMovement())
 	{
 		//get the up vector from the control rotation
 		const FVector PlayerDirectionYaw_Upwards_Downwards = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Z);
@@ -205,7 +211,7 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 		//get the right vector from the control rotation
 		const FVector PlayerDirectionYaw_Left_Right = FRotationMatrix(YawPlayerRotation).GetUnitAxis(EAxis::Y);
 
-		//get the X axis for the movement input
+		//get the Y axis for the movement input
 		const FVector MovementYAxis = FVector::CrossProduct((PlayerDirectionYaw_Left_Right * -1).GetSafeNormal(), Camera->GetForwardVector()).GetSafeNormal();
 
 		//add upwards/downwards movement input
@@ -217,8 +223,8 @@ void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 		return;
 	}
 
-	//check if we're not sliding
-	if (PlayerMovementComponent->IsSliding() || PlayerMovementComponent->bIsSlideFalling)
+	//check if we're sliding
+	if (SlideComponent->IsSliding())
 	{
 		//add left/right movement input
 		AddMovementInput(FVector::CrossProduct(Camera->GetForwardVector(), -GetActorUpVector()), VectorDirection.X);
@@ -261,7 +267,7 @@ void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 	//check if we can activate pause
 	if (!bCanActivatePause)
 	{
-		//return to prevent further execution
+		//return early to prevent further execution
 		return;
 	}
 
@@ -308,25 +314,52 @@ void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 
 void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
 {
-	//check if we can grapple
-	if (bCanActivateGrapple)
+	//check if we can't activate grapple
+	if (!bCanActivateGrapple)
 	{
-		//check if we can start the grapple
-		GrappleComponent->StartGrappleCheck();
+		//return early to prevent further execution
+		return;
 	}
+
+	//check if we already are grappling
+	if (HeadGrappleComponent->IsGrappling())
+	{
+		//return early to prevent further execution
+		return;
+	}
+
+	//get the grapple hit
+	const FHitResult GrappleHit = HeadGrappleComponent->GetGrappleHit(HeadGrappleComponent->MaxGrappleDistance, true);
+
+	//check if the hit result is not a valid blocking hit
+	if (!GrappleHit.IsValidBlockingHit())
+	{
+		//return early to prevent further execution
+		return;
+	}
+
+	//start grappling
+	HeadGrappleComponent->StartGrapple(GrappleHit);
 }
 
 void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 {
-	//check if we can grapple
-	if (bCanActivateGrapple)
+	////check if we can't grapple
+	//if (!bCanActivateGrapple)
+	//{
+	//	//return early to prevent further execution
+	//	return;
+	//}
+
+	//check if we're not grappling
+	if (!HeadGrappleComponent->IsGrappling())
 	{
-		//stop grappling
-		GrappleComponent->StopGrapple();
+		//return early to prevent further execution
+		return;
 	}
 
 	//stop grappling
-	GrappleComponent->StopGrapple();
+	HeadGrappleComponent->StopGrapple();
 }
 
 void APlayerCharacter::StartDiveOrSlide(const FInputActionValue& Value)
@@ -338,18 +371,22 @@ void APlayerCharacter::StartDiveOrSlide(const FInputActionValue& Value)
 		return;
 	}
 
-	//check if we're in the air
-	if (GetCharacterMovement()->IsFalling())
+	//check if we're in the air and we're not already diving
+	if (GetCharacterMovement()->IsFalling() && !DiveComponent->IsDiving())
 	{
 		//start the dive
-		PlayerMovementComponent->StartDive();
+		DiveComponent->StartDive();
 
 		//return to prevent further execution
 		return;
 	}
 
-	//start the slide
-	PlayerMovementComponent->StartSlide();
+	//check if we're on the ground and we're not already sliding
+	if (GetCharacterMovement()->IsWalking() && !SlideComponent->IsSliding()) 
+	{
+		//start the slide
+		SlideComponent->StartSlide();
+	}
 }
 
 void APlayerCharacter::StopDiveOrSlide(const FInputActionValue& Value)
@@ -361,11 +398,19 @@ void APlayerCharacter::StopDiveOrSlide(const FInputActionValue& Value)
 		return;
 	}
 
-	//stop diving
-	PlayerMovementComponent->StopDive();
-	
-	//stop sliding
-	PlayerMovementComponent->StopSlide();
+	//check if we're diving
+	if (DiveComponent->IsDiving())
+	{
+		//stop diving
+		DiveComponent->StopDive();
+	}
+
+	//check if we're sliding
+	if (SlideComponent->IsSliding())
+	{
+		//stop sliding
+		SlideComponent->StopSlide();
+	}
 }
 
 void APlayerCharacter::DoJump(const FInputActionValue& Value)

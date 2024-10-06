@@ -2,7 +2,9 @@
 
 #include "Components/RocketLauncherComponent.h"
 
-#include "Components/GrapplingHook/GrapplingComponent.h"
+#include "Components/GrapplingHook/HeadGrapplingComponent.h"
+#include "Components/GrapplingHook/PlayerGrapplingComponent.h"
+#include "Components/GrapplingHook/PlayerHeadGrapplingComponent.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
 
@@ -23,13 +25,13 @@ AActor* URocketLauncherComponent::FireProjectile(FVector Direction)
 	if (bAllowAlternativeActions)
 	{
 		//check if the player is grappled and the grappleable component is valid
-		if (PlayerCharacter->GrappleComponent->bIsGrappling && PlayerCharacter->GrappleComponent->GrappleableComponent->IsValidLowLevel())
+		if (PlayerCharacter->HeadGrappleComponent->IsGrappling() && PlayerCharacter->HeadGrappleComponent->GrappleableComponent->IsValidLowLevel())
 		{
 			//check if we should use the alternative action
-			if (PlayerCharacter->GrappleComponent->GrappleableComponent->bUseAlternativeAction)
+			if (PlayerCharacter->HeadGrappleComponent->GrappleableComponent->bUseAlternativeAction)
 			{
 				//call the grappleable component's alternative action
-				PlayerCharacter->GrappleComponent->GrappleableComponent->AlternativeActionEvent.Broadcast(PlayerCharacter);
+				PlayerCharacter->HeadGrappleComponent->GrappleableComponent->AlternativeActionEvent.Broadcast(PlayerCharacter);
 
 				//prevent further execution of this function
 				return nullptr;

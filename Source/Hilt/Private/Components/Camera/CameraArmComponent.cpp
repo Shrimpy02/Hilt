@@ -16,58 +16,58 @@ void UCameraArmComponent::BeginPlay()
 	//call the parent implementation
 	Super::BeginPlay();
 
-	////set default target offset
-	//DefaultTargetOffset = TargetOffset;
+	//set default target offset
+	DefaultTargetOffset = TargetOffset;
 
-	////check if we smooth cameramovement when crouching
-	//if (bSmoothCrouch)
-	//{
-	//	//set the timer handle
-	//	GetWorld()->GetTimerManager().SetTimer(CrouchLerpTimerHandle, this, &UCameraArmComponent::LerpCameraOffset, CrouchLerpTime, true);
-	//}
+	//check if we smooth cameramovement when crouching
+	if (bSmoothCrouch)
+	{
+		//set the timer handle
+		GetWorld()->GetTimerManager().SetTimer(CrouchLerpTimerHandle, this, &UCameraArmComponent::LerpCameraOffset, CrouchLerpTime, true);
+	}
 
-	////check if we use camera zoom
-	//if (bUseCameraZoom)
-	//{
-	//	//check if camera lerps is empty
-	//	if (CamZoomInterps.IsEmpty())
-	//	{
-	//		//add a default value to the map
-	//		CamZoomInterps.Add(FCameraZoomStruct());
-	//	}
+	//check if we use camera zoom
+	if (bUseCameraZoom)
+	{
+		//check if camera lerps is empty
+		if (CamZoomInterps.IsEmpty())
+		{
+			//add a default value to the map
+			CamZoomInterps.Add(FCameraZoomStruct());
+		}
 
-	//	//set the timer handle
-	//	GetWorld()->GetTimerManager().SetTimer(ZoomInterpTimerHandle, this, &UCameraArmComponent::InterpCameraZoom, CameraZoomUpdateSpeed, true);
-	//}
+		//set the timer handle
+		GetWorld()->GetTimerManager().SetTimer(ZoomInterpTimerHandle, this, &UCameraArmComponent::InterpCameraZoom, CameraZoomUpdateSpeed, true);
+	}
 
-	////set the player character
-	//PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	//set the player character
+	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 
-	////set the original target offset
-	//OriginalTargetOffset = TargetOffset;
+	//set the original target offset
+	OriginalTargetOffset = TargetOffset;
 }
 
 void UCameraArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime)
 {
-	////check if the player character is valid
-	//if (!PlayerCharacter->IsValidLowLevelFast())
-	//{
-	//	//default to the parent implementation
-	//	Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
+	//check if the player character is valid
+	if (!PlayerCharacter->IsValidLowLevelFast())
+	{
+		//default to the parent implementation
+		Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);
 
-	//	//prevent further execution
-	//	return;
-	//}
+		//prevent further execution
+		return;
+	}
 
-	////check if we're using the movement offset
-	//if (bUseMoveOffset)
-	//{
-	//	//get the input vector of the player character
-	//	const FVector2D InputVector = PlayerCharacter->CurrentMoveDirection;
+	//check if we're using the movement offset
+	if (bUseMoveOffset)
+	{
+		//get the input vector of the player character
+		const FVector2D InputVector = PlayerCharacter->CurrentMoveDirection;
 
-	//	//set the target offset
-	//	TargetOffset = FMath::VInterpTo(TargetOffset, OriginalTargetOffset + (RightVec * InputVector.X + ForwardVec * InputVector.Y) * -MoveOffsetAmount, DeltaTime, MoveOffsetInterpSpeed);
-	//}
+		//set the target offset
+		TargetOffset = FMath::VInterpTo(TargetOffset, OriginalTargetOffset + (RightVec * InputVector.X + ForwardVec * InputVector.Y) * -MoveOffsetAmount, DeltaTime, MoveOffsetInterpSpeed);
+	}
 
 	//defualt to the parent implementation
 	Super::UpdateDesiredArmLocation(bDoTrace, bDoLocationLag, bDoRotationLag, DeltaTime);

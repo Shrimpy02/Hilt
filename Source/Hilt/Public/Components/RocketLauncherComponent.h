@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class HILT_API URocketLauncherComponent : public UProjectileGunComponent
+class URocketLauncherComponent : public UProjectileGunComponent
 {
 	GENERATED_BODY()
 

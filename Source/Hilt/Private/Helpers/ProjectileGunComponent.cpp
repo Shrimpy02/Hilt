@@ -1,6 +1,6 @@
 #include "Helpers/ProjectileGunComponent.h"
 
-#include "Components/GrapplingHook/GrapplingComponent.h"
+#include "Components/GrapplingHook/PlayerGrapplingComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NPC/Components/GrappleableComponent.h"
 #include "Player/PlayerCharacter.h"
