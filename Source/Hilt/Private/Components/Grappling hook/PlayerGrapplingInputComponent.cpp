@@ -50,7 +50,7 @@ float UPlayerGrapplingInputComponent::GetGrappleMovementInputModifiers(const FVe
 	if (PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleMovementDistanceInputCurve)
 	{
 		//get the grapple distance movement input curve value
-		const float Value = PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleMovementDistanceInputCurve->GetFloatValue(FMath::Clamp(FVector::Dist(GetOwner()->GetActorLocation(), PlayerCharacter->RopeComponent->GetRopeEnd()) / PlayerCharacter->HeadGrappleComponent->MaxGrappleDistance, 0, 1));
+		const float Value = PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleMovementDistanceInputCurve->GetFloatValue(FMath::Clamp(PlayerCharacter->RopeComponent->GetRopeLength() / PlayerCharacter->HeadGrappleComponent->MaxGrappleDistance, 0, 1));
 
 		//multiply the return 
 		ReturnVal *= Value;

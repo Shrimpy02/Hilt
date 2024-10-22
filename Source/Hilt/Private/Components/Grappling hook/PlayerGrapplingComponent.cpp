@@ -40,7 +40,7 @@ float UPlayerGrapplingComponent::GetPullGrappleModifiers(FVector Direction) cons
 	if (PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleDistanceCurve)
 	{
 		//get the grapple distance curve value
-		const float Value = PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleDistanceCurve->GetFloatValue(FMath::Clamp(FVector::Dist(GetOwner()->GetActorLocation(), PlayerCharacter->RopeComponent->GetRopeEnd()) / PlayerCharacter->HeadGrappleComponent->MaxGrappleDistance, 0, 1));
+		const float Value = PlayerCharacter->ScoreComponent->GetCurrentScoreValues().GrappleDistanceCurve->GetFloatValue(FMath::Clamp(PlayerCharacter->RopeComponent->GetRopeLength() / PlayerCharacter->HeadGrappleComponent->MaxGrappleDistance, 0, 1));
 		 
 		//multiply the grapple velocity by the grapple distance curve value
 		ReturnVal *= Value;

@@ -102,11 +102,27 @@ FHitResult UPlayerHeadGrapplingComponent::GetAimAssistHit(FVector StartLocation,
 
 float UPlayerHeadGrapplingComponent::GetRemainingGrappleDistance() const
 {
-	//get the distance left until the player can grapple to where they are aiming and check if it's greater than 0
-	if (const float GrappleDistanceLeft = FVector::Dist(GetOwner()->GetActorLocation(), RopeComponent->GetRopeEnd()) - MaxGrappleDistance; GrappleDistanceLeft > 0.f)
+	//storage for the camera location and rotation
+	FVector CameraLocation;
+	FRotator CameraRotation;
+
+	//get the camera location and rotation
+	GetOwner()->GetNetOwningPlayer()->GetPlayerController(GetWorld())->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+	//get the forward vector of the camera rotation
+	const FVector Rotation = CameraRotation.Quaternion().GetForwardVector();
+
+	//get the end point of the line trace
+	const FVector End = CameraLocation + Rotation * MaxGrappleDistance;
+
+	//get the hit result
+	const FHitResult GrappleHit = GetGrappleHit(MaxGrappleDistance, false);
+
+	//check if the hit result is valid
+	if (GrappleHit.IsValidBlockingHit())
 	{
-		//return the distance left until the player can grapple to where they are aiming
-		return GrappleDistanceLeft;
+		//return the distance between the hit location and the player character
+		return FVector::Dist(GetOwner()->GetActorLocation(), GrappleHit.ImpactPoint);
 	}
 
 	//otherwise return 0

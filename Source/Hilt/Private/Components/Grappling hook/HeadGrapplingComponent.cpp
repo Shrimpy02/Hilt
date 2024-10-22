@@ -51,7 +51,7 @@ FVector UHeadGrapplingComponent::GetEndLocation() const
 	if (RopeComponent->IsValidLowLevelFast())
 	{
 		//return the rope end
-		return RopeComponent->GetRopeEnd();
+		return RopeComponent->GetSecondRopePoint();
 	}
 
 	//return the zero vector
