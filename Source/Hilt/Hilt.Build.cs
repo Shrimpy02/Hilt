@@ -8,7 +8,7 @@ public class Hilt : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Niagara" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Niagara", "OnlineSubsystem", "Sockets", "Networking" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "NavigationSystem"});
 
