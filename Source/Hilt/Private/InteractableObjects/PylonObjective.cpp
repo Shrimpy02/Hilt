@@ -3,6 +3,8 @@
 #include "Hilt/Public/Core/HiltTags.h"
 
 // Other Includes
+#include <Kismet/GameplayStatics.h>
+
 #include "Player/PlayerCharacter.h"
 #include "Components/BoxComponent.h"
 #include "NPC/Components/GrappleableComponent.h"
@@ -16,6 +18,7 @@ APylonObjective::APylonObjective()
 	// Trigger Collision Mesh  -------------
 	TriggerCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerCollisionBox"));
 	TriggerCollisionBox->SetupAttachment(GetRootComponent());
+
 	// Collision Settings
 	TriggerCollisionBox->SetCollisionObjectType(ECC_WorldStatic);
 	TriggerCollisionBox->SetGenerateOverlapEvents(true);
@@ -62,7 +65,7 @@ void APylonObjective::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
                                 UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor);
-	if(Player)
+	if(Player && DisableOnce)
 	{
 		// if player and is being grappled stop grapple
 		if (GrappleComponent->bIsGrappled)
@@ -70,7 +73,11 @@ void APylonObjective::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 			Player->StopGrapple(0);
 		}
 
+		AHiltGameModeBase* GameMode = Cast<AHiltGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+		GameMode->NumActiveObjectives--;
+
 		RemoveLevelPresence();
+		DisableOnce = false;
 	}
 }
 

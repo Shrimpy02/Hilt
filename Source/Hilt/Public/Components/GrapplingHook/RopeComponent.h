@@ -278,7 +278,7 @@ public:
 
 	//function to get the direction of the rope from a given t value and direction (forwards or backwards)
 	UFUNCTION(BlueprintCallable, Category = "Rope")
-	FVector GetRopeDirection(int RopeDirectionChecks) const;
+	FVector GetRopeDirection() const;
 
 	//function to get the length of the rope
 	UFUNCTION(BlueprintCallable, Category = "Rope")

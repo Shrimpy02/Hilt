@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "InteractableObjects/BaseInteractableObject.h"
+#include "NPC/Components/GrappleableComponent.h"
 #include "PylonObjective.generated.h"
 
 /**
@@ -15,6 +16,8 @@ class APylonObjective : public ABaseInteractableObject
 
 public:
 	//  ---------------------- Public Variable`s ----------------------
+
+	bool DisableOnce = true;
 
 private:
 	//  ---------------------- Private Variable`s ---------------------

@@ -77,13 +77,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<EGrapplingMode> GrappleMode = AddToVelocity;
 
-	//the grappling speed in add velocity mode
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
-	float WasdPullSpeed = 22500;
-
 	//the nowasd grapple interp struct
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
-	FGrappleInterpStruct NoWasdGrappleInterpStruct = FGrappleInterpStruct(10000.0f, 5.f, InterpTo);
+	FGrappleInterpStruct DefaultGrappleInterpStruct = FGrappleInterpStruct(10000.0f, 5.f, InterpTo);
 	
 	//the movement input modifier to use when processing the grapple movement input curve
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -121,10 +117,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleFriction = 0.5f;
 
-	//the number of points to search for when checking the direction of the rope
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
-	int GrappleDirectionChecks = 15;
-
 	//the distance threshold to use when checking if we should stop grappling
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleStopDistance = 100;
@@ -132,18 +124,6 @@ public:
 	//the sphere radius to use when checking when double checking the if you can grapple to where you're aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
 	float GrappleSphereRadius = 100;
-
-	////the float curve to use for modifying the pull force based on the number of collisions the grappling rope has (starts at 2 because its counting the player and the grapple point)
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
-	//UCurveFloat* GrappleCollisionPointsCurve = nullptr;
-
-	////the float curve to use for modifying the pull force based on how close the player is to max speed and how close the grapple direction is to the player's velocity direction
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
-	//UCurveFloat* GrappleSpeedAndDirectionForceCurve = nullptr;
-
-	////the float curve to use for modifying the pull force based on the relative length of the last segment of the rope
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling")
-	//UCurveFloat* GrappleLastSegmentLengthCurve = nullptr;
 
 	//the grapple dot product to based of the grapple velocity and the player's velocity
 	UPROPERTY(BlueprintReadOnly)
@@ -218,6 +198,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool ShouldUseNormalMovement() const;
 
+	//function to get the current max speed to use when grappling
+	UFUNCTION(BlueprintCallable)
+	float GetMaxSpeed() const;
+
 private:
 
 	//function to handle the interpolation modes of the grapple
@@ -228,6 +212,9 @@ private:
 
 	//function to check for force modifiers based on the grappleable component of the target we're grappling to
 	void CheckTargetForceModifiers(FVector& BaseVel, float DeltaTime) const;
+
+	//function to check for force modifiers based on the grappleable component and the current grappling mode
+	void CheckTargetPullSpeedModifiers(float& PullSpeed) const;
 
 	//function to apply the pull force to the player
 	void ApplyPullForce(float DeltaTime);
