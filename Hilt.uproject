@@ -11,12 +11,12 @@
 			"AdditionalDependencies": [
 				"Engine"
 			]
-		 },
-    {
-        "Name": "OnlineSubsystem",
-        "Type": "Runtime",
-        "LoadingPhase": "Default"
-    }
+		},
+		{
+			"Name": "OnlineSubsystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
 	],
 	"Plugins": [
 		{
@@ -50,6 +50,10 @@
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
+		},
+		{
+			"Name": "ElectraCodecs",
+			"Enabled": true
 		}
 	]
 }
