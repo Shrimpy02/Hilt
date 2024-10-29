@@ -72,6 +72,9 @@ public:
 	void ShowAllStreamingLevels();
 	void HideNotDefaultStreamingLevels();
 
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	bool IsConnectedToInternet();
+
 	// Timer -----
 
 	void CountTime();

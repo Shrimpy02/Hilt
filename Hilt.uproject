@@ -11,7 +11,12 @@
 			"AdditionalDependencies": [
 				"Engine"
 			]
-		}
+		 },
+    {
+        "Name": "OnlineSubsystem",
+        "Type": "Runtime",
+        "LoadingPhase": "Default"
+    }
 	],
 	"Plugins": [
 		{
