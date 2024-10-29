@@ -7,8 +7,10 @@
 #include "InteractableObjects/PylonObjective.h"
 #include "NPC/Enemies/BaseEnemy.h"
 #include "Hilt/Public/Core/HiltTags.h"
+#include "Networking.h"
 
 // Other Includes
+#include "SocketSubsystem.h"
 #include "Components/RocketLauncherComponent.h"
 #include "Components/GrapplingHook/GrapplingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -250,6 +252,28 @@ void AHiltGameModeBase::HideNotDefaultStreamingLevels()
 			}
 		}
 	}
+}
+
+bool AHiltGameModeBase::IsConnectedToInternet()
+{
+	bool bIsConnected = false;
+	ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
+
+	// Create a socket for the connection attempt
+	TSharedRef<FInternetAddr> InternetAddress = SocketSubsystem->CreateInternetAddr();
+	bool bIsValid;
+	InternetAddress->SetIp(TEXT("8.8.8.8"), bIsValid); // Google DNS IP
+	InternetAddress->SetPort(53); // DNS port
+
+	// Create a TCP socket and attempt connection
+	FSocket* Socket = SocketSubsystem->CreateSocket(NAME_Stream, TEXT("InternetConnectionTest"), false);
+	if (Socket && bIsValid)
+	{
+		bIsConnected = Socket->Connect(*InternetAddress); // Try to connect
+		SocketSubsystem->DestroySocket(Socket); // Clean up socket after check
+	}
+
+	return bIsConnected;
 }
 
 void AHiltGameModeBase::RestartLevelBP()

@@ -214,13 +214,6 @@ void UGrapplingComponent::StopGrapple(bool CallBlueprintEvent)
 		PlayerCharacter->ScoreComponent->AddScore(Value);
 	}
 
-	//check if we should call the blueprint event
-	if (CallBlueprintEvent)
-	{
-		//call the OnStopGrapple event
-		OnStopGrapple.Broadcast();
-	}
-
 	//check if we have a grappleable component
 	if (GrappleableComponent->IsValidLowLevelFast())
 	{
@@ -256,6 +249,13 @@ void UGrapplingComponent::StopGrapple(bool CallBlueprintEvent)
 
 	//set borientrotationtoMovement to true
 	PlayerCharacter->PlayerMovementComponent->bOrientRotationToMovement = true;
+
+	//check if we should call the blueprint event
+	if (CallBlueprintEvent)
+	{
+		//call the OnStopGrapple event
+		OnStopGrapple.Broadcast();
+	}
 }
 
 void UGrapplingComponent::StartGrappleCheck()

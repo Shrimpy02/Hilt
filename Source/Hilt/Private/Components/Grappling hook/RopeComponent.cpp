@@ -665,7 +665,7 @@ void URopeComponent::ActivateRope(const FHitResult& HitResult)
 
 	//set the rope points
 	RopePoints = { FRopePoint(GetOwner(), GetComponentLocation()), FRopePoint(HitResult) };
-	RopePoints[0].Component = PlayerCharacter->RopeMesh;
+	RopePoints[0].Component = PlayerCharacter->GetMesh();
 
 	//get the direction from the first rope point to the second rope point
 	const FVector Direction = RopePoints[1].GetWL() - RopePoints[0].GetWL();
