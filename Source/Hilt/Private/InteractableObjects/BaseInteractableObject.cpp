@@ -21,6 +21,7 @@ ABaseInteractableObject::ABaseInteractableObject()
 
 	// GrappleComp -----
 	GrappleComponent = CreateDefaultSubobject<UGrappleableComponent>(TEXT("GrappleComp"));
+	GrappleComponent->SetupAttachment(GetRootComponent());
 
 	// Visible Mesh -------------
 	VisibleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisibleMesh"));
