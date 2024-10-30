@@ -73,13 +73,22 @@ void AHiltGameModeBase::BeginPlay()
 void AHiltGameModeBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (TimerShouldTick)
-	{
-		TotalElapsedTime += DeltaTime;
-		LocalElapsedTime += DeltaTime;
-		CountTime();
-	}
+	if (UWorld* World = GetWorld())
+		if (APlayerController* PC = World->GetFirstPlayerController())
+			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
+			{
+				if (PlayerCharacter->hasStartedMoving)
+				{
+					if (TimerShouldTick)
+					{
+						TotalElapsedTime += DeltaTime;
+						LocalElapsedTime += DeltaTime;
+						CountTime();
+					}
+				}
+			}
+	
+	
 
 	// Checks if all objectives are taken
 	if (UWorld* World = GetWorld())
@@ -227,8 +236,8 @@ void AHiltGameModeBase::ShowAllStreamingLevels()
 	for (ULevelStreaming* Level : StreamingLevels)
 	{
 		Level->SetShouldBeVisible(true);
-		if(Level->IsLevelVisible())
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("LevelVis"));
+		//if(Level->IsLevelVisible())
+			//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("LevelVis"));
 	}
 }
 
