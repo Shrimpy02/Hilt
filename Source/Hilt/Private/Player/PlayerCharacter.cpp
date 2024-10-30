@@ -167,6 +167,8 @@ void APlayerCharacter::HideStreamingLevel(TArray<FName> LevelsToHide)
 
 void APlayerCharacter::WasdMovement(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
+
 	//check if we can activate input
 	if (!bCanActivateInput)
 	{
@@ -272,6 +274,7 @@ void APlayerCharacter::PauseGame(const FInputActionValue& Value)
 
 void APlayerCharacter::FireRocketLauncher(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
 	//check if we can activate input
 	if (!bCanActivateInput)
 	{
@@ -306,6 +309,7 @@ void APlayerCharacter::RestartGame(const FInputActionValue& Value)
 
 void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
 	//check if we can grapple
 	if (bCanActivateGrapple)
 	{
@@ -316,6 +320,7 @@ void APlayerCharacter::ShootGrapple(const FInputActionValue& Value)
 
 void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
 	//check if we can grapple
 	if (bCanActivateGrapple)
 	{
@@ -329,6 +334,7 @@ void APlayerCharacter::StopGrapple(const FInputActionValue& Value)
 
 void APlayerCharacter::StartDiveOrSlide(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
 	//check if we can activate input
 	if (!bCanActivateInput)
 	{
@@ -352,6 +358,7 @@ void APlayerCharacter::StartDiveOrSlide(const FInputActionValue& Value)
 
 void APlayerCharacter::StopDiveOrSlide(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
 	//check if we can activate input
 	if (!bCanActivateInput)
 	{
@@ -368,6 +375,7 @@ void APlayerCharacter::StopDiveOrSlide(const FInputActionValue& Value)
 
 void APlayerCharacter::DoJump(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
 	//check if we can activate input
 	if (!bCanActivateInput)
 	{
@@ -381,6 +389,7 @@ void APlayerCharacter::DoJump(const FInputActionValue& Value)
 
 void APlayerCharacter::StopTheJumping(const FInputActionValue& Value)
 {
+	hasStartedMoving = true;
 	//check if we can activate input
 	if (!bCanActivateInput)
 	{
