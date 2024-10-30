@@ -34,14 +34,12 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	RocketLauncherComponent = CreateDefaultSubobject<URocketLauncherComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RocketLauncherComponent));
 	GrappleComponent = CreateDefaultSubobject<UGrapplingComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, GrappleComponent));
 	RopeComponent = CreateDefaultSubobject<URopeComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeComponent));
-	RopeMesh = CreateDefaultSubobject<USkeletalMeshComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, RopeMesh));
 	ScoreComponent = CreateDefaultSubobject<UScoreComponent>(GET_FUNCTION_NAME_CHECKED(APlayerCharacter, ScoreComponent));
 
 	//setup attachments
 	CameraArm->SetupAttachment(GetRootComponent());
 	Camera->SetupAttachment(CameraArm);
-	RopeMesh->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
-	RopeComponent->SetupAttachment(RopeMesh, FName("GrapplingHookSocket"));
+	RopeComponent->SetupAttachment(GetMesh(), FName("GrapplingHookSocket"));
 	RocketLauncherComponent->SetupAttachment(GetRootComponent());
 
 	////set relative location and rotation for the mesh

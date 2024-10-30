@@ -45,10 +45,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class URopeComponent* RopeComponent;
 
-	//the secondary skeletal mesh for the rope component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class USkeletalMeshComponent* RopeMesh;
-
 	//the score component to keep track of the player's score
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UScoreComponent* ScoreComponent;
