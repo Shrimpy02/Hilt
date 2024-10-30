@@ -945,11 +945,23 @@ bool UPlayerMovementComponent::DoJump(bool bReplayingMoves)
 	//check if we're moving fast enough to do a boosted jump and we're on the ground and that this isn't a double jump
 	if (IsSliding())
 	{
-		//set bIsSlideJumping
-		bIsSlideJumping = true;
+		//get the dot product of the last super jump direction and the surface normal
+		const float DotProduct1 = FVector::DotProduct(PlayerPawn->Camera->GetForwardVector(), CurrentFloor.HitResult.ImpactNormal);
 
-		//get the direction of the jump
-		LastSuperJumpDirection = PlayerPawn->Camera->GetForwardVector();
+		//check if dotproduct1 is greater than or equal to dotproduct2
+		if (DotProduct1 <= 0.5)
+		{
+			//set the last super jump direction to the combination vector
+			LastSuperJumpDirection = CurrentFloor.HitResult.ImpactNormal;
+		}
+		else
+		{
+			//set bIsSlideJumping
+			bIsSlideJumping = true;
+
+			//set the last super jump direction to the camera's forward vector
+			LastSuperJumpDirection = PlayerPawn->Camera->GetForwardVector();
+		}
 
 		//set the movement mode to falling
 		SetMovementMode(MOVE_Falling);
