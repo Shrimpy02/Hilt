@@ -7,8 +7,10 @@
 #include "InteractableObjects/PylonObjective.h"
 #include "NPC/Enemies/BaseEnemy.h"
 #include "Hilt/Public/Core/HiltTags.h"
+#include "Networking.h"
 
 // Other Includes
+#include "SocketSubsystem.h"
 #include "Components/RocketLauncherComponent.h"
 #include "Components/GrapplingHook/PlayerHeadGrapplingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -71,13 +73,22 @@ void AHiltGameModeBase::BeginPlay()
 void AHiltGameModeBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (TimerShouldTick)
-	{
-		TotalElapsedTime += DeltaTime;
-		LocalElapsedTime += DeltaTime;
-		CountTime();
-	}
+	if (UWorld* World = GetWorld())
+		if (APlayerController* PC = World->GetFirstPlayerController())
+			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PC->GetPawn()))
+			{
+				if (PlayerCharacter->hasStartedMoving)
+				{
+					if (TimerShouldTick)
+					{
+						TotalElapsedTime += DeltaTime;
+						LocalElapsedTime += DeltaTime;
+						CountTime();
+					}
+				}
+			}
+	
+	
 
 	// Checks if all objectives are taken
 	if (UWorld* World = GetWorld())
@@ -151,6 +162,8 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->ResetRocketLauncher();
 							PlayerCharacter->ScoreComponent->ResetScore();
+							PlayerCharacter->GrappleComponent->StopGrapple(false);
+							PlayerCharacter->hasStartedMoving = false;
 
 							//check if the player is grappling
 							if (PlayerCharacter->HeadGrappleComponent->IsGrappling())
@@ -181,7 +194,8 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
-							PlayerCharacter->HeadGrappleComponent->StopGrapple(false);
+							PlayerCharacter->GrappleComponent->StopGrapple(false);
+							PlayerCharacter->hasStartedMoving = false;
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;
@@ -230,8 +244,8 @@ void AHiltGameModeBase::ShowAllStreamingLevels()
 	for (ULevelStreaming* Level : StreamingLevels)
 	{
 		Level->SetShouldBeVisible(true);
-		if(Level->IsLevelVisible())
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("LevelVis"));
+		//if(Level->IsLevelVisible())
+			//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("LevelVis"));
 	}
 }
 
@@ -255,6 +269,28 @@ void AHiltGameModeBase::HideNotDefaultStreamingLevels()
 			}
 		}
 	}
+}
+
+bool AHiltGameModeBase::IsConnectedToInternet()
+{
+	bool bIsConnected = false;
+	ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
+
+	// Create a socket for the connection attempt
+	TSharedRef<FInternetAddr> InternetAddress = SocketSubsystem->CreateInternetAddr();
+	bool bIsValid;
+	InternetAddress->SetIp(TEXT("8.8.8.8"), bIsValid); // Google DNS IP
+	InternetAddress->SetPort(53); // DNS port
+
+	// Create a TCP socket and attempt connection
+	FSocket* Socket = SocketSubsystem->CreateSocket(NAME_Stream, TEXT("InternetConnectionTest"), false);
+	if (Socket && bIsValid)
+	{
+		bIsConnected = Socket->Connect(*InternetAddress); // Try to connect
+		SocketSubsystem->DestroySocket(Socket); // Clean up socket after check
+	}
+
+	return bIsConnected;
 }
 
 void AHiltGameModeBase::RestartLevelBP()

@@ -77,16 +77,16 @@ FVector FRopePoint::GetWL() const
 		return Location;
 	}
 
-	//check if we have a attached actor
-	if (AttachedActor)
-	{
-		//get the grapplable component of the attached actor
-		if (const UGrappleableComponent* GrappleableComponent = AttachedActor->FindComponentByClass<UGrappleableComponent>())
-		{
-			//return the location of the grappleable component
-			return GrappleableComponent->GetComponentLocation();
-		}
-	}
+	////check if we have a attached actor
+	//if (AttachedActor)
+	//{
+	//	//get the grapplable component of the attached actor
+	//	if (const UGrappleableComponent* GrappleableComponent = AttachedActor->FindComponentByClass<UGrappleableComponent>())
+	//	{
+	//		//return the location of the grappleable component
+	//		return GrappleableComponent->GetComponentLocation();
+	//	}
+	//}
 
 
 	//check if we're using an actor for this rope point
@@ -639,7 +639,7 @@ void URopeComponent::ActivateRope(const FHitResult& HitResult)
 
 	//set the rope points
 	RopePoints = { FRopePoint(GetOwner(), GetComponentLocation()), FRopePoint(HitResult) };
-	//RopePoints[0].Component =/* PlayerCharacter->RopeMesh;*/ this;
+	RopePoints[0].Component = PlayerCharacter->GetMesh();
 
 	//get the direction from the first rope point to the second rope point
 	const FVector Direction = RopePoints[1].GetWL() - RopePoints[0].GetWL();

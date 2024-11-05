@@ -67,10 +67,15 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void RestartLevel();
+
+	UFUNCTION(BlueprintCallable)
 	void RestartCooldownComplete();
 
 	void ShowAllStreamingLevels();
 	void HideNotDefaultStreamingLevels();
+
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	bool IsConnectedToInternet();
 
 	// Timer -----
 

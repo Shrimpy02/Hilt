@@ -17,6 +17,8 @@ class APlayerCharacter : public ACharacter
 
 public:
 
+	bool hasStartedMoving = false;
+
 	//event for when the player restarts
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerRestart);
 

@@ -20,7 +20,7 @@ public:
 	URocketLauncherComponent();
 
 	//the clip size of the rocket launcher
-	UPROPERTY(EditAnywhere, Category = "Rocket Launcher")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rocket Launcher")
 	int32 ClipSize = 3;
 
 	//the startign ammo for the rocket launcher
