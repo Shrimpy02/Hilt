@@ -391,6 +391,11 @@ void UPlayerMovementComponent::PhysCustom(float deltaTime, int32 Iterations)
 	Super::PhysCustom(deltaTime, Iterations);
 }
 
+bool UPlayerMovementComponent::IsWalkable(const FHitResult& Hit) const
+{
+	return Hit.IsValidBlockingHit();
+}
+
 //bool UPlayerMovementComponent::IsWalkable(const FHitResult& Hit) const
 //{
 //	//most of this function is copied from the parent implementation

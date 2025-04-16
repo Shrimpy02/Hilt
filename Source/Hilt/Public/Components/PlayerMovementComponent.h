@@ -130,7 +130,7 @@ public:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
-	//virtual bool IsWalkable(const FHitResult& Hit) const override;
+	virtual bool IsWalkable(const FHitResult& Hit) const override;
 	virtual void PerformMovement(float DeltaTime) override;
 	virtual void HandleWalkingOffLedge(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta) override;
 	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;

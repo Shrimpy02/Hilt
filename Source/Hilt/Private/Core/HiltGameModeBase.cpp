@@ -162,7 +162,6 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->ResetRocketLauncher();
 							PlayerCharacter->ScoreComponent->ResetScore();
-							PlayerCharacter->GrappleComponent->StopGrapple(false);
 							PlayerCharacter->hasStartedMoving = false;
 
 							//check if the player is grappling
@@ -194,8 +193,13 @@ void AHiltGameModeBase::RestartLevel()
 							PlayerCharacter->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 							PlayerCharacter->RocketLauncherComponent->CurrentAmmo = PlayerCharacter->RocketLauncherComponent->StartingAmmo;
 							PlayerCharacter->ScoreComponent->ResetScore();
-							PlayerCharacter->GrappleComponent->StopGrapple(false);
 							PlayerCharacter->hasStartedMoving = false;
+
+							//check if the player is grappling
+							if (PlayerCharacter->HeadGrappleComponent->IsGrappling())
+							{
+								PlayerCharacter->HeadGrappleComponent->StopGrapple(false);
+							}
 
 							//array for projectile actors
 							TArray<AActor*> ProjectileActors;
